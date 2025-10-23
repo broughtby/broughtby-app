@@ -1,0 +1,158 @@
+.image-upload {
+  margin-bottom: 1.5rem;
+}
+
+.image-upload-label {
+  display: block;
+  font-weight: 600;
+  color: var(--navy);
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.image-upload-container {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  margin-bottom: 0.5rem;
+}
+
+.image-preview {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  position: relative;
+  box-shadow: var(--shadow);
+}
+
+.image-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(10, 37, 64, 0.9), transparent);
+  padding: 1rem;
+  display: flex;
+  gap: 0.5rem;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.image-preview:hover .image-overlay {
+  opacity: 1;
+}
+
+.change-button,
+.remove-button {
+  flex: 1;
+  padding: 0.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: all 0.3s;
+}
+
+.change-button {
+  background-color: var(--gold);
+  color: var(--navy);
+}
+
+.change-button:hover:not(:disabled) {
+  background-color: #C19D2F;
+}
+
+.remove-button {
+  background-color: var(--error);
+  color: var(--white);
+}
+
+.remove-button:hover:not(:disabled) {
+  background-color: #DC2626;
+}
+
+.change-button:disabled,
+.remove-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.image-placeholder {
+  width: 100%;
+  height: 100%;
+  border: 2px dashed var(--medium-gray);
+  border-radius: var(--border-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  background-color: var(--light-gray);
+}
+
+.image-placeholder:hover {
+  border-color: var(--gold);
+  background-color: #F0F1F3;
+}
+
+.placeholder-content {
+  text-align: center;
+  padding: 1rem;
+}
+
+.upload-icon {
+  width: 48px;
+  height: 48px;
+  color: var(--dark-gray);
+  margin-bottom: 0.5rem;
+}
+
+.placeholder-content p {
+  font-weight: 600;
+  color: var(--navy);
+  margin-bottom: 0.25rem;
+}
+
+.placeholder-content span {
+  font-size: 0.75rem;
+  color: var(--dark-gray);
+}
+
+.upload-status {
+  color: var(--gold);
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+  font-weight: 500;
+}
+
+.upload-error {
+  color: var(--error);
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .image-upload-container {
+    width: 150px;
+    height: 150px;
+  }
+
+  .upload-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .placeholder-content p {
+    font-size: 0.9rem;
+  }
+
+  .placeholder-content span {
+    font-size: 0.7rem;
+  }
+}

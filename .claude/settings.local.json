@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx create-react-app client)",
+      "Bash(npm install react-router-dom socket.io-client axios)",
+      "Bash(npm install)",
+      "Bash(psql --version)",
+      "Read(//Applications/Postgres.app/Contents/Versions/**)",
+      "Bash(export PATH=\"/Applications/Postgres.app/Contents/Versions/latest/bin:$PATH\")",
+      "Bash(createdb broughtby)",
+      "Bash(psql -l)",
+      "Bash(psql -lqt)",
+      "Bash(npm run db:migrate)",
+      "Bash(npm run db:seed)",
+      "Bash(npm run dev)",
+      "Bash(lsof -ti:5000)",
+      "Bash(xargs kill -9)",
+      "Bash(kill -9 74863)",
+      "Bash(pkill -f nodemon)",
+      "Bash(pkill -f \"node server\")",
+      "Bash(npm install multer)",
+      "Bash(pkill -f \"react-scripts\")",
+      "Bash(cat /Users/brookeburton/broughtby-app/.gitignore)",
+      "Bash(git init)",
+      "Bash(git add .)",
+      "Bash(git commit -m \"Initial commit: BroughtBy - Brand Ambassador Marketplace\n\nFeatures:\n- User authentication (brand and ambassador roles)\n- Profile management with photo upload\n- Brand discovery with location filtering\n- Responsive gallery view (desktop) and swipe interface (mobile)\n- Like/pass system with match detection\n- Real-time messaging with Socket.io\n- Status badges (Matched, Pending, Passed)\n- PostgreSQL database with migrations\n\nTech Stack:\n- Frontend: React, Socket.io-client\n- Backend: Node.js, Express, Socket.io\n- Database: PostgreSQL\n- Auth: JWT tokens\n- File Upload: Multer\n\n🤖 Generated with Claude Code\nhttps://claude.com/claude-code\")"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

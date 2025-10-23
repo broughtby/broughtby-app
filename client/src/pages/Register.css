@@ -1,0 +1,240 @@
+.register-card {
+  max-width: 600px;
+}
+
+.register-header {
+  margin-bottom: 2rem;
+}
+
+/* Step Indicator */
+.step-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--medium-gray);
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.step-number {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--light-gray);
+  color: var(--dark-gray);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.step.active .step-number {
+  background-color: var(--navy);
+  color: var(--white);
+}
+
+.step span {
+  font-size: 0.85rem;
+  color: var(--dark-gray);
+  font-weight: 500;
+}
+
+.step.active span {
+  color: var(--navy);
+  font-weight: 600;
+}
+
+.step-line {
+  width: 80px;
+  height: 2px;
+  background-color: var(--medium-gray);
+  margin: 0 1rem;
+}
+
+/* Profile Form */
+.profile-form {
+  max-height: 600px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.profile-form::-webkit-scrollbar {
+  width: 6px;
+}
+
+.profile-form::-webkit-scrollbar-track {
+  background: var(--light-gray);
+  border-radius: 3px;
+}
+
+.profile-form::-webkit-scrollbar-thumb {
+  background: var(--medium-gray);
+  border-radius: 3px;
+}
+
+.profile-form::-webkit-scrollbar-thumb:hover {
+  background: var(--dark-gray);
+}
+
+.form-group small {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--dark-gray);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+/* Skills Input */
+.skills-input {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.skills-input input {
+  flex: 1;
+  padding: 0.9rem;
+  border: 2px solid var(--medium-gray);
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.3s;
+}
+
+.skills-input input:focus {
+  border-color: var(--gold);
+}
+
+.add-skill-btn {
+  background-color: var(--navy);
+  color: var(--white);
+  padding: 0.9rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+
+.add-skill-btn:hover {
+  background-color: #0D3A5F;
+}
+
+.skills-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.skill-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: var(--light-gray);
+  color: var(--navy);
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.remove-skill {
+  background: none;
+  color: var(--error);
+  font-size: 1.2rem;
+  line-height: 1;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.3s;
+}
+
+.remove-skill:hover {
+  color: #DC2626;
+}
+
+/* Form Actions */
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--medium-gray);
+}
+
+.back-button {
+  flex: 1;
+  background-color: var(--white);
+  color: var(--dark-gray);
+  padding: 1rem;
+  border: 2px solid var(--medium-gray);
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s;
+}
+
+.back-button:hover {
+  border-color: var(--dark-gray);
+  color: var(--navy);
+}
+
+.form-actions .auth-button {
+  flex: 2;
+  margin-top: 0;
+}
+
+@media (max-width: 768px) {
+  .register-card {
+    padding: 2rem 1.5rem;
+  }
+
+  .step-indicator {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+  }
+
+  .step span {
+    font-size: 0.75rem;
+  }
+
+  .step-number {
+    width: 35px;
+    height: 35px;
+  }
+
+  .step-line {
+    width: 50px;
+  }
+
+  .profile-form {
+    max-height: 500px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .back-button,
+  .form-actions .auth-button {
+    width: 100%;
+  }
+}

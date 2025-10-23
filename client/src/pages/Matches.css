@@ -1,0 +1,210 @@
+.matches-container {
+  padding: 2rem 1rem;
+  min-height: calc(100vh - 80px);
+}
+
+.matches-header {
+  margin-bottom: 2rem;
+}
+
+.matches-header h1 {
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.tabs {
+  display: flex;
+  gap: 1rem;
+  border-bottom: 2px solid var(--medium-gray);
+}
+
+.tab {
+  background: none;
+  padding: 1rem 1.5rem;
+  font-weight: 600;
+  color: var(--dark-gray);
+  border-bottom: 3px solid transparent;
+  transition: all 0.3s;
+  margin-bottom: -2px;
+}
+
+.tab:hover {
+  color: var(--navy);
+}
+
+.tab.active {
+  color: var(--navy);
+  border-bottom-color: var(--gold);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--dark-gray);
+  font-size: 1.1rem;
+}
+
+/* Matches Grid */
+.matches-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.match-card {
+  background-color: var(--white);
+  padding: 1.5rem;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.match-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.match-photo {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.match-info {
+  flex: 1;
+}
+
+.match-info h3 {
+  font-size: 1.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.match-location {
+  color: var(--dark-gray);
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.last-message {
+  color: var(--dark-gray);
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 400px;
+}
+
+.match-arrow {
+  font-size: 1.5rem;
+  color: var(--gold);
+  flex-shrink: 0;
+}
+
+/* Likes Grid */
+.likes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.like-card {
+  background-color: var(--white);
+  padding: 1.5rem;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.like-photo {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 1rem;
+}
+
+.like-info {
+  flex: 1;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.like-info h3 {
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.like-location {
+  color: var(--dark-gray);
+  font-size: 0.9rem;
+  margin-bottom: 0.75rem;
+}
+
+.like-bio {
+  color: var(--dark-gray);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.like-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.skill-tag-small {
+  background-color: var(--light-gray);
+  color: var(--navy);
+  padding: 0.4rem 0.8rem;
+  border-radius: 15px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.accept-button {
+  background-color: var(--gold);
+  color: var(--navy);
+  padding: 0.9rem 2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  width: 100%;
+  transition: all 0.3s;
+}
+
+.accept-button:hover {
+  background-color: #C19D2F;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+  .likes-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .match-card {
+    padding: 1rem;
+  }
+
+  .match-photo {
+    width: 60px;
+    height: 60px;
+  }
+
+  .last-message {
+    max-width: 200px;
+  }
+}
