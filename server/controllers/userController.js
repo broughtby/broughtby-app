@@ -1,5 +1,14 @@
 const db = require('../config/database');
 
+// Helper function to sanitize numeric fields
+// Converts empty strings to null for PostgreSQL compatibility
+const sanitizeNumericField = (value) => {
+  if (value === '' || value === undefined || value === null) {
+    return null;
+  }
+  return value;
+};
+
 const getProfile = async (req, res) => {
   try {
     const result = await db.query(
@@ -46,7 +55,7 @@ const updateProfile = async (req, res) => {
     }
     if (age !== undefined) {
       updates.push(`age = $${paramCount++}`);
-      values.push(age);
+      values.push(sanitizeNumericField(age));
     }
     if (skills !== undefined) {
       updates.push(`skills = $${paramCount++}`);
@@ -54,7 +63,7 @@ const updateProfile = async (req, res) => {
     }
     if (hourly_rate !== undefined) {
       updates.push(`hourly_rate = $${paramCount++}`);
-      values.push(hourly_rate);
+      values.push(sanitizeNumericField(hourly_rate));
     }
     if (availability !== undefined) {
       updates.push(`availability = $${paramCount++}`);
