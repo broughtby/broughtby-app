@@ -17,16 +17,32 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is already logged in
-    const token = localStorage.getItem('token');
-    const savedUser = localStorage.getItem('user');
+    // Check if user is already logged in and restore session
+    const initializeAuth = async () => {
+      const token = localStorage.getItem('token');
 
-    if (token && savedUser) {
-      setUser(JSON.parse(savedUser));
-      socketService.connect(token);
-    }
+      if (token) {
+        try {
+          // Fetch fresh user data from API to verify token and get latest profile
+          const response = await userAPI.getProfile();
+          const userData = response.data.user;
 
-    setLoading(false);
+          setUser(userData);
+          localStorage.setItem('user', JSON.stringify(userData));
+          socketService.connect(token);
+        } catch (error) {
+          // Token is invalid or expired, clear localStorage
+          console.error('Failed to restore session:', error);
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          setUser(null);
+        }
+      }
+
+      setLoading(false);
+    };
+
+    initializeAuth();
   }, []);
 
   const register = async (data) => {

@@ -6,7 +6,18 @@ const PrivateRoute = ({ children, requireBrand, requireAmbassador }) => {
   const { isAuthenticated, isBrand, isAmbassador, loading } = useAuth();
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="loading-container" style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '60vh',
+        fontSize: '1.2rem',
+        color: '#6B7280'
+      }}>
+        Loading...
+      </div>
+    );
   }
 
   if (!isAuthenticated) {
