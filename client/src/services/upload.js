@@ -39,12 +39,13 @@ export const uploadPhoto = async (file) => {
 export const getPhotoUrl = (filePath) => {
   if (!filePath) return null;
 
-  // If it's already a full URL, return it
-  if (filePath.startsWith('http')) {
+  // If it's already a full URL (Cloudinary URL), return it
+  if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
     return filePath;
   }
 
-  // Otherwise, construct the server URL
+  // Legacy support: For old local file paths, construct the server URL
+  // (This will only be needed during migration period)
   const baseUrl = process.env.REACT_APP_SOCKET_URL || 'http://localhost:5001';
   return `${baseUrl}${filePath}`;
 };
