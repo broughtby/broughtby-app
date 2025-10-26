@@ -111,6 +111,18 @@ const migrations = [
   `
     CREATE INDEX IF NOT EXISTS idx_messages_created_at ON messages(created_at);
   `,
+
+  // Add status column to likes table for request workflow
+  `
+    ALTER TABLE likes
+    ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'pending'
+    CHECK (status IN ('pending', 'accepted', 'declined'));
+  `,
+
+  // Create index on status for faster filtering
+  `
+    CREATE INDEX IF NOT EXISTS idx_likes_status ON likes(status);
+  `,
 ];
 
 async function runMigrations() {

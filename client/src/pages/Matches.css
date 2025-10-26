@@ -175,18 +175,42 @@
   font-weight: 500;
 }
 
+.request-actions {
+  display: flex;
+  gap: 0.75rem;
+  width: 100%;
+}
+
 .accept-button {
-  background-color: var(--gold);
-  color: var(--navy);
+  background-color: var(--navy);
+  color: var(--white);
   padding: 0.9rem 2rem;
   border-radius: 8px;
   font-weight: 600;
-  width: 100%;
+  flex: 1;
   transition: all 0.3s;
+  border: 2px solid var(--navy);
 }
 
 .accept-button:hover {
-  background-color: #C19D2F;
+  background-color: #0D3350;
+  transform: translateY(-1px);
+}
+
+.decline-button {
+  background-color: var(--white);
+  color: var(--error);
+  padding: 0.9rem 2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  flex: 1;
+  transition: all 0.3s;
+  border: 2px solid var(--error);
+}
+
+.decline-button:hover {
+  background-color: var(--error);
+  color: var(--white);
   transform: translateY(-1px);
 }
 

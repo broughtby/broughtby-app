@@ -33,14 +33,24 @@ const Matches = () => {
     }
   };
 
-  const handleAcceptLike = async (brandId) => {
+  const handleAcceptRequest = async (brandId) => {
     try {
       await matchAPI.createMatch(brandId);
       // Refresh data
       await fetchData();
       setActiveTab('matches');
     } catch (error) {
-      console.error('Failed to accept like:', error);
+      console.error('Failed to accept request:', error);
+    }
+  };
+
+  const handleDeclineRequest = async (brandId) => {
+    try {
+      await likeAPI.declineLike(brandId);
+      // Refresh data
+      await fetchData();
+    } catch (error) {
+      console.error('Failed to decline request:', error);
     }
   };
 
@@ -67,24 +77,24 @@ const Matches = () => {
               className={`tab ${activeTab === 'matches' ? 'active' : ''}`}
               onClick={() => setActiveTab('matches')}
             >
-              Matches ({matches.length})
+              Partnerships ({matches.length})
             </button>
             <button
               className={`tab ${activeTab === 'likes' ? 'active' : ''}`}
               onClick={() => setActiveTab('likes')}
             >
-              Likes ({likes.length})
+              Requests ({likes.length})
             </button>
           </div>
         )}
       </div>
 
-      {/* Likes Tab (Ambassadors only) */}
+      {/* Requests Tab (Ambassadors only) */}
       {isAmbassador && activeTab === 'likes' && (
         <div className="likes-section">
           {likes.length === 0 ? (
             <div className="empty-state">
-              <p>No likes yet. Brands will discover you soon!</p>
+              <p>No partnership requests yet. Brands will discover you soon!</p>
             </div>
           ) : (
             <div className="likes-grid">
@@ -109,12 +119,20 @@ const Matches = () => {
                       </div>
                     )}
                   </div>
-                  <button
-                    className="accept-button"
-                    onClick={() => handleAcceptLike(like.brand_id)}
-                  >
-                    Accept Match
-                  </button>
+                  <div className="request-actions">
+                    <button
+                      className="decline-button"
+                      onClick={() => handleDeclineRequest(like.brand_id)}
+                    >
+                      Decline
+                    </button>
+                    <button
+                      className="accept-button"
+                      onClick={() => handleAcceptRequest(like.brand_id)}
+                    >
+                      Accept
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -129,8 +147,8 @@ const Matches = () => {
             <div className="empty-state">
               <p>
                 {isAmbassador
-                  ? 'No matches yet. Accept likes from brands to start messaging!'
-                  : 'No matches yet. Start swiping to find ambassadors!'}
+                  ? 'No partnerships yet. Accept requests from brands to start messaging!'
+                  : 'No partnerships yet. Request to work with ambassadors to get started!'}
               </p>
             </div>
           ) : (

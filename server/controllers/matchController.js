@@ -9,15 +9,21 @@ const createMatch = async (req, res) => {
       return res.status(403).json({ error: 'Only ambassadors can create matches' });
     }
 
-    // Verify a like exists from the brand to this ambassador
+    // Verify a pending request exists from the brand to this ambassador
     const likeCheck = await db.query(
-      'SELECT id FROM likes WHERE brand_id = $1 AND ambassador_id = $2',
-      [brandId, req.user.userId]
+      'SELECT id FROM likes WHERE brand_id = $1 AND ambassador_id = $2 AND status = $3',
+      [brandId, req.user.userId, 'pending']
     );
 
     if (likeCheck.rows.length === 0) {
-      return res.status(400).json({ error: 'No like exists from this brand' });
+      return res.status(400).json({ error: 'No pending request exists from this brand' });
     }
+
+    // Update like status to accepted
+    await db.query(
+      `UPDATE likes SET status = 'accepted' WHERE brand_id = $1 AND ambassador_id = $2`,
+      [brandId, req.user.userId]
+    );
 
     // Create match
     const result = await db.query(
@@ -33,7 +39,7 @@ const createMatch = async (req, res) => {
     }
 
     res.status(201).json({
-      message: 'Match created successfully',
+      message: 'Partnership accepted successfully',
       match: result.rows[0],
     });
   } catch (error) {

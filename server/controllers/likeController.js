@@ -23,21 +23,21 @@ const createLike = async (req, res) => {
       return res.status(400).json({ error: 'User is not an ambassador' });
     }
 
-    // Create like
+    // Create request (like with pending status)
     const result = await db.query(
-      `INSERT INTO likes (brand_id, ambassador_id)
-       VALUES ($1, $2)
+      `INSERT INTO likes (brand_id, ambassador_id, status)
+       VALUES ($1, $2, 'pending')
        ON CONFLICT (brand_id, ambassador_id) DO NOTHING
        RETURNING id, created_at`,
       [req.user.userId, ambassadorId]
     );
 
     if (result.rows.length === 0) {
-      return res.status(400).json({ error: 'Like already exists' });
+      return res.status(400).json({ error: 'Request already exists' });
     }
 
     res.status(201).json({
-      message: 'Like created successfully',
+      message: 'Partnership request sent successfully',
       like: result.rows[0],
     });
   } catch (error) {
@@ -54,15 +54,12 @@ const getReceivedLikes = async (req, res) => {
     }
 
     const result = await db.query(
-      `SELECT l.id, l.created_at,
+      `SELECT l.id, l.created_at, l.status,
               u.id as brand_id, u.name, u.profile_photo, u.bio, u.location, u.skills
        FROM likes l
        JOIN users u ON l.brand_id = u.id
        WHERE l.ambassador_id = $1
-       AND NOT EXISTS (
-         SELECT 1 FROM matches m
-         WHERE m.brand_id = l.brand_id AND m.ambassador_id = l.ambassador_id
-       )
+       AND l.status = 'pending'
        ORDER BY l.created_at DESC`,
       [req.user.userId]
     );
@@ -71,6 +68,37 @@ const getReceivedLikes = async (req, res) => {
   } catch (error) {
     console.error('Get received likes error:', error);
     res.status(500).json({ error: 'Failed to fetch likes' });
+  }
+};
+
+const declineLike = async (req, res) => {
+  try {
+    const { brandId } = req.body;
+
+    // Only ambassadors can decline partnership requests
+    if (req.user.role !== 'ambassador') {
+      return res.status(403).json({ error: 'Only ambassadors can decline requests' });
+    }
+
+    // Update the like status to declined
+    const result = await db.query(
+      `UPDATE likes
+       SET status = 'declined'
+       WHERE brand_id = $1 AND ambassador_id = $2 AND status = 'pending'
+       RETURNING id`,
+      [brandId, req.user.userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Pending request not found' });
+    }
+
+    res.json({
+      message: 'Partnership request declined',
+    });
+  } catch (error) {
+    console.error('Decline request error:', error);
+    res.status(500).json({ error: 'Failed to decline request' });
   }
 };
 
@@ -124,4 +152,5 @@ module.exports = {
   createLike,
   createPass,
   getReceivedLikes,
+  declineLike,
 };

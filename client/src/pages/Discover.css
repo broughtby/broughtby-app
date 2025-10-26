@@ -276,6 +276,11 @@
   justify-content: center;
 }
 
+.action-buttons.single-button {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
 .action-button {
   display: flex;
   flex-direction: column;
@@ -330,6 +335,22 @@
 .action-button.matched:hover:not(:disabled) {
   transform: none;
   background-color: rgba(52, 211, 153, 0.95);
+}
+
+.action-button.request-button {
+  background-color: var(--navy);
+  color: var(--white);
+  width: 100%;
+  flex-direction: row;
+  justify-content: center;
+  font-size: 1.1rem;
+  padding: 1.25rem 2rem;
+  letter-spacing: 0.3px;
+}
+
+.action-button.request-button:hover:not(:disabled) {
+  background-color: #0D3350;
+  transform: scale(1.02);
 }
 
 .action-button.next-button {

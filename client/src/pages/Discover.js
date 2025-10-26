@@ -375,7 +375,7 @@ const Discover = () => {
               </div>
               {currentAmbassador.status && currentAmbassador.status !== 'available' && (
                 <div className={`status-badge status-${currentAmbassador.status}`}>
-                  {currentAmbassador.status === 'matched' ? '✓ Matched' : currentAmbassador.status === 'pending' ? 'Pending' : 'Passed'}
+                  {currentAmbassador.status === 'matched' ? '✓ Partnership Active' : currentAmbassador.status === 'pending' ? 'Request Pending' : 'Passed'}
                 </div>
               )}
             </div>
@@ -430,22 +430,13 @@ const Discover = () => {
             </button>
           </div>
         ) : (
-          <div className="action-buttons">
+          <div className="action-buttons single-button">
             <button
-              className="action-button pass"
-              onClick={handlePass}
-              disabled={liking}
-            >
-              <span className="action-icon">✕</span>
-              <span>Pass</span>
-            </button>
-            <button
-              className="action-button like"
+              className="action-button request-button"
               onClick={handleLike}
               disabled={liking}
             >
-              <span className="action-icon">♥</span>
-              <span>Like</span>
+              <span>Request to Work Together</span>
             </button>
           </div>
         )}
@@ -477,7 +468,7 @@ const Discover = () => {
               />
               {ambassador.status && ambassador.status !== 'available' && (
                 <div className={`status-badge status-${ambassador.status}`}>
-                  {ambassador.status === 'matched' ? '✓ Matched' : ambassador.status === 'pending' ? 'Pending' : 'Passed'}
+                  {ambassador.status === 'matched' ? '✓ Partnership Active' : ambassador.status === 'pending' ? 'Request Pending' : 'Passed'}
                 </div>
               )}
               <div className="grid-card-overlay">
@@ -527,7 +518,7 @@ const Discover = () => {
               />
               {selectedAmbassador.status && selectedAmbassador.status !== 'available' && (
                 <div className={`status-badge status-${selectedAmbassador.status}`}>
-                  {selectedAmbassador.status === 'matched' ? '✓ Matched' : selectedAmbassador.status === 'pending' ? 'Pending' : 'Passed'}
+                  {selectedAmbassador.status === 'matched' ? '✓ Partnership Active' : selectedAmbassador.status === 'pending' ? 'Request Pending' : 'Passed'}
                 </div>
               )}
             </div>
@@ -581,23 +572,9 @@ const Discover = () => {
                   Close
                 </button>
               ) : (
-                <div className="action-buttons" style={{ marginTop: '1.5rem' }}>
+                <div className="action-buttons single-button" style={{ marginTop: '1.5rem' }}>
                   <button
-                    className="action-button pass"
-                    onClick={async () => {
-                      try {
-                        await handlePass(selectedAmbassador.id);
-                        setSelectedAmbassador(null);
-                      } catch (error) {
-                        console.error('Failed to pass ambassador:', error);
-                      }
-                    }}
-                  >
-                    <span className="action-icon">✕</span>
-                    <span>Pass</span>
-                  </button>
-                  <button
-                    className="action-button like"
+                    className="action-button request-button"
                     onClick={async () => {
                       try {
                         await likeAPI.createLike(selectedAmbassador.id);
@@ -607,12 +584,11 @@ const Discover = () => {
                         setAmbassadors(updatedAmbassadors);
                         setSelectedAmbassador(null);
                       } catch (error) {
-                        console.error('Failed to like ambassador:', error);
+                        console.error('Failed to send request:', error);
                       }
                     }}
                   >
-                    <span className="action-icon">♥</span>
-                    <span>Like</span>
+                    <span>Request to Work Together</span>
                   </button>
                 </div>
               )}
