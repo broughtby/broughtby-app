@@ -36,7 +36,7 @@ services:
   # Frontend Static Site
   - type: web
     name: broughtby-frontend
-    runtime: static
+    env: static
     plan: free
     region: oregon
     buildCommand: cd client && npm install && npm run build
@@ -44,6 +44,8 @@ services:
     envVars:
       - key: REACT_APP_API_URL
         value: https://broughtby-backend.onrender.com/api
+      - key: REACT_APP_SOCKET_URL
+        value: https://broughtby-backend.onrender.com
     routes:
       - type: rewrite
         source: /*
