@@ -31,11 +31,33 @@ const getProfile = async (req, res) => {
 
 const updateProfile = async (req, res) => {
   try {
-    const { name, profile_photo, bio, location, age, skills, hourly_rate, availability } = req.body;
+    const { email, name, profile_photo, bio, location, age, skills, hourly_rate, availability } = req.body;
 
     const updates = [];
     const values = [];
     let paramCount = 1;
+
+    // Handle email update with validation
+    if (email !== undefined) {
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({ error: 'Invalid email format' });
+      }
+
+      // Check if email is already taken by another user
+      const existingUser = await db.query(
+        'SELECT id FROM users WHERE email = $1 AND id != $2',
+        [email, req.user.userId]
+      );
+
+      if (existingUser.rows.length > 0) {
+        return res.status(400).json({ error: 'Email already in use by another account' });
+      }
+
+      updates.push(`email = $${paramCount++}`);
+      values.push(email.toLowerCase().trim());
+    }
 
     if (name !== undefined) {
       updates.push(`name = $${paramCount++}`);

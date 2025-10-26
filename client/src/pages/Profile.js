@@ -9,6 +9,7 @@ const Profile = () => {
   const { user, updateUser } = useAuth();
   const [editing, setEditing] = useState(false);
   const [formData, setFormData] = useState({
+    email: '',
     name: '',
     profile_photo: '',
     bio: '',
@@ -28,6 +29,7 @@ const Profile = () => {
       const { city, state } = parseLocation(user.location);
 
       setFormData({
+        email: user.email || '',
         name: user.name || '',
         profile_photo: user.profile_photo || '',
         bio: user.bio || '',
@@ -131,7 +133,13 @@ const Profile = () => {
 
               <div className="form-group">
                 <label>Email</label>
-                <input type="email" value={user.email} disabled />
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                />
               </div>
             </div>
 
