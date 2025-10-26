@@ -23,6 +23,7 @@ const allowedOrigins = [
   process.env.CLIENT_URL || 'http://localhost:3000',
   'http://localhost:3000', // Local development
   'http://localhost:5001', // Local development alternate port
+  'https://app.broughtby.co', // Production frontend
 ];
 
 const io = socketIo(server, {
