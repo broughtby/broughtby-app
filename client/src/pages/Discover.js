@@ -128,12 +128,24 @@ const Discover = () => {
   };
 
   const handleNext = () => {
-    if (ambassadors.length === 0) return;
+    if (filteredAmbassadors.length === 0) return;
 
     setSwipeDirection('right');
 
     setTimeout(() => {
       setCurrentIndex(currentIndex + 1);
+      setSwipeDirection(null);
+    }, 300);
+  };
+
+  const handlePrevious = () => {
+    if (filteredAmbassadors.length === 0) return;
+
+    setSwipeDirection('left');
+
+    setTimeout(() => {
+      // Go to previous, but handle wrapping (allow cycling through)
+      setCurrentIndex(currentIndex - 1 < 0 ? filteredAmbassadors.length - 1 : currentIndex - 1);
       setSwipeDirection(null);
     }, 300);
   };
@@ -359,26 +371,36 @@ const Discover = () => {
           </p>
         </div>
 
-        <div className={`card-stack ${swipeDirection ? `swipe-${swipeDirection}` : ''}`}>
-          <div className="ambassador-card">
-            <div className="card-image-container">
-              <img
-                src={currentAmbassador.profile_photo ? getPhotoUrl(currentAmbassador.profile_photo) : 'https://via.placeholder.com/400'}
-                alt={currentAmbassador.name}
-                className="card-image"
-              />
-              <div className="card-overlay">
-                <h2 className="card-name">{currentAmbassador.name}</h2>
-                {currentAmbassador.location && (
-                  <p className="card-location">{currentAmbassador.location}</p>
+        <div className="card-container-with-nav">
+          {/* Navigation Arrows */}
+          <button
+            className="nav-arrow nav-arrow-left"
+            onClick={handlePrevious}
+            aria-label="Previous ambassador"
+          >
+            ‹
+          </button>
+
+          <div className={`card-stack ${swipeDirection ? `swipe-${swipeDirection}` : ''}`}>
+            <div className="ambassador-card">
+              <div className="card-image-container">
+                <img
+                  src={currentAmbassador.profile_photo ? getPhotoUrl(currentAmbassador.profile_photo) : 'https://via.placeholder.com/400'}
+                  alt={currentAmbassador.name}
+                  className="card-image"
+                />
+                <div className="card-overlay">
+                  <h2 className="card-name">{currentAmbassador.name}</h2>
+                  {currentAmbassador.location && (
+                    <p className="card-location">{currentAmbassador.location}</p>
+                  )}
+                </div>
+                {currentAmbassador.status && currentAmbassador.status !== 'available' && (
+                  <div className={`status-badge status-${currentAmbassador.status}`}>
+                    {currentAmbassador.status === 'matched' ? '✓ Partnership Active' : currentAmbassador.status === 'pending' ? 'Request Pending' : 'Passed'}
+                  </div>
                 )}
               </div>
-              {currentAmbassador.status && currentAmbassador.status !== 'available' && (
-                <div className={`status-badge status-${currentAmbassador.status}`}>
-                  {currentAmbassador.status === 'matched' ? '✓ Partnership Active' : currentAmbassador.status === 'pending' ? 'Request Pending' : 'Passed'}
-                </div>
-              )}
-            </div>
 
             <div className="card-content">
               {currentAmbassador.bio && (
@@ -417,6 +439,14 @@ const Discover = () => {
               </div>
             </div>
           </div>
+
+          <button
+            className="nav-arrow nav-arrow-right"
+            onClick={handleNext}
+            aria-label="Next ambassador"
+          >
+            ›
+          </button>
         </div>
 
         {currentAmbassador.status === 'matched' || currentAmbassador.status === 'pending' || currentAmbassador.status === 'passed' ? (

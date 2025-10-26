@@ -115,9 +115,50 @@
   font-weight: 500;
 }
 
+/* Mobile Navigation Container */
+.card-container-with-nav {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Navigation Arrows (Mobile Only) */
+.nav-arrow {
+  background-color: var(--white);
+  color: var(--navy);
+  border: 2px solid var(--navy);
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 12px rgba(10, 37, 64, 0.15);
+  flex-shrink: 0;
+  z-index: 10;
+  line-height: 1;
+  padding: 0;
+}
+
+.nav-arrow:hover {
+  background-color: var(--navy);
+  color: var(--white);
+  transform: scale(1.1);
+}
+
+.nav-arrow:active {
+  transform: scale(0.95);
+}
+
 .card-stack {
   position: relative;
-  margin-bottom: 2rem;
+  flex: 1;
   transition: transform 0.3s ease-out;
 }
 
@@ -710,7 +751,17 @@
 
 @media (max-width: 768px) {
   .discover-container {
-    padding: 1rem;
+    padding: 1rem 0.5rem;
+  }
+
+  .card-container-with-nav {
+    gap: 0.25rem;
+  }
+
+  .nav-arrow {
+    width: 45px;
+    height: 45px;
+    font-size: 1.75rem;
   }
 
   .ambassadors-grid {
