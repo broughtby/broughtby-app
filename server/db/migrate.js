@@ -72,6 +72,26 @@ const migrations = [
     CREATE INDEX IF NOT EXISTS idx_matches_ambassador ON matches(ambassador_id);
   `,
 
+  // Create passes table (track when brands pass/dislike ambassadors)
+  `
+    CREATE TABLE IF NOT EXISTS passes (
+      id SERIAL PRIMARY KEY,
+      brand_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      ambassador_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(brand_id, ambassador_id),
+      CHECK (brand_id != ambassador_id)
+    );
+  `,
+
+  // Create indexes for passes
+  `
+    CREATE INDEX IF NOT EXISTS idx_passes_brand ON passes(brand_id);
+  `,
+  `
+    CREATE INDEX IF NOT EXISTS idx_passes_ambassador ON passes(ambassador_id);
+  `,
+
   // Create messages table
   `
     CREATE TABLE IF NOT EXISTS messages (
