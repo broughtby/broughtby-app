@@ -439,6 +439,7 @@ const Discover = () => {
               </div>
             </div>
           </div>
+          </div>
 
           <button
             className="nav-arrow nav-arrow-right"
