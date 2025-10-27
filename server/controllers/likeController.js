@@ -1,4 +1,5 @@
 const db = require('../config/database');
+const { sendPartnershipRequestEmail } = require('../services/emailService');
 
 const createLike = async (req, res) => {
   try {
@@ -11,7 +12,7 @@ const createLike = async (req, res) => {
 
     // Verify ambassador exists and is actually an ambassador
     const ambassadorCheck = await db.query(
-      'SELECT id, role FROM users WHERE id = $1',
+      'SELECT id, role, email, name FROM users WHERE id = $1',
       [ambassadorId]
     );
 
@@ -22,6 +23,12 @@ const createLike = async (req, res) => {
     if (ambassadorCheck.rows[0].role !== 'ambassador') {
       return res.status(400).json({ error: 'User is not an ambassador' });
     }
+
+    // Get brand information
+    const brandCheck = await db.query(
+      'SELECT name, location, bio FROM users WHERE id = $1',
+      [req.user.userId]
+    );
 
     // Create request (like with pending status)
     const result = await db.query(
@@ -35,6 +42,21 @@ const createLike = async (req, res) => {
     if (result.rows.length === 0) {
       return res.status(400).json({ error: 'Request already exists' });
     }
+
+    // Send email notification to ambassador (don't fail request if email fails)
+    const ambassador = ambassadorCheck.rows[0];
+    const brand = brandCheck.rows[0];
+
+    sendPartnershipRequestEmail({
+      ambassadorEmail: ambassador.email,
+      ambassadorName: ambassador.name,
+      brandName: brand.name,
+      brandLocation: brand.location,
+      brandBio: brand.bio,
+    }).catch(error => {
+      console.error('Failed to send partnership request email:', error);
+      // Don't fail the request if email fails
+    });
 
     res.status(201).json({
       message: 'Partnership request sent successfully',
