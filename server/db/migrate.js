@@ -114,9 +114,25 @@ const migrations = [
 
   // Add status column to likes table for request workflow
   `
-    ALTER TABLE likes
-    ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'pending'
-    CHECK (status IN ('pending', 'accepted', 'declined'));
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                     WHERE table_name = 'likes' AND column_name = 'status') THEN
+        ALTER TABLE likes ADD COLUMN status VARCHAR(20) DEFAULT 'pending';
+      END IF;
+    END $$;
+  `,
+
+  // Add check constraint for status column
+  `
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM information_schema.constraint_column_usage
+                     WHERE constraint_name = 'likes_status_check') THEN
+        ALTER TABLE likes ADD CONSTRAINT likes_status_check
+        CHECK (status IN ('pending', 'accepted', 'declined'));
+      END IF;
+    END $$;
   `,
 
   // Create index on status for faster filtering
