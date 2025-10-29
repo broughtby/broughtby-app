@@ -2,207 +2,296 @@
 
 BroughtBy sends email notifications to ambassadors when brands send partnership requests. This guide will help you set up email notifications.
 
-## 📧 Email Service Options
+---
 
-### Option 1: Gmail (Easiest - Recommended for Getting Started)
+## 🚀 Quick Setup with Resend (5 minutes) - RECOMMENDED
 
-**Best for:** Development, testing, small-scale production
-**Cost:** Free
-**Limit:** 500 emails/day
+**Why Resend:**
+- ✅ Simplest setup (just API key + FROM address)
+- ✅ Works perfectly with custom domains (like brooke@broughtby.co)
+- ✅ No complex OAuth or SMTP configuration
+- ✅ Better deliverability than Gmail
+- ✅ Free tier: 100 emails/day, 3,000/month
+- ✅ Modern API, great documentation
 
-#### Setup Steps:
+### Step 1: Sign Up for Resend
 
-1. **Enable 2-Factor Authentication on Gmail**
-   - Go to your Google Account settings
-   - Navigate to Security
-   - Enable 2-Step Verification
+1. Go to https://resend.com
+2. Click "Start Building"
+3. Sign up with your email
 
-2. **Generate App Password**
-   - Visit: https://myaccount.google.com/apppasswords
-   - Select "Mail" and your device
-   - Copy the 16-character app password
+### Step 2: Add Your Domain
 
-3. **Add Environment Variables to Render**
+1. In Resend dashboard, go to "Domains"
+2. Click "Add Domain"
+3. Enter your domain: `broughtby.co`
+4. Add the DNS records Resend provides to your domain registrar:
+   - **SPF** record
+   - **DKIM** record
+   - **DMARC** record (optional but recommended)
 
-   In your Render dashboard, add these environment variables:
+**Note:** DNS changes can take up to 48 hours but usually work within minutes.
 
-   ```
+### Step 3: Verify Your Domain
+
+1. Wait for DNS to propagate (check status in Resend dashboard)
+2. Click "Verify" in Resend dashboard
+3. Once verified, you can send from any address @broughtby.co
+
+### Step 4: Get Your API Key
+
+1. In Resend dashboard, go to "API Keys"
+2. Click "Create API Key"
+3. Name it: "BroughtBy Production"
+4. Select permissions: "Sending access"
+5. Click "Create"
+6. **Copy the API key** (starts with `re_`) - you'll only see it once!
+
+### Step 5: Add to Render Environment Variables
+
+In your Render dashboard, add these environment variables:
+
+```bash
+RESEND_API_KEY=re_your_actual_api_key_here
+EMAIL_FROM=BroughtBy <brooke@broughtby.co>
+```
+
+**Important:**
+- Replace `re_your_actual_api_key_here` with your actual Resend API key
+- Use your verified email address in `EMAIL_FROM`
+- Remove any old `EMAIL_USER`, `EMAIL_PASSWORD`, `EMAIL_SERVICE` variables
+
+### Step 6: Deploy and Test
+
+1. **Deploy your app** - Render will redeploy with new env variables
+2. **Test:** Send a partnership request from a brand account
+3. **Check:** Ambassador should receive email at their registered email address
+4. **Verify:** Check Render logs for: `"Email sent successfully via Resend"`
+
+---
+
+## ✅ That's It!
+
+Resend is now configured and emails will be sent from `brooke@broughtby.co` (or whatever email you set).
+
+---
+
+## 📊 Monitoring Emails
+
+### Check Delivery in Resend Dashboard
+
+1. Go to https://resend.com/emails
+2. See all sent emails, delivery status, and opens
+3. Debug any delivery issues
+
+### Check Render Logs
+
+Look for these log messages:
+```
+Email sent successfully via Resend: [message-id]
+```
+
+If you see errors:
+```
+Error sending email: [error message]
+```
+
+---
+
+## 🔍 Troubleshooting
+
+### "Domain not verified" error
+
+**Fix:**
+1. Check DNS records are added correctly at your domain registrar
+2. Wait for DNS propagation (can take up to 48 hours)
+3. Use Resend's DNS checker in dashboard
+4. Verify in Resend dashboard
+
+### "Invalid API key" error
+
+**Fix:**
+1. Make sure you copied the full API key (starts with `re_`)
+2. Verify `RESEND_API_KEY` is set correctly in Render
+3. Generate a new API key if needed
+
+### Emails not being received
+
+**Check:**
+1. Spam folder of recipient
+2. Email address is correct in user profile
+3. Resend dashboard shows delivery status
+4. Check Render logs for sending confirmation
+
+### "From address not verified"
+
+**Fix:**
+1. Make sure domain is verified in Resend
+2. Use an email from your verified domain in `EMAIL_FROM`
+3. Format: `Name <email@domain.com>`
+
+---
+
+## 🆚 Comparison: Email Services
+
+| Feature | Resend | Gmail | SendGrid |
+|---------|--------|-------|----------|
+| Custom domains | ✅ Easy | ❌ Hard | ✅ Medium |
+| Setup time | 5 min | 10 min | 15 min |
+| Complexity | ✅ Simple | ⚠️ Medium | ⚠️ Medium |
+| Free tier | 3,000/month | 500/day | 100/day |
+| Deliverability | ✅ Excellent | ⚠️ Fair | ✅ Excellent |
+| Analytics | ✅ Yes | ❌ No | ✅ Yes |
+| OAuth required | ❌ No | ⚠️ For Workspace | ❌ No |
+
+**Recommendation:** Use Resend for production. It's the easiest and most reliable option.
+
+---
+
+## 🔄 Alternative Options
+
+### Option 2: Gmail (Personal Accounts Only)
+
+**Best for:** Testing, personal Gmail accounts (@gmail.com)
+**Not recommended for:** Google Workspace custom domains
+
+<details>
+<summary>Click to expand Gmail setup instructions</summary>
+
+1. **Enable 2FA** on your Gmail account
+2. **Generate App Password:** https://myaccount.google.com/apppasswords
+3. **Add to Render:**
+   ```bash
    EMAIL_SERVICE=gmail
    EMAIL_USER=your-email@gmail.com
-   EMAIL_PASSWORD=xxxx xxxx xxxx xxxx (your app password)
+   EMAIL_PASSWORD=your-16-char-app-password
    EMAIL_FROM=BroughtBy <noreply@broughtby.co>
    ```
 
-   **Note:** Use the app-specific password, NOT your regular Gmail password!
+**Limitations:**
+- Doesn't work reliably with Google Workspace
+- Limited to 500 emails/day
+- Emails may go to spam
+- Less professional
 
----
+</details>
 
-### Option 2: SendGrid (Recommended for Production)
+### Option 3: SendGrid
 
-**Best for:** Production, higher volume
-**Cost:** Free tier (100 emails/day), paid plans available
-**Limit:** 100 emails/day (free), unlimited (paid)
+**Best for:** High volume, need detailed analytics
 
-#### Setup Steps:
+<details>
+<summary>Click to expand SendGrid setup instructions</summary>
 
-1. **Sign up for SendGrid**
-   - Visit: https://sendgrid.com
-   - Create a free account
-
-2. **Verify Your Sender Identity**
-   - Go to Settings > Sender Authentication
-   - Verify a single sender email (for free tier)
-   - Or set up domain authentication (for better deliverability)
-
-3. **Create API Key**
-   - Navigate to Settings > API Keys
-   - Click "Create API Key"
-   - Select "Full Access" or "Restricted Access" (with Mail Send permission)
-   - Copy the API key (you'll only see it once!)
-
-4. **Add Environment Variables to Render**
-
-   In your Render dashboard, add these environment variables:
-
-   ```
-   SENDGRID_API_KEY=SG.xxxxxxxxxxxxxxxxxxxxxxxxx
-   EMAIL_FROM=BroughtBy <noreply@broughtby.co>
+1. **Sign up:** https://sendgrid.com
+2. **Verify sender:** Settings > Sender Authentication
+3. **Create API Key:** Settings > API Keys
+4. **Add to Render:**
+   ```bash
+   SENDGRID_API_KEY=SG.your-api-key
+   EMAIL_FROM=BroughtBy <brooke@broughtby.co>
    ```
 
----
+**Free tier:** 100 emails/day
 
-## 🚀 Quick Start (Gmail)
-
-For the fastest setup, use Gmail:
-
-1. Go to https://myaccount.google.com/apppasswords
-2. Generate an app password
-3. In Render dashboard, add environment variables:
-   - `EMAIL_SERVICE` = `gmail`
-   - `EMAIL_USER` = your Gmail address
-   - `EMAIL_PASSWORD` = the 16-character app password
-   - `EMAIL_FROM` = `BroughtBy <noreply@broughtby.co>`
-
-4. Deploy your app to Render
-
-That's it! Test by having a brand send a partnership request.
+</details>
 
 ---
 
-## 🎨 Email Template
+## 📋 Environment Variables Reference
 
-The partnership request email includes:
+### For Resend (Recommended):
+```bash
+RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxx
+EMAIL_FROM=BroughtBy <brooke@broughtby.co>
+```
 
-- **Subject:** `[Brand Name] wants to work with you on BroughtBy!`
-- **Content:**
-  - Personalized greeting
-  - Brand name, location, and bio
-  - Call-to-action button linking to app.broughtby.co/matches
-  - Professional BroughtBy branding
-  - Responsive HTML design (mobile-friendly)
-
----
-
-## 🧪 Testing
-
-### Test Email Delivery:
-
-1. Create a brand account
-2. Create an ambassador account (use your email)
-3. From the brand account, browse ambassadors
-4. Click "Request to Work Together"
-5. Check the ambassador's email inbox
-
-### Troubleshooting:
-
-**Emails not sending?**
-- Check Render logs for error messages
-- Verify environment variables are set correctly
-- For Gmail: Ensure 2FA is enabled and you're using app password
-- For SendGrid: Verify sender identity is confirmed
-
-**Emails going to spam?**
-- For Gmail: Accept the first email to train Gmail
-- For SendGrid: Set up domain authentication
-- Make sure EMAIL_FROM matches your verified sender
-
----
-
-## 📊 Environment Variables Reference
-
-### Required for Gmail:
+### For Gmail:
 ```bash
 EMAIL_SERVICE=gmail
 EMAIL_USER=your-email@gmail.com
-EMAIL_PASSWORD=app-specific-password
+EMAIL_PASSWORD=xxxx xxxx xxxx xxxx
 EMAIL_FROM=BroughtBy <noreply@broughtby.co>
 ```
 
-### Required for SendGrid:
+### For SendGrid:
 ```bash
-SENDGRID_API_KEY=SG.your-api-key
-EMAIL_FROM=BroughtBy <verified-sender@yourdomain.com>
+SENDGRID_API_KEY=SG.xxxxxxxxxxxxxxxxxxxx
+EMAIL_FROM=BroughtBy <brooke@broughtby.co>
 ```
+
+---
+
+## 📧 Email Details
+
+### When emails are sent:
+- Automatically when brand clicks "Request to Work Together"
+
+### Email content includes:
+- **Subject:** `[Brand Name] wants to work with you on BroughtBy!`
+- **From:** Your configured `EMAIL_FROM` address
+- **To:** Ambassador's registered email
+- **Content:**
+  - Personalized greeting
+  - Brand information (name, location, bio)
+  - Call-to-action button → app.broughtby.co/matches
+  - Professional BroughtBy branding
+
+### Email template features:
+- ✅ Mobile-responsive design
+- ✅ BroughtBy branding (navy/gold colors)
+- ✅ Professional HTML layout
+- ✅ Clear call-to-action button
 
 ---
 
 ## 🔒 Security Best Practices
 
-1. **Never commit credentials to Git**
-   - All email credentials are in .env (which is gitignored)
-   - Only use environment variables
+1. **Never commit API keys to Git**
+   - All credentials stored in Render environment variables
+   - .env is gitignored
 
-2. **Use App Passwords for Gmail**
-   - Never use your actual Gmail password
-   - App passwords can be revoked if compromised
+2. **Rotate API keys regularly**
+   - Generate new keys every 6-12 months
+   - Revoke old keys after rotation
 
-3. **Restrict SendGrid API Keys**
-   - Only grant "Mail Send" permission
-   - Rotate keys regularly
+3. **Use verified domains**
+   - Improves deliverability
+   - Prevents emails being marked as spam
 
----
-
-## 📈 Scaling Considerations
-
-### Gmail Limits:
-- 500 emails/day
-- Good for: < 20 partnership requests/day
-
-### SendGrid Free Tier:
-- 100 emails/day
-- Good for: < 100 partnership requests/day
-
-### SendGrid Paid Plans:
-- Starting at $19.95/month (50,000 emails/month)
-- Good for: Production with high volume
-
----
-
-## 🆘 Support
-
-**Gmail Setup Issues:**
-- https://support.google.com/accounts/answer/185833
-
-**SendGrid Documentation:**
-- https://docs.sendgrid.com/
-
-**BroughtBy Issues:**
-- Check server/services/emailService.js
-- Review Render logs for email errors
-- Email errors won't fail partnership requests (graceful degradation)
+4. **Monitor sending**
+   - Check Resend dashboard regularly
+   - Watch for bounces and complaints
 
 ---
 
 ## 🎯 Next Steps
 
-After setting up email notifications:
+After setup:
 
 1. ✅ Add environment variables to Render
-2. ✅ Deploy your application
+2. ✅ Deploy application
 3. ✅ Test with a partnership request
-4. ✅ Monitor email delivery in logs
-5. ✅ Consider domain authentication (SendGrid) for better deliverability
+4. ✅ Verify email delivery
+5. ✅ Monitor Resend dashboard
 
 ---
 
-**Questions?** Check the implementation in `server/services/emailService.js`
+## 📚 Resources
+
+- [Resend Documentation](https://resend.com/docs)
+- [Resend Email Best Practices](https://resend.com/docs/knowledge-base/email-best-practices)
+- [Verify Domain Setup](https://resend.com/docs/dashboard/domains/introduction)
+
+---
+
+## 🆘 Need Help?
+
+1. **Check Render logs** for specific error messages
+2. **Check Resend dashboard** for delivery status
+3. **Verify environment variables** are set correctly
+4. **Test email delivery** with a test account first
+
+---
+
+**Summary:** Resend is the recommended solution. It takes 5 minutes to set up, works perfectly with custom domains, and provides excellent deliverability. Simply add your API key and EMAIL_FROM to Render, and you're done!

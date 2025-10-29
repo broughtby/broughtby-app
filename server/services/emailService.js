@@ -1,37 +1,26 @@
+const { Resend } = require('resend');
 const nodemailer = require('nodemailer');
 
-// Create transporter based on email service
-const createTransporter = () => {
-  // Check which email service is configured
-  if (process.env.SENDGRID_API_KEY) {
-    // SendGrid configuration
-    return nodemailer.createTransport({
-      host: 'smtp.sendgrid.net',
-      port: 587,
-      auth: {
-        user: 'apikey',
-        pass: process.env.SENDGRID_API_KEY,
-      },
-    });
-  } else if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
-    // Gmail or other SMTP configuration
-    return nodemailer.createTransport({
-      service: process.env.EMAIL_SERVICE || 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD, // App-specific password for Gmail
-      },
-    });
-  } else {
-    console.warn('Email service not configured. Set EMAIL_USER and EMAIL_PASSWORD or SENDGRID_API_KEY');
-    return null;
-  }
-};
-
-// Send email function
+// Send email function - uses Resend API or falls back to Nodemailer
 const sendEmail = async ({ to, subject, html }) => {
   try {
-    const transporter = createTransporter();
+    // Option 1: Resend (Recommended - simplest and works with custom domains)
+    if (process.env.RESEND_API_KEY) {
+      const resend = new Resend(process.env.RESEND_API_KEY);
+
+      const result = await resend.emails.send({
+        from: process.env.EMAIL_FROM || 'BroughtBy <onboarding@resend.dev>',
+        to,
+        subject,
+        html,
+      });
+
+      console.log('Email sent successfully via Resend:', result.id);
+      return { success: true, messageId: result.id };
+    }
+
+    // Fallback to Nodemailer for other email services
+    const transporter = createNodemailerTransporter();
 
     if (!transporter) {
       console.log('Email not sent: Email service not configured');
@@ -46,12 +35,71 @@ const sendEmail = async ({ to, subject, html }) => {
     };
 
     const info = await transporter.sendMail(mailOptions);
-    console.log('Email sent successfully:', info.messageId);
+    console.log('Email sent successfully via Nodemailer:', info.messageId);
     return { success: true, messageId: info.messageId };
   } catch (error) {
     console.error('Error sending email:', error);
     return { success: false, error: error.message };
   }
+};
+
+// Create Nodemailer transporter (fallback for non-Resend services)
+const createNodemailerTransporter = () => {
+  // SendGrid
+  if (process.env.SENDGRID_API_KEY) {
+    return nodemailer.createTransport({
+      host: 'smtp.sendgrid.net',
+      port: 587,
+      auth: {
+        user: 'apikey',
+        pass: process.env.SENDGRID_API_KEY,
+      },
+    });
+  }
+
+  // Google OAuth2 (Gmail or Google Workspace)
+  if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET &&
+      process.env.GOOGLE_REFRESH_TOKEN && process.env.EMAIL_USER) {
+    return nodemailer.createTransporter({
+      service: 'gmail',
+      auth: {
+        type: 'OAuth2',
+        user: process.env.EMAIL_USER,
+        clientId: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        refreshToken: process.env.GOOGLE_REFRESH_TOKEN,
+        accessToken: process.env.GOOGLE_ACCESS_TOKEN,
+      },
+    });
+  }
+
+  // Gmail App Password
+  if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
+    return nodemailer.createTransporter({
+      service: process.env.EMAIL_SERVICE || 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASSWORD,
+      },
+    });
+  }
+
+  // Custom SMTP
+  if (process.env.SMTP_HOST && process.env.SMTP_PORT &&
+      process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
+    return nodemailer.createTransporter({
+      host: process.env.SMTP_HOST,
+      port: parseInt(process.env.SMTP_PORT),
+      secure: process.env.SMTP_SECURE === 'true',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASSWORD,
+      },
+    });
+  }
+
+  console.warn('Email service not configured. Set RESEND_API_KEY (recommended) or other email credentials');
+  return null;
 };
 
 // Generate partnership request email HTML
