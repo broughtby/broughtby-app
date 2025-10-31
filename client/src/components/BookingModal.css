@@ -119,7 +119,8 @@
 }
 
 .form-group input,
-.form-group select {
+.form-group select,
+.form-group textarea {
   width: 100%;
   padding: 0.875rem 1rem;
   border: 1px solid #D1D5DB;
@@ -130,20 +131,28 @@
   background-color: var(--white);
 }
 
+.form-group textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
 .form-group input::placeholder,
-.form-group select::placeholder {
+.form-group select::placeholder,
+.form-group textarea::placeholder {
   color: #9CA3AF;
 }
 
 .form-group input:focus,
-.form-group select:focus {
+.form-group select:focus,
+.form-group textarea:focus {
   outline: none;
   border-color: #3B82F6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .form-group input.error,
-.form-group select.error {
+.form-group select.error,
+.form-group textarea.error {
   border-color: var(--error);
 }
 
@@ -175,7 +184,7 @@
 /* Submit Button */
 .booking-submit-button {
   width: 100%;
-  background-color: #D1D5DB;
+  background-color: #1F2937;
   color: var(--white);
   padding: 1rem 2rem;
   border-radius: 8px;
@@ -188,7 +197,7 @@
 }
 
 .booking-submit-button:hover {
-  background-color: #9CA3AF;
+  background-color: #374151;
 }
 
 .booking-submit-button:active {

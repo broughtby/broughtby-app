@@ -4,25 +4,15 @@ import './BookingModal.css';
 
 const BookingModal = ({ ambassador, onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
+    eventName: '',
     eventDate: '',
     startTime: '',
     endTime: '',
-    eventType: '',
     eventLocation: '',
+    notes: '',
   });
 
   const [errors, setErrors] = useState({});
-
-  const eventTypes = [
-    'Product Launch',
-    'Brand Activation',
-    'Social Media Campaign',
-    'In-Store Promotion',
-    'Trade Show',
-    'Content Creation',
-    'Brand Ambassador Day',
-    'Other',
-  ];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -41,6 +31,11 @@ const BookingModal = ({ ambassador, onClose, onSubmit }) => {
 
   const validateForm = () => {
     const newErrors = {};
+
+    // Event Name validation
+    if (!formData.eventName.trim()) {
+      newErrors.eventName = 'Event name is required';
+    }
 
     // Event Date validation
     if (!formData.eventDate) {
@@ -64,11 +59,6 @@ const BookingModal = ({ ambassador, onClose, onSubmit }) => {
       newErrors.endTime = 'End time is required';
     } else if (formData.startTime && formData.endTime <= formData.startTime) {
       newErrors.endTime = 'End time must be after start time';
-    }
-
-    // Event Type validation
-    if (!formData.eventType) {
-      newErrors.eventType = 'Event type is required';
     }
 
     // Event Location validation
@@ -138,6 +128,21 @@ const BookingModal = ({ ambassador, onClose, onSubmit }) => {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="booking-form">
+          {/* Event Name */}
+          <div className="form-group">
+            <label htmlFor="eventName">Event Name *</label>
+            <input
+              type="text"
+              id="eventName"
+              name="eventName"
+              value={formData.eventName}
+              onChange={handleChange}
+              placeholder="e.g., Summer Product Launch"
+              className={errors.eventName ? 'error' : ''}
+            />
+            {errors.eventName && <span className="error-message">{errors.eventName}</span>}
+          </div>
+
           {/* Event Date */}
           <div className="form-group">
             <label htmlFor="eventDate">Event Date *</label>
@@ -182,26 +187,6 @@ const BookingModal = ({ ambassador, onClose, onSubmit }) => {
             </div>
           </div>
 
-          {/* Event Type */}
-          <div className="form-group">
-            <label htmlFor="eventType">Event Type *</label>
-            <select
-              id="eventType"
-              name="eventType"
-              value={formData.eventType}
-              onChange={handleChange}
-              className={errors.eventType ? 'error' : ''}
-            >
-              <option value="">Select event type</option>
-              {eventTypes.map((type) => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
-              ))}
-            </select>
-            {errors.eventType && <span className="error-message">{errors.eventType}</span>}
-          </div>
-
           {/* Event Location */}
           <div className="form-group">
             <label htmlFor="eventLocation">Event Location *</label>
@@ -215,6 +200,21 @@ const BookingModal = ({ ambassador, onClose, onSubmit }) => {
               className={errors.eventLocation ? 'error' : ''}
             />
             {errors.eventLocation && <span className="error-message">{errors.eventLocation}</span>}
+          </div>
+
+          {/* Notes */}
+          <div className="form-group">
+            <label htmlFor="notes">Notes (Optional)</label>
+            <textarea
+              id="notes"
+              name="notes"
+              value={formData.notes}
+              onChange={handleChange}
+              placeholder="Share special instructions on what to do when you get there, what to wear, etc."
+              rows="4"
+              className={errors.notes ? 'error' : ''}
+            />
+            {errors.notes && <span className="error-message">{errors.notes}</span>}
           </div>
 
           {/* Submit Button */}

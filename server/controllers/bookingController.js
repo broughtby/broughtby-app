@@ -5,14 +5,15 @@ const createBooking = async (req, res) => {
     const {
       matchId,
       ambassadorId,
+      eventName,
       eventDate,
       startTime,
       endTime,
       duration,
-      eventType,
       eventLocation,
       hourlyRate,
       totalCost,
+      notes,
     } = req.body;
 
     // Only brands can create bookings
@@ -49,23 +50,24 @@ const createBooking = async (req, res) => {
     // Create booking
     const result = await db.query(
       `INSERT INTO bookings (
-        match_id, brand_id, ambassador_id, event_date, start_time, end_time,
-        duration, event_type, event_location, hourly_rate, total_cost
+        match_id, brand_id, ambassador_id, event_name, event_date, start_time, end_time,
+        duration, event_location, hourly_rate, total_cost, notes
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
       RETURNING *`,
       [
         matchId,
         req.user.userId,
         ambassadorId,
+        eventName,
         eventDate,
         startTime,
         endTime,
         duration,
-        eventType,
         eventLocation,
         hourlyRate,
         totalCost,
+        notes,
       ]
     );
 

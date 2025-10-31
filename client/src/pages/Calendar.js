@@ -31,7 +31,7 @@ const Calendar = () => {
       const confirmMessage = `✅ Booking Confirmed!
 
 ${user.name} has confirmed the booking for:
-Event: ${booking.event_type}
+Event: ${booking.event_name}
 Date: ${new Date(booking.event_date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
 Time: ${booking.start_time} - ${booking.end_time}
 Location: ${booking.event_location}
@@ -60,7 +60,7 @@ Status: ✅ Confirmed`;
       const declineMessage = `❌ Booking Declined
 
 ${user.name} has declined the booking request for:
-Event: ${booking.event_type}
+Event: ${booking.event_name}
 Date: ${new Date(booking.event_date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
 
 Please discuss alternative arrangements in the chat.`;
@@ -89,7 +89,7 @@ Please discuss alternative arrangements in the chat.`;
       const cancelMessage = `❌ Booking Cancelled
 
 ${user.name} has cancelled the booking:
-Event: ${booking.event_type}
+Event: ${booking.event_name}
 Date: ${new Date(booking.event_date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
 
 Status: Cancelled`;
@@ -187,7 +187,7 @@ Status: Cancelled`;
                     </div>
 
                     <div className="booking-body">
-                      <h3 className="booking-title">{booking.event_type}</h3>
+                      <h3 className="booking-title">{booking.event_name}</h3>
                       <div className="booking-details">
                         <div className="booking-detail">
                           <span className="detail-icon">👤</span>
@@ -263,7 +263,7 @@ Status: Cancelled`;
                     </div>
 
                     <div className="booking-body">
-                      <h3 className="booking-title">{booking.event_type}</h3>
+                      <h3 className="booking-title">{booking.event_name}</h3>
                       <div className="booking-details">
                         <div className="booking-detail">
                           <span className="detail-icon">👤</span>
@@ -321,7 +321,7 @@ Status: Cancelled`;
                     </div>
 
                     <div className="booking-body">
-                      <h3 className="booking-title">{booking.event_type}</h3>
+                      <h3 className="booking-title">{booking.event_name}</h3>
                       <div className="booking-details">
                         <div className="booking-detail">
                           <span className="detail-icon">👤</span>

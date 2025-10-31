@@ -16,7 +16,7 @@ services:
     runtime: node
     plan: free
     region: oregon
-    buildCommand: npm install
+    buildCommand: npm install && npm run db:migrate
     startCommand: node server/index.js
     envVars:
       - key: NODE_ENV

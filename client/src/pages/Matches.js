@@ -74,25 +74,26 @@ const Matches = () => {
       const bookingPayload = {
         matchId: match.match_id,
         ambassadorId: bookingData.ambassadorId,
+        eventName: bookingData.eventName,
         eventDate: bookingData.eventDate,
         startTime: bookingData.startTime,
         endTime: bookingData.endTime,
         duration: bookingData.duration,
-        eventType: bookingData.eventType,
         eventLocation: bookingData.eventLocation,
         hourlyRate: bookingData.hourlyRate,
         totalCost: bookingData.estimatedCost,
+        notes: bookingData.notes,
       };
 
-      const response = await bookingAPI.createBooking(bookingPayload);
+      await bookingAPI.createBooking(bookingPayload);
 
       // Send a message in the chat with booking details
       const bookingMessage = `📅 New Booking Request
 
-Event: ${bookingData.eventType}
+Event: ${bookingData.eventName}
 Date: ${new Date(bookingData.eventDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
 Time: ${bookingData.startTime} - ${bookingData.endTime} (${bookingData.duration} hours)
-Location: ${bookingData.eventLocation}
+Location: ${bookingData.eventLocation}${bookingData.notes ? `\nNotes: ${bookingData.notes}` : ''}
 
 Rate: $${bookingData.hourlyRate}/hour
 Total Cost: $${bookingData.estimatedCost.toFixed(2)}
