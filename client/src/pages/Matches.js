@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { matchAPI, likeAPI } from '../services/api';
+import { matchAPI, likeAPI, bookingAPI, messageAPI } from '../services/api';
 import { getPhotoUrl } from '../services/upload';
+import BookingModal from '../components/BookingModal';
 import './Matches.css';
 
 const Matches = () => {
-  const { isAmbassador } = useAuth();
+  const { isAmbassador, isBrand } = useAuth();
   const [matches, setMatches] = useState([]);
   const [likes, setLikes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('matches');
+  const [bookingAmbassador, setBookingAmbassador] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -56,6 +58,59 @@ const Matches = () => {
 
   const handleChatClick = (matchId) => {
     navigate(`/chat/${matchId}`);
+  };
+
+  const handleBookingSubmit = async (bookingData) => {
+    try {
+      // Find the match for this ambassador
+      const match = matches.find(m => m.user_id === bookingData.ambassadorId);
+
+      if (!match) {
+        alert('Error: Could not find match. Please try again.');
+        return;
+      }
+
+      // Create booking in database
+      const bookingPayload = {
+        matchId: match.match_id,
+        ambassadorId: bookingData.ambassadorId,
+        eventDate: bookingData.eventDate,
+        startTime: bookingData.startTime,
+        endTime: bookingData.endTime,
+        duration: bookingData.duration,
+        eventType: bookingData.eventType,
+        eventLocation: bookingData.eventLocation,
+        hourlyRate: bookingData.hourlyRate,
+        totalCost: bookingData.estimatedCost,
+      };
+
+      const response = await bookingAPI.createBooking(bookingPayload);
+
+      // Send a message in the chat with booking details
+      const bookingMessage = `📅 New Booking Request
+
+Event: ${bookingData.eventType}
+Date: ${new Date(bookingData.eventDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+Time: ${bookingData.startTime} - ${bookingData.endTime} (${bookingData.duration} hours)
+Location: ${bookingData.eventLocation}
+
+Rate: $${bookingData.hourlyRate}/hour
+Total Cost: $${bookingData.estimatedCost.toFixed(2)}
+
+Status: Pending confirmation`;
+
+      await messageAPI.createMessage(match.match_id, bookingMessage);
+
+      // Close modal and show success
+      setBookingAmbassador(null);
+      alert('Booking request sent successfully! The ambassador will be notified.');
+
+      // Optionally navigate to the chat
+      // navigate(`/chat/${match.match_id}`);
+    } catch (error) {
+      console.error('Failed to create booking:', error);
+      alert('Failed to create booking. Please try again.');
+    }
   };
 
   if (loading) {
@@ -154,11 +209,7 @@ const Matches = () => {
           ) : (
             <div className="matches-grid">
               {matches.map((match) => (
-                <div
-                  key={match.match_id}
-                  className="match-card"
-                  onClick={() => handleChatClick(match.match_id)}
-                >
+                <div key={match.match_id} className="match-card">
                   <img
                     src={match.profile_photo ? getPhotoUrl(match.profile_photo) : 'https://via.placeholder.com/200'}
                     alt={match.name}
@@ -171,12 +222,45 @@ const Matches = () => {
                       <p className="last-message">{match.last_message}</p>
                     )}
                   </div>
-                  <div className="match-arrow">→</div>
+                  <div className="match-actions">
+                    <button
+                      className="message-button"
+                      onClick={() => handleChatClick(match.match_id)}
+                    >
+                      Message
+                    </button>
+                    {isBrand && (
+                      <button
+                        className="book-button-small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // Transform match object to ambassador format for BookingModal
+                          setBookingAmbassador({
+                            id: match.user_id,
+                            name: match.name,
+                            hourly_rate: match.hourly_rate,
+                            profile_photo: match.profile_photo,
+                          });
+                        }}
+                      >
+                        Book Now
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
           )}
         </div>
+      )}
+
+      {/* Booking Modal */}
+      {bookingAmbassador && (
+        <BookingModal
+          ambassador={bookingAmbassador}
+          onClose={() => setBookingAmbassador(null)}
+          onSubmit={handleBookingSubmit}
+        />
       )}
     </div>
   );

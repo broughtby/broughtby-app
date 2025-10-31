@@ -54,4 +54,13 @@ export const messageAPI = {
   createMessage: (matchId, content) => api.post('/messages', { matchId, content }),
 };
 
+// Booking endpoints
+export const bookingAPI = {
+  createBooking: (data) => api.post('/bookings', data),
+  getBookings: () => api.get('/bookings'),
+  getBookingById: (id) => api.get(`/bookings/${id}`),
+  updateBookingStatus: (id, status) => api.put(`/bookings/${id}/status`, { status }),
+  deleteBooking: (id) => api.delete(`/bookings/${id}`),
+};
+
 export default api;

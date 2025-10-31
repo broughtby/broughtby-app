@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import './Navbar.css';
 
 const Navbar = () => {
-  const { user, logout, isAuthenticated } = useAuth();
+  const { logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -27,6 +27,9 @@ const Navbar = () => {
               </Link>
               <Link to="/matches" className="nav-link">
                 Matches
+              </Link>
+              <Link to="/calendar" className="nav-link">
+                Calendar
               </Link>
               <Link to="/profile" className="nav-link">
                 Profile

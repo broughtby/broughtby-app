@@ -139,6 +139,49 @@ const migrations = [
   `
     CREATE INDEX IF NOT EXISTS idx_likes_status ON likes(status);
   `,
+
+  // Create bookings table
+  `
+    CREATE TABLE IF NOT EXISTS bookings (
+      id SERIAL PRIMARY KEY,
+      match_id INTEGER NOT NULL REFERENCES matches(id) ON DELETE CASCADE,
+      brand_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      ambassador_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      event_date DATE NOT NULL,
+      start_time TIME NOT NULL,
+      end_time TIME NOT NULL,
+      duration NUMERIC(5,2) NOT NULL,
+      event_type VARCHAR(100) NOT NULL,
+      event_location TEXT NOT NULL,
+      hourly_rate NUMERIC(10,2) NOT NULL,
+      total_cost NUMERIC(10,2) NOT NULL,
+      status VARCHAR(20) DEFAULT 'pending',
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      CHECK (brand_id != ambassador_id),
+      CHECK (end_time > start_time),
+      CHECK (duration > 0),
+      CHECK (total_cost >= 0),
+      CHECK (status IN ('pending', 'confirmed', 'completed', 'cancelled'))
+    );
+  `,
+
+  // Create indexes for bookings
+  `
+    CREATE INDEX IF NOT EXISTS idx_bookings_match ON bookings(match_id);
+  `,
+  `
+    CREATE INDEX IF NOT EXISTS idx_bookings_brand ON bookings(brand_id);
+  `,
+  `
+    CREATE INDEX IF NOT EXISTS idx_bookings_ambassador ON bookings(ambassador_id);
+  `,
+  `
+    CREATE INDEX IF NOT EXISTS idx_bookings_event_date ON bookings(event_date);
+  `,
+  `
+    CREATE INDEX IF NOT EXISTS idx_bookings_status ON bookings(status);
+  `,
 ];
 
 async function runMigrations() {

@@ -461,7 +461,7 @@ const Discover = () => {
             </button>
           </div>
         ) : (
-          <div className="action-buttons single-button">
+          <div className="action-buttons">
             <button
               className="action-button request-button"
               onClick={handleLike}

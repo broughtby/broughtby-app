@@ -10,6 +10,7 @@ import Discover from './pages/Discover';
 import Matches from './pages/Matches';
 import Chat from './pages/Chat';
 import Profile from './pages/Profile';
+import Calendar from './pages/Calendar';
 
 function App() {
   return (
@@ -45,6 +46,15 @@ function App() {
               element={
                 <PrivateRoute>
                   <Chat />
+                </PrivateRoute>
+              }
+            />
+
+            <Route
+              path="/calendar"
+              element={
+                <PrivateRoute>
+                  <Calendar />
                 </PrivateRoute>
               }
             />

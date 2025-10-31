@@ -1,0 +1,248 @@
+/* Booking Modal Container */
+.booking-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.booking-modal-content {
+  background-color: var(--white);
+  border-radius: 16px;
+  max-width: 560px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* Modal Header */
+.booking-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #F3F4F6;
+}
+
+.booking-modal-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1F2937;
+  margin: 0;
+}
+
+/* Close Button */
+.booking-modal-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  background-color: transparent;
+  color: #6B7280;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+}
+
+.booking-modal-close:hover {
+  background-color: #F3F4F6;
+  color: #1F2937;
+}
+
+/* Ambassador Info */
+.booking-ambassador-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #F3F4F6;
+}
+
+.booking-ambassador-photo {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.booking-ambassador-details h2 {
+  color: #1F2937;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0 0 0.25rem 0;
+}
+
+.booking-rate {
+  color: #6B7280;
+  font-size: 0.95rem;
+  font-weight: 400;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.rate-icon {
+  color: #9CA3AF;
+  font-weight: 400;
+}
+
+/* Form */
+.booking-form {
+  padding: 1.5rem 2rem 2rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 600;
+  color: #1F2937;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border: 1px solid #D1D5DB;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.2s;
+  font-family: inherit;
+  background-color: var(--white);
+}
+
+.form-group input::placeholder,
+.form-group select::placeholder {
+  color: #9CA3AF;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #3B82F6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-group input.error,
+.form-group select.error {
+  border-color: var(--error);
+}
+
+.form-group select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B7280' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  padding-right: 2.5rem;
+}
+
+/* Form Row (Two Columns) */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Error Message */
+.error-message {
+  display: block;
+  color: var(--error);
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+}
+
+/* Submit Button */
+.booking-submit-button {
+  width: 100%;
+  background-color: #D1D5DB;
+  color: var(--white);
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 0.5rem;
+}
+
+.booking-submit-button:hover {
+  background-color: #9CA3AF;
+}
+
+.booking-submit-button:active {
+  transform: scale(0.98);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .booking-modal {
+    padding: 0.5rem;
+  }
+
+  .booking-modal-content {
+    max-height: 95vh;
+    border-radius: 12px;
+  }
+
+  .booking-modal-header {
+    padding: 1.25rem 1.5rem;
+  }
+
+  .booking-modal-title {
+    font-size: 1.25rem;
+  }
+
+  .booking-ambassador-info {
+    padding: 1.25rem 1.5rem;
+  }
+
+  .booking-form {
+    padding: 1.25rem 1.5rem 1.5rem;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .form-group {
+    margin-bottom: 1.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .booking-ambassador-photo {
+    width: 56px;
+    height: 56px;
+  }
+
+  .booking-ambassador-details h2 {
+    font-size: 1.125rem;
+  }
+
+  .booking-rate {
+    font-size: 0.875rem;
+  }
+}

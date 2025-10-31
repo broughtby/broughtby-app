@@ -58,7 +58,6 @@
   display: flex;
   align-items: center;
   gap: 1.5rem;
-  cursor: pointer;
   transition: all 0.3s;
 }
 
@@ -103,6 +102,46 @@
   font-size: 1.5rem;
   color: var(--gold);
   flex-shrink: 0;
+}
+
+.match-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.message-button {
+  background-color: var(--navy);
+  color: var(--white);
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.3s;
+  border: none;
+  cursor: pointer;
+}
+
+.message-button:hover {
+  background-color: #0D3350;
+  transform: translateY(-1px);
+}
+
+.book-button-small {
+  background-color: var(--gold);
+  color: var(--navy);
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.3s;
+  border: none;
+  cursor: pointer;
+}
+
+.book-button-small:hover {
+  background-color: #C4A036;
+  transform: translateY(-1px);
 }
 
 /* Likes Grid */
@@ -221,6 +260,7 @@
 
   .match-card {
     padding: 1rem;
+    flex-wrap: wrap;
   }
 
   .match-photo {
@@ -230,5 +270,17 @@
 
   .last-message {
     max-width: 200px;
+  }
+
+  .match-actions {
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+
+  .message-button,
+  .book-button-small {
+    flex: 1;
+    padding: 0.65rem 1rem;
+    font-size: 0.9rem;
   }
 }
