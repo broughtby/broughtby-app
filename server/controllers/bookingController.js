@@ -38,6 +38,20 @@ const createBooking = async (req, res) => {
       return res.status(400).json({ error: 'Ambassador does not match the partnership' });
     }
 
+    // Check if ambassador has set their hourly rate
+    const ambassadorCheck = await db.query(
+      'SELECT hourly_rate FROM users WHERE id = $1 AND role = $2',
+      [ambassadorId, 'ambassador']
+    );
+
+    if (ambassadorCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'Ambassador not found' });
+    }
+
+    if (ambassadorCheck.rows[0].hourly_rate === null || ambassadorCheck.rows[0].hourly_rate === undefined) {
+      return res.status(400).json({ error: "This ambassador hasn't set their hourly rate yet. Please contact them directly." });
+    }
+
     // Validate event date is not in the past
     const eventDateObj = new Date(eventDate);
     const today = new Date();

@@ -123,7 +123,10 @@ Status: Pending confirmation`;
       // navigate(`/chat/${match.match_id}`);
     } catch (error) {
       console.error('Failed to create booking:', error);
-      alert('Failed to create booking. Please try again.');
+
+      // Check if we have a specific error message from the backend
+      const errorMessage = error.response?.data?.error || 'Failed to create booking. Please try again.';
+      alert(errorMessage);
     }
   };
 
