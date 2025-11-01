@@ -117,7 +117,7 @@ Status: Pending confirmation`;
 
       // Close modal and show success
       setBookingAmbassador(null);
-      alert('Booking request sent successfully! The ambassador will be notified.');
+      alert('Booking request sent! The ambassador has been notified and will review your request. Check the Calendar tab to view the status of your booking.');
 
       // Optionally navigate to the chat
       // navigate(`/chat/${match.match_id}`);
