@@ -49,7 +49,7 @@ const createBooking = async (req, res) => {
     }
 
     if (ambassadorCheck.rows[0].hourly_rate === null || ambassadorCheck.rows[0].hourly_rate === undefined) {
-      return res.status(400).json({ error: "This ambassador hasn't set their hourly rate yet. Please contact them directly." });
+      return res.status(400).json({ error: "Booking unavailable: This ambassador hasn't set their hourly rate yet. Send them a message to set their rate first." });
     }
 
     // Validate event date is not in the past
