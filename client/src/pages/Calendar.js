@@ -1,12 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { bookingAPI, messageAPI } from '../services/api';
+import ReactCalendar from 'react-calendar';
+import { format, isSameDay } from 'date-fns';
+import 'react-calendar/dist/Calendar.css';
 import './Calendar.css';
 
 const Calendar = () => {
   const { user, isBrand, isAmbassador } = useAuth();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [viewMode, setViewMode] = useState('calendar'); // 'calendar' or 'list'
 
   useEffect(() => {
     fetchBookings();
@@ -151,6 +156,46 @@ Status: Cancelled`;
     }
   };
 
+  // Get bookings for a specific date
+  const getBookingsForDate = (date) => {
+    return bookings.filter(booking => {
+      const bookingDate = new Date(booking.event_date);
+      return isSameDay(bookingDate, date);
+    });
+  };
+
+  // Render tile content for calendar (indicators)
+  const tileContent = ({ date, view }) => {
+    if (view !== 'month') return null;
+
+    const dayBookings = getBookingsForDate(date);
+    if (dayBookings.length === 0) return null;
+
+    // Count bookings by status
+    const pendingCount = dayBookings.filter(b => b.status === 'pending').length;
+    const confirmedCount = dayBookings.filter(b => b.status === 'confirmed').length;
+
+    return (
+      <div className="calendar-tile-indicators">
+        {pendingCount > 0 && (
+          <span className="indicator indicator-pending" title={`${pendingCount} pending`}>
+            {pendingCount}
+          </span>
+        )}
+        {confirmedCount > 0 && (
+          <span className="indicator indicator-confirmed" title={`${confirmedCount} confirmed`}>
+            {confirmedCount}
+          </span>
+        )}
+      </div>
+    );
+  };
+
+  // Handle date click
+  const handleDateClick = (date) => {
+    setSelectedDate(date);
+  };
+
   // Group bookings by status
   const pendingBookings = bookings.filter(b => b.status === 'pending');
   const confirmedBookings = bookings.filter(b => b.status === 'confirmed');
@@ -164,13 +209,32 @@ Status: Cancelled`;
     );
   }
 
+  // Get bookings for selected date
+  const selectedDateBookings = getBookingsForDate(selectedDate);
+
   return (
     <div className="calendar-container">
       <div className="calendar-header">
-        <h1>Calendar</h1>
-        <p className="calendar-subtitle">
-          {isBrand ? 'Manage your bookings with ambassadors' : 'View and confirm booking requests'}
-        </p>
+        <div className="header-left">
+          <h1>Calendar</h1>
+          <p className="calendar-subtitle">
+            {isBrand ? 'Manage your bookings with ambassadors' : 'View and confirm booking requests'}
+          </p>
+        </div>
+        <div className="view-toggle">
+          <button
+            className={`toggle-btn ${viewMode === 'calendar' ? 'active' : ''}`}
+            onClick={() => setViewMode('calendar')}
+          >
+            Calendar View
+          </button>
+          <button
+            className={`toggle-btn ${viewMode === 'list' ? 'active' : ''}`}
+            onClick={() => setViewMode('list')}
+          >
+            List View
+          </button>
+        </div>
       </div>
 
       {bookings.length === 0 ? (
@@ -179,8 +243,128 @@ Status: Cancelled`;
         </div>
       ) : (
         <>
-          {/* Pending Bookings */}
-          {pendingBookings.length > 0 && (
+          {/* Calendar View */}
+          {viewMode === 'calendar' && (
+            <div className="calendar-view">
+              <div className="calendar-navigation">
+                <button
+                  className="today-btn"
+                  onClick={() => setSelectedDate(new Date())}
+                >
+                  Today
+                </button>
+              </div>
+
+              <div className="calendar-grid-container">
+                <div className="calendar-grid">
+                  <ReactCalendar
+                    onChange={handleDateClick}
+                    value={selectedDate}
+                    tileContent={tileContent}
+                    className="custom-calendar"
+                  />
+                </div>
+
+                <div className="day-detail-sidebar">
+                  <h2 className="day-detail-title">
+                    {format(selectedDate, 'EEEE, MMMM d, yyyy')}
+                  </h2>
+
+                  {selectedDateBookings.length === 0 ? (
+                    <div className="no-bookings-message">
+                      <p>No bookings scheduled for this day.</p>
+                    </div>
+                  ) : (
+                    <div className="day-bookings-list">
+                      {selectedDateBookings.map((booking) => (
+                        <div key={booking.id} className={`day-booking-card ${booking.status}`}>
+                          <div className="booking-header">
+                            <span className={`status-badge ${getStatusBadgeClass(booking.status)}`}>
+                              {getStatusText(booking.status)}
+                            </span>
+                          </div>
+
+                          <div className="booking-body">
+                            <h3 className="booking-title">{booking.event_name}</h3>
+                            <div className="booking-details">
+                              <div className="booking-detail">
+                                <span className="detail-icon">👤</span>
+                                <span>{isBrand ? booking.ambassador_name : booking.brand_name}</span>
+                              </div>
+                              <div className="booking-detail">
+                                <span className="detail-icon">🕐</span>
+                                <span>{formatTime(booking.start_time)} - {formatTime(booking.end_time)} CST</span>
+                              </div>
+                              <div className="booking-detail">
+                                <span className="detail-icon">📍</span>
+                                <span>{booking.event_location}</span>
+                              </div>
+                              {booking.notes && (
+                                <div className="booking-detail">
+                                  <span className="detail-icon">📝</span>
+                                  <span>{booking.notes}</span>
+                                </div>
+                              )}
+                              <div className="booking-detail">
+                                <span className="detail-label">Total Cost:</span>
+                                <span>${parseFloat(booking.total_cost).toFixed(2)}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {booking.status === 'pending' && (
+                            <div className="booking-actions">
+                              {isAmbassador && (
+                                <>
+                                  <button
+                                    className="action-btn decline-btn"
+                                    onClick={() => handleDecline(booking)}
+                                  >
+                                    Decline
+                                  </button>
+                                  <button
+                                    className="action-btn confirm-btn"
+                                    onClick={() => handleConfirm(booking)}
+                                  >
+                                    Confirm
+                                  </button>
+                                </>
+                              )}
+                              {isBrand && (
+                                <button
+                                  className="action-btn cancel-btn"
+                                  onClick={() => handleCancel(booking)}
+                                >
+                                  Cancel Request
+                                </button>
+                              )}
+                            </div>
+                          )}
+
+                          {booking.status === 'confirmed' && (
+                            <div className="booking-actions">
+                              <button
+                                className="action-btn cancel-btn"
+                                onClick={() => handleCancel(booking)}
+                              >
+                                Cancel Booking
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* List View */}
+          {viewMode === 'list' && (
+            <>
+              {/* Pending Bookings */}
+              {pendingBookings.length > 0 && (
             <div className="bookings-section">
               <h2 className="section-title">
                 ⏳ Pending Requests ({pendingBookings.length})
@@ -378,6 +562,8 @@ Status: Cancelled`;
                 ))}
               </div>
             </div>
+          )}
+            </>
           )}
         </>
       )}
