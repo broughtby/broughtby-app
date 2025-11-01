@@ -23,6 +23,19 @@ const Calendar = () => {
     }
   };
 
+  // Format time from 24-hour to 12-hour format with AM/PM
+  const formatTime = (time24) => {
+    if (!time24) return '';
+
+    // Handle time format from database (HH:MM:SS or HH:MM)
+    const [hours, minutes] = time24.split(':');
+    const hour = parseInt(hours, 10);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const hour12 = hour % 12 || 12; // Convert 0 to 12 for midnight
+
+    return `${hour12}:${minutes} ${ampm}`;
+  };
+
   const handleConfirm = async (booking) => {
     try {
       await bookingAPI.updateBookingStatus(booking.id, 'confirmed');
@@ -33,7 +46,7 @@ const Calendar = () => {
 ${user.name} has confirmed the booking for:
 Event: ${booking.event_name}
 Date: ${new Date(booking.event_date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-Time: ${booking.start_time} - ${booking.end_time}
+Time: ${formatTime(booking.start_time)} - ${formatTime(booking.end_time)} CST
 Location: ${booking.event_location}
 
 Total Cost: $${parseFloat(booking.total_cost).toFixed(2)}
@@ -62,6 +75,7 @@ Status: ✅ Confirmed`;
 ${user.name} has declined the booking request for:
 Event: ${booking.event_name}
 Date: ${new Date(booking.event_date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+Time: ${formatTime(booking.start_time)} - ${formatTime(booking.end_time)} CST
 
 Please discuss alternative arrangements in the chat.`;
 
@@ -91,6 +105,7 @@ Please discuss alternative arrangements in the chat.`;
 ${user.name} has cancelled the booking:
 Event: ${booking.event_name}
 Date: ${new Date(booking.event_date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+Time: ${formatTime(booking.start_time)} - ${formatTime(booking.end_time)} CST
 
 Status: Cancelled`;
 
@@ -195,14 +210,20 @@ Status: Cancelled`;
                         </div>
                         <div className="booking-detail">
                           <span className="detail-icon">🕐</span>
-                          <span>{booking.start_time} - {booking.end_time}</span>
+                          <span>{formatTime(booking.start_time)} - {formatTime(booking.end_time)} CST</span>
                         </div>
                         <div className="booking-detail">
                           <span className="detail-icon">📍</span>
                           <span>{booking.event_location}</span>
                         </div>
+                        {booking.notes && (
+                          <div className="booking-detail">
+                            <span className="detail-icon">📝</span>
+                            <span>{booking.notes}</span>
+                          </div>
+                        )}
                         <div className="booking-detail">
-                          <span className="detail-icon">💰</span>
+                          <span className="detail-label">Total Cost:</span>
                           <span>${parseFloat(booking.total_cost).toFixed(2)}</span>
                         </div>
                       </div>
@@ -271,14 +292,20 @@ Status: Cancelled`;
                         </div>
                         <div className="booking-detail">
                           <span className="detail-icon">🕐</span>
-                          <span>{booking.start_time} - {booking.end_time}</span>
+                          <span>{formatTime(booking.start_time)} - {formatTime(booking.end_time)} CST</span>
                         </div>
                         <div className="booking-detail">
                           <span className="detail-icon">📍</span>
                           <span>{booking.event_location}</span>
                         </div>
+                        {booking.notes && (
+                          <div className="booking-detail">
+                            <span className="detail-icon">📝</span>
+                            <span>{booking.notes}</span>
+                          </div>
+                        )}
                         <div className="booking-detail">
-                          <span className="detail-icon">💰</span>
+                          <span className="detail-label">Total Cost:</span>
                           <span>${parseFloat(booking.total_cost).toFixed(2)}</span>
                         </div>
                       </div>
@@ -329,14 +356,20 @@ Status: Cancelled`;
                         </div>
                         <div className="booking-detail">
                           <span className="detail-icon">🕐</span>
-                          <span>{booking.start_time} - {booking.end_time}</span>
+                          <span>{formatTime(booking.start_time)} - {formatTime(booking.end_time)} CST</span>
                         </div>
                         <div className="booking-detail">
                           <span className="detail-icon">📍</span>
                           <span>{booking.event_location}</span>
                         </div>
+                        {booking.notes && (
+                          <div className="booking-detail">
+                            <span className="detail-icon">📝</span>
+                            <span>{booking.notes}</span>
+                          </div>
+                        )}
                         <div className="booking-detail">
-                          <span className="detail-icon">💰</span>
+                          <span className="detail-label">Total Cost:</span>
                           <span>${parseFloat(booking.total_cost).toFixed(2)}</span>
                         </div>
                       </div>

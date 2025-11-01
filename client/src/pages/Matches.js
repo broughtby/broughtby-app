@@ -35,6 +35,19 @@ const Matches = () => {
     }
   };
 
+  // Format time from 24-hour to 12-hour format with AM/PM
+  const formatTime = (time24) => {
+    if (!time24) return '';
+
+    // Handle time format (HH:MM:SS or HH:MM)
+    const [hours, minutes] = time24.split(':');
+    const hour = parseInt(hours, 10);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const hour12 = hour % 12 || 12; // Convert 0 to 12 for midnight
+
+    return `${hour12}:${minutes} ${ampm}`;
+  };
+
   const handleAcceptRequest = async (brandId) => {
     try {
       await matchAPI.createMatch(brandId);
@@ -92,7 +105,7 @@ const Matches = () => {
 
 Event: ${bookingData.eventName}
 Date: ${new Date(bookingData.eventDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-Time: ${bookingData.startTime} - ${bookingData.endTime} (${bookingData.duration} hours)
+Time: ${formatTime(bookingData.startTime)} - ${formatTime(bookingData.endTime)} CST (${bookingData.duration} hours)
 Location: ${bookingData.eventLocation}${bookingData.notes ? `\nNotes: ${bookingData.notes}` : ''}
 
 Rate: $${bookingData.hourlyRate}/hour

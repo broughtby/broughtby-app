@@ -150,6 +150,12 @@
   text-align: center;
 }
 
+.detail-label {
+  font-weight: 600;
+  color: var(--dark-gray);
+  margin-right: 0.5rem;
+}
+
 /* Booking Actions */
 .booking-actions {
   display: flex;
