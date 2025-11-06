@@ -102,7 +102,9 @@ const login = async (req, res) => {
 
     // Find user
     const result = await db.query(
-      'SELECT id, email, password_hash, role, name, profile_photo FROM users WHERE email = $1',
+      `SELECT id, email, password_hash, role, name, profile_photo, bio, location, age,
+              skills, hourly_rate, availability, rating, created_at
+       FROM users WHERE email = $1`,
       [email]
     );
 
@@ -135,6 +137,13 @@ const login = async (req, res) => {
         role: user.role,
         name: user.name,
         profile_photo: user.profile_photo,
+        bio: user.bio,
+        location: user.location,
+        age: user.age,
+        skills: user.skills,
+        hourly_rate: user.hourly_rate,
+        availability: user.availability,
+        rating: user.rating,
       },
     });
   } catch (error) {
