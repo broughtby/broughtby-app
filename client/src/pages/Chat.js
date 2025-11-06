@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { messageAPI } from '../services/api';
@@ -19,6 +19,20 @@ const Chat = () => {
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
 
+  const fetchMessages = useCallback(async () => {
+    try {
+      const response = await messageAPI.getMessages(matchId);
+      setMessages(response.data.messages);
+    } catch (error) {
+      console.error('Failed to fetch messages:', error);
+      if (error.response?.status === 403) {
+        navigate('/matches');
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [matchId, navigate]);
+
   useEffect(() => {
     fetchMessages();
     socketService.joinMatch(matchId);
@@ -32,25 +46,12 @@ const Chat = () => {
       socketService.leaveMatch(matchId);
       socketService.removeAllListeners();
     };
-  }, [matchId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [matchId, fetchMessages]);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
-
-  const fetchMessages = async () => {
-    try {
-      const response = await messageAPI.getMessages(matchId);
-      setMessages(response.data.messages);
-    } catch (error) {
-      console.error('Failed to fetch messages:', error);
-      if (error.response?.status === 403) {
-        navigate('/matches');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleNewMessage = (message) => {
     setMessages((prev) => [...prev, message]);

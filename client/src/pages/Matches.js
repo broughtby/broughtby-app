@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { matchAPI, likeAPI, bookingAPI, messageAPI } from '../services/api';
@@ -15,11 +15,7 @@ const Matches = () => {
   const [bookingAmbassador, setBookingAmbassador] = useState(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const matchesResponse = await matchAPI.getMatches();
       setMatches(matchesResponse.data.matches);
@@ -33,7 +29,11 @@ const Matches = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isAmbassador]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   // Format time from 24-hour to 12-hour format with AM/PM
   const formatTime = (time24) => {

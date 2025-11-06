@@ -97,36 +97,6 @@ const Discover = () => {
     }
   };
 
-  const handlePass = async (ambassadorId = null) => {
-    if (liking || ambassadors.length === 0) return;
-
-    const targetAmbassador = ambassadorId || filteredAmbassadors[currentIndex % filteredAmbassadors.length].id;
-
-    setSwipeDirection('left');
-
-    try {
-      // Send pass request to API
-      await likeAPI.createPass(targetAmbassador);
-
-      // Update local state to reflect passed status
-      const updatedAmbassadors = ambassadors.map(a =>
-        a.id === targetAmbassador ? { ...a, status: 'passed' } : a
-      );
-      setAmbassadors(updatedAmbassadors);
-
-      setTimeout(() => {
-        if (!ambassadorId) {
-          // Only advance index if called from mobile swipe view
-          setCurrentIndex(currentIndex + 1);
-        }
-        setSwipeDirection(null);
-      }, 300);
-    } catch (error) {
-      console.error('Failed to pass ambassador:', error);
-      setSwipeDirection(null);
-    }
-  };
-
   const handleNext = () => {
     if (filteredAmbassadors.length === 0) return;
 
