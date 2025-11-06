@@ -581,6 +581,10 @@ const Discover = () => {
 
               <div className="modal-stats">
                 <div className="stat">
+                  <span className="stat-label">Age</span>
+                  <span className="stat-value">{selectedAmbassador.age || 'N/A'}</span>
+                </div>
+                <div className="stat">
                   <span className="stat-label">Rate</span>
                   <span className="stat-value">${selectedAmbassador.hourly_rate}/hr</span>
                 </div>
