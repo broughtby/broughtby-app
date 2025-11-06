@@ -1,0 +1,35 @@
+# Netlify configuration for BroughtBy frontend deployment
+
+[build]
+  # Directory to run build commands from
+  base = "client"
+
+  # Command to build the React app
+  command = "npm run build"
+
+  # Directory to publish (relative to base)
+  publish = "build"
+
+# Redirect all routes to index.html for client-side routing
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Headers for security and caching
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+[[headers]]
+  for = "/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Node version
+[build.environment]
+  NODE_VERSION = "18"
