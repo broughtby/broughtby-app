@@ -1,0 +1,168 @@
+const jwt = require('jsonwebtoken');
+const db = require('../config/database');
+
+// Search users by email or name (admin only)
+const searchUsers = async (req, res) => {
+  try {
+    const { q } = req.query;
+
+    if (!q || q.trim().length === 0) {
+      return res.json({ users: [] });
+    }
+
+    const searchTerm = `%${q.trim().toLowerCase()}%`;
+
+    const result = await db.query(
+      `SELECT id, email, role, name, profile_photo, is_admin
+       FROM users
+       WHERE LOWER(email) LIKE $1 OR LOWER(name) LIKE $1
+       ORDER BY name ASC
+       LIMIT 20`,
+      [searchTerm]
+    );
+
+    const users = result.rows.map(user => ({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      name: user.name,
+      profile_photo: user.profile_photo,
+      isAdmin: user.is_admin || false
+    }));
+
+    res.json({ users });
+  } catch (error) {
+    console.error('Search users error:', error);
+    res.status(500).json({ error: 'Failed to search users' });
+  }
+};
+
+// Impersonate a user (admin only)
+const impersonateUser = async (req, res) => {
+  try {
+    const { userId } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    // Fetch the user to impersonate
+    const result = await db.query(
+      `SELECT id, email, role, name, profile_photo, bio, location, age,
+              skills, hourly_rate, availability, rating, is_admin
+       FROM users WHERE id = $1`,
+      [userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const targetUser = result.rows[0];
+
+    // Generate new JWT for impersonated user with originalAdminId
+    const token = jwt.sign(
+      {
+        userId: targetUser.id,
+        email: targetUser.email,
+        role: targetUser.role,
+        isAdmin: targetUser.is_admin || false,
+        originalAdminId: req.user.userId, // Store original admin ID
+        isImpersonating: true
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    res.json({
+      message: 'Impersonation started',
+      token,
+      user: {
+        id: targetUser.id,
+        email: targetUser.email,
+        role: targetUser.role,
+        name: targetUser.name,
+        profile_photo: targetUser.profile_photo,
+        bio: targetUser.bio,
+        location: targetUser.location,
+        age: targetUser.age,
+        skills: targetUser.skills,
+        hourly_rate: targetUser.hourly_rate,
+        availability: targetUser.availability,
+        rating: targetUser.rating,
+        isAdmin: targetUser.is_admin || false,
+      },
+      originalAdminId: req.user.userId
+    });
+  } catch (error) {
+    console.error('Impersonate user error:', error);
+    res.status(500).json({ error: 'Failed to impersonate user' });
+  }
+};
+
+// Stop impersonation and return to admin view
+const stopImpersonation = async (req, res) => {
+  try {
+    // Check if currently impersonating
+    if (!req.user.isImpersonating || !req.user.originalAdminId) {
+      return res.status(400).json({ error: 'Not currently impersonating' });
+    }
+
+    const originalAdminId = req.user.originalAdminId;
+
+    // Fetch original admin user
+    const result = await db.query(
+      `SELECT id, email, role, name, profile_photo, bio, location, age,
+              skills, hourly_rate, availability, rating, is_admin
+       FROM users WHERE id = $1`,
+      [originalAdminId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Original admin user not found' });
+    }
+
+    const adminUser = result.rows[0];
+
+    // Generate new JWT for original admin
+    const token = jwt.sign(
+      {
+        userId: adminUser.id,
+        email: adminUser.email,
+        role: adminUser.role,
+        isAdmin: adminUser.is_admin || false
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    res.json({
+      message: 'Impersonation stopped',
+      token,
+      user: {
+        id: adminUser.id,
+        email: adminUser.email,
+        role: adminUser.role,
+        name: adminUser.name,
+        profile_photo: adminUser.profile_photo,
+        bio: adminUser.bio,
+        location: adminUser.location,
+        age: adminUser.age,
+        skills: adminUser.skills,
+        hourly_rate: adminUser.hourly_rate,
+        availability: adminUser.availability,
+        rating: adminUser.rating,
+        isAdmin: adminUser.is_admin || false,
+      }
+    });
+  } catch (error) {
+    console.error('Stop impersonation error:', error);
+    res.status(500).json({ error: 'Failed to stop impersonation' });
+  }
+};
+
+module.exports = {
+  searchUsers,
+  impersonateUser,
+  stopImpersonation
+};

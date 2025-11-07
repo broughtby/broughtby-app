@@ -13,7 +13,7 @@ const getProfile = async (req, res) => {
   try {
     const result = await db.query(
       `SELECT id, email, role, name, profile_photo, bio, location, age,
-              skills, hourly_rate, availability, rating, created_at
+              skills, hourly_rate, availability, rating, is_admin, created_at
        FROM users WHERE id = $1`,
       [req.user.userId]
     );
@@ -22,7 +22,13 @@ const getProfile = async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    res.json({ user: result.rows[0] });
+    const user = result.rows[0];
+    res.json({
+      user: {
+        ...user,
+        isAdmin: user.is_admin || false
+      }
+    });
   } catch (error) {
     console.error('Get profile error:', error);
     res.status(500).json({ error: 'Failed to fetch profile' });
@@ -104,14 +110,18 @@ const updateProfile = async (req, res) => {
       SET ${updates.join(', ')}
       WHERE id = $${paramCount}
       RETURNING id, email, role, name, profile_photo, bio, location, age,
-                skills, hourly_rate, availability, rating
+                skills, hourly_rate, availability, rating, is_admin
     `;
 
     const result = await db.query(query, values);
+    const user = result.rows[0];
 
     res.json({
       message: 'Profile updated successfully',
-      user: result.rows[0],
+      user: {
+        ...user,
+        isAdmin: user.is_admin || false
+      },
     });
   } catch (error) {
     console.error('Update profile error:', error);

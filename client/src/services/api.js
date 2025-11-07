@@ -63,4 +63,11 @@ export const bookingAPI = {
   deleteBooking: (id) => api.delete(`/bookings/${id}`),
 };
 
+// Admin endpoints
+export const adminAPI = {
+  searchUsers: (query) => api.get('/admin/users/search', { params: { q: query } }),
+  impersonateUser: (userId) => api.post('/admin/impersonate', { userId }),
+  stopImpersonation: () => api.post('/admin/stop-impersonation'),
+};
+
 export default api;

@@ -183,6 +183,27 @@ const migrations = [
   `
     CREATE INDEX IF NOT EXISTS idx_bookings_status ON bookings(status);
   `,
+
+  // Add is_admin column for admin user impersonation feature
+  `
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                     WHERE table_name = 'users' AND column_name = 'is_admin') THEN
+        ALTER TABLE users ADD COLUMN is_admin BOOLEAN DEFAULT FALSE;
+      END IF;
+    END $$;
+  `,
+
+  // Create index on is_admin for faster admin checks
+  `
+    CREATE INDEX IF NOT EXISTS idx_users_is_admin ON users(is_admin);
+  `,
+
+  // Set brooke@broughtby.co as admin
+  `
+    UPDATE users SET is_admin = TRUE WHERE email = 'brooke@broughtby.co';
+  `,
 ];
 
 async function runMigrations() {

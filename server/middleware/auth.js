@@ -47,4 +47,16 @@ const requireRole = (...roles) => {
   };
 };
 
-module.exports = { auth, optionalAuth, requireRole };
+const requireAdmin = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+
+  if (!req.user.isAdmin) {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
+
+  next();
+};
+
+module.exports = { auth, optionalAuth, requireRole, requireAdmin };

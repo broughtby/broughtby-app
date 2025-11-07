@@ -42,7 +42,7 @@ const register = async (req, res) => {
       )
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
        RETURNING id, email, role, name, profile_photo, bio, location, age,
-                 skills, hourly_rate, availability, rating, created_at`,
+                 skills, hourly_rate, availability, rating, is_admin, created_at`,
       [
         email,
         passwordHash,
@@ -62,7 +62,7 @@ const register = async (req, res) => {
 
     // Generate JWT
     const token = jwt.sign(
-      { userId: user.id, email: user.email, role: user.role },
+      { userId: user.id, email: user.email, role: user.role, isAdmin: user.is_admin || false },
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
@@ -83,6 +83,7 @@ const register = async (req, res) => {
         hourly_rate: user.hourly_rate,
         availability: user.availability,
         rating: user.rating,
+        isAdmin: user.is_admin || false,
       },
     });
   } catch (error) {
@@ -103,7 +104,7 @@ const login = async (req, res) => {
     // Find user
     const result = await db.query(
       `SELECT id, email, password_hash, role, name, profile_photo, bio, location, age,
-              skills, hourly_rate, availability, rating, created_at
+              skills, hourly_rate, availability, rating, is_admin, created_at
        FROM users WHERE email = $1`,
       [email]
     );
@@ -123,7 +124,7 @@ const login = async (req, res) => {
 
     // Generate JWT
     const token = jwt.sign(
-      { userId: user.id, email: user.email, role: user.role },
+      { userId: user.id, email: user.email, role: user.role, isAdmin: user.is_admin || false },
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
@@ -144,6 +145,7 @@ const login = async (req, res) => {
         hourly_rate: user.hourly_rate,
         availability: user.availability,
         rating: user.rating,
+        isAdmin: user.is_admin || false,
       },
     });
   } catch (error) {

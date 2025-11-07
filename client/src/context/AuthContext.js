@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { authAPI, userAPI } from '../services/api';
+import { authAPI, userAPI, adminAPI } from '../services/api';
 import socketService from '../services/socket';
 
 const AuthContext = createContext();
@@ -15,11 +15,14 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [impersonatedUser, setImpersonatedUser] = useState(null);
+  const [originalAdminId, setOriginalAdminId] = useState(null);
 
   useEffect(() => {
     // Check if user is already logged in and restore session
     const initializeAuth = async () => {
       const token = localStorage.getItem('token');
+      const storedOriginalAdminId = localStorage.getItem('originalAdminId');
 
       if (token) {
         try {
@@ -30,12 +33,21 @@ export const AuthProvider = ({ children }) => {
           setUser(userData);
           localStorage.setItem('user', JSON.stringify(userData));
           socketService.connect(token);
+
+          // Restore impersonation state if it exists
+          if (storedOriginalAdminId) {
+            setOriginalAdminId(parseInt(storedOriginalAdminId));
+            setImpersonatedUser(userData);
+          }
         } catch (error) {
           // Token is invalid or expired, clear localStorage
           console.error('Failed to restore session:', error);
           localStorage.removeItem('token');
           localStorage.removeItem('user');
+          localStorage.removeItem('originalAdminId');
           setUser(null);
+          setImpersonatedUser(null);
+          setOriginalAdminId(null);
         }
       }
 
@@ -86,7 +98,10 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('originalAdminId');
     setUser(null);
+    setImpersonatedUser(null);
+    setOriginalAdminId(null);
     socketService.disconnect();
   };
 
@@ -98,11 +113,70 @@ export const AuthProvider = ({ children }) => {
       setUser(updatedUser);
       localStorage.setItem('user', JSON.stringify(updatedUser));
 
+      // Update impersonated user if currently impersonating
+      if (impersonatedUser && impersonatedUser.id === updatedUser.id) {
+        setImpersonatedUser(updatedUser);
+      }
+
       return { success: true };
     } catch (error) {
       return {
         success: false,
         error: error.response?.data?.error || 'Update failed',
+      };
+    }
+  };
+
+  const impersonateUser = async (userId) => {
+    try {
+      const response = await adminAPI.impersonateUser(userId);
+      const { token, user: targetUser, originalAdminId: adminId } = response.data;
+
+      // Store original admin ID and token
+      localStorage.setItem('originalAdminId', adminId);
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(targetUser));
+
+      setOriginalAdminId(adminId);
+      setImpersonatedUser(targetUser);
+      setUser(targetUser);
+
+      // Reconnect socket with new token
+      socketService.disconnect();
+      socketService.connect(token);
+
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.error || 'Failed to impersonate user',
+      };
+    }
+  };
+
+  const stopImpersonation = async () => {
+    try {
+      const response = await adminAPI.stopImpersonation();
+      const { token, user: adminUser } = response.data;
+
+      // Clear impersonation state
+      localStorage.removeItem('originalAdminId');
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(adminUser));
+
+      setOriginalAdminId(null);
+      setImpersonatedUser(null);
+      setUser(adminUser);
+
+      // Reconnect socket with admin token
+      socketService.disconnect();
+      socketService.connect(token);
+
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.error || 'Failed to stop impersonation',
       };
     }
   };
@@ -114,9 +188,14 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     updateUser,
+    impersonateUser,
+    stopImpersonation,
     isAuthenticated: !!user,
     isBrand: user?.role === 'brand',
     isAmbassador: user?.role === 'ambassador',
+    isAdmin: user?.isAdmin || false,
+    isImpersonating: !!impersonatedUser && !!originalAdminId,
+    impersonatedUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
