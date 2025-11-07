@@ -52,7 +52,8 @@ const requireAdmin = (req, res, next) => {
     return res.status(401).json({ error: 'Authentication required' });
   }
 
-  if (!req.user.isAdmin) {
+  // Allow if user is admin OR if they are impersonating (must have been admin to start impersonation)
+  if (!req.user.isAdmin && !req.user.isImpersonating) {
     return res.status(403).json({ error: 'Admin access required' });
   }
 
