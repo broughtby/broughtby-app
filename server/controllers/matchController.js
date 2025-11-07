@@ -38,6 +38,27 @@ const createMatch = async (req, res) => {
       return res.status(400).json({ error: 'Match already exists' });
     }
 
+    // Get the newly created match ID
+    const matchId = result.rows[0].id;
+
+    // Get ambassador's name for personalized welcome message
+    const ambassadorQuery = await db.query(
+      'SELECT name FROM users WHERE id = $1',
+      [req.user.userId]
+    );
+
+    if (ambassadorQuery.rows.length > 0) {
+      const ambassadorName = ambassadorQuery.rows[0].name;
+      const welcomeMessage = `Hi ${ambassadorName}! I'm interested in learning more about you to see if you'd be a good fit for some events coming up. When would be a good time to chat?`;
+
+      // Insert the welcome message into the messages table
+      await db.query(
+        `INSERT INTO messages (match_id, sender_id, content)
+         VALUES ($1, $2, $3)`,
+        [matchId, brandId, welcomeMessage]
+      );
+    }
+
     res.status(201).json({
       message: 'Partnership accepted successfully',
       match: result.rows[0],
