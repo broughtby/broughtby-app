@@ -200,9 +200,9 @@ const migrations = [
     CREATE INDEX IF NOT EXISTS idx_users_is_admin ON users(is_admin);
   `,
 
-  // Set brooke@broughtby.co as admin
+  // Set team@luxewellness.com as admin
   `
-    UPDATE users SET is_admin = TRUE WHERE email = 'brooke@broughtby.co';
+    UPDATE users SET is_admin = TRUE WHERE email = 'team@luxewellness.com';
   `,
 ];
 
