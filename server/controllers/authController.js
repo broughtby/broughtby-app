@@ -115,6 +115,12 @@ const login = async (req, res) => {
 
     const user = result.rows[0];
 
+    console.log('🔍 Backend Login Debug:', {
+      email: user.email,
+      is_admin_from_db: user.is_admin,
+      role: user.role
+    });
+
     // Verify password
     const isValidPassword = await bcrypt.compare(password, user.password_hash);
 
@@ -122,31 +128,38 @@ const login = async (req, res) => {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
+    const isAdminValue = user.is_admin || false;
+    console.log('📤 Sending isAdmin value:', isAdminValue);
+
     // Generate JWT
     const token = jwt.sign(
-      { userId: user.id, email: user.email, role: user.role, isAdmin: user.is_admin || false },
+      { userId: user.id, email: user.email, role: user.role, isAdmin: isAdminValue },
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
 
+    const responseUser = {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      name: user.name,
+      profile_photo: user.profile_photo,
+      bio: user.bio,
+      location: user.location,
+      age: user.age,
+      skills: user.skills,
+      hourly_rate: user.hourly_rate,
+      availability: user.availability,
+      rating: user.rating,
+      isAdmin: isAdminValue,
+    };
+
+    console.log('📤 Full response user object:', responseUser);
+
     res.json({
       message: 'Login successful',
       token,
-      user: {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        name: user.name,
-        profile_photo: user.profile_photo,
-        bio: user.bio,
-        location: user.location,
-        age: user.age,
-        skills: user.skills,
-        hourly_rate: user.hourly_rate,
-        availability: user.availability,
-        rating: user.rating,
-        isAdmin: user.is_admin || false,
-      },
+      user: responseUser,
     });
   } catch (error) {
     console.error('Login error:', error);

@@ -81,10 +81,20 @@ export const AuthProvider = ({ children }) => {
       const response = await authAPI.login({ email, password });
       const { token, user } = response.data;
 
+      console.log('🔐 Login Response Debug:', {
+        fullResponse: response.data,
+        token: token.substring(0, 20) + '...',
+        user,
+        userIsAdmin: user.isAdmin,
+        userEmail: user.email
+      });
+
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
       setUser(user);
       socketService.connect(token);
+
+      console.log('✓ User state updated in AuthContext');
 
       return { success: true };
     } catch (error) {
