@@ -5,13 +5,24 @@ import { adminAPI } from '../services/api';
 import './Navbar.css';
 
 const Navbar = () => {
-  const { logout, isAuthenticated, isAdmin, impersonateUser } = useAuth();
+  const { logout, isAuthenticated, isAdmin, impersonateUser, user } = useAuth();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
+
+  // Debug: Log admin status
+  React.useEffect(() => {
+    console.log('🔍 Navbar Debug:', {
+      isAuthenticated,
+      isAdmin,
+      userEmail: user?.email,
+      userIsAdmin: user?.isAdmin,
+      user
+    });
+  }, [isAuthenticated, isAdmin, user]);
 
   const handleLogout = () => {
     logout();
@@ -88,6 +99,13 @@ const Navbar = () => {
               <Link to="/profile" className="nav-link">
                 Profile
               </Link>
+
+              {/* Debug indicator - remove after testing */}
+              {isAuthenticated && (
+                <span style={{ color: 'white', fontSize: '10px', marginRight: '10px' }}>
+                  Admin: {isAdmin ? '✓' : '✗'}
+                </span>
+              )}
 
               {/* Admin User Switcher - Only visible to admins */}
               {isAdmin && (
