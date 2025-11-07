@@ -235,10 +235,149 @@ const deleteBooking = async (req, res) => {
   }
 };
 
+const checkIn = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Only ambassadors can check in
+    if (req.user.role !== 'ambassador') {
+      return res.status(403).json({ error: 'Only ambassadors can check in' });
+    }
+
+    // Get the booking
+    const bookingCheck = await db.query(
+      'SELECT * FROM bookings WHERE id = $1 AND ambassador_id = $2',
+      [id, req.user.userId]
+    );
+
+    if (bookingCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'Booking not found or you do not have access' });
+    }
+
+    const booking = bookingCheck.rows[0];
+
+    // Booking must be confirmed
+    if (booking.status !== 'confirmed') {
+      return res.status(400).json({ error: 'Only confirmed bookings can be checked in' });
+    }
+
+    // Prevent double check-in
+    if (booking.checked_in_at) {
+      return res.status(400).json({ error: 'Already checked in' });
+    }
+
+    // Record check-in timestamp
+    const result = await db.query(
+      `UPDATE bookings
+       SET checked_in_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $1
+       RETURNING *`,
+      [id]
+    );
+
+    res.json({
+      message: 'Checked in successfully',
+      booking: result.rows[0],
+    });
+  } catch (error) {
+    console.error('Check-in error:', error);
+    res.status(500).json({ error: 'Failed to check in' });
+  }
+};
+
+const checkOut = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Only ambassadors can check out
+    if (req.user.role !== 'ambassador') {
+      return res.status(403).json({ error: 'Only ambassadors can check out' });
+    }
+
+    // Get the booking
+    const bookingCheck = await db.query(
+      'SELECT * FROM bookings WHERE id = $1 AND ambassador_id = $2',
+      [id, req.user.userId]
+    );
+
+    if (bookingCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'Booking not found or you do not have access' });
+    }
+
+    const booking = bookingCheck.rows[0];
+
+    // Must have checked in first
+    if (!booking.checked_in_at) {
+      return res.status(400).json({ error: 'Must check in before checking out' });
+    }
+
+    // Prevent double check-out
+    if (booking.checked_out_at) {
+      return res.status(400).json({ error: 'Already checked out' });
+    }
+
+    // Calculate actual hours from check-in to check-out
+    const result = await db.query(
+      `UPDATE bookings
+       SET checked_out_at = CURRENT_TIMESTAMP,
+           actual_hours = EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - checked_in_at)) / 3600,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $1
+       RETURNING *`,
+      [id]
+    );
+
+    res.json({
+      message: 'Checked out successfully',
+      booking: result.rows[0],
+    });
+  } catch (error) {
+    console.error('Check-out error:', error);
+    res.status(500).json({ error: 'Failed to check out' });
+  }
+};
+
+const getTimeStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Get the booking
+    const result = await db.query(
+      `SELECT id, duration as planned_hours, actual_hours,
+              checked_in_at, checked_out_at
+       FROM bookings
+       WHERE id = $1
+       AND (brand_id = $2 OR ambassador_id = $2)`,
+      [id, req.user.userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Booking not found' });
+    }
+
+    const booking = result.rows[0];
+
+    res.json({
+      plannedHours: parseFloat(booking.planned_hours),
+      actualHours: booking.actual_hours ? parseFloat(booking.actual_hours) : null,
+      checkedIn: !!booking.checked_in_at,
+      checkedOut: !!booking.checked_out_at,
+      checkedInAt: booking.checked_in_at,
+      checkedOutAt: booking.checked_out_at,
+    });
+  } catch (error) {
+    console.error('Get time status error:', error);
+    res.status(500).json({ error: 'Failed to fetch time status' });
+  }
+};
+
 module.exports = {
   createBooking,
   getBookings,
   getBookingById,
   updateBookingStatus,
   deleteBooking,
+  checkIn,
+  checkOut,
+  getTimeStatus,
 };

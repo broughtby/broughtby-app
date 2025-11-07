@@ -1,0 +1,238 @@
+.time-tracking-container {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 16px;
+  color: white;
+}
+
+.time-tracking-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.time-icon {
+  font-size: 24px;
+}
+
+.time-tracking-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.time-tracking-loading {
+  text-align: center;
+  padding: 20px;
+  color: var(--dark-gray);
+}
+
+.time-tracking-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Action Sections */
+.time-action-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+  text-align: center;
+}
+
+.time-instruction {
+  margin: 0;
+  font-size: 15px;
+  opacity: 0.95;
+}
+
+.time-btn {
+  padding: 12px 32px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.time-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+.time-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.check-in-btn {
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  color: white;
+}
+
+.check-out-btn {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+}
+
+/* Status Active */
+.time-status-active {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  background: #38ef7d;
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.2);
+  }
+}
+
+.time-detail {
+  margin: 0;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+/* Complete Section */
+.time-complete-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.time-complete-badge {
+  text-align: center;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.time-summary {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.time-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+}
+
+.summary-label {
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+.time-summary-row.highlight {
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.summary-value {
+  font-size: 18px;
+  color: #38ef7d;
+}
+
+.time-summary-row.difference {
+  padding-top: 8px;
+  font-size: 13px;
+}
+
+.time-summary-row .over {
+  color: #f5576c;
+}
+
+.time-summary-row .under {
+  color: #38ef7d;
+}
+
+/* Brand Status */
+.time-status-section {
+  padding: 10px 0;
+}
+
+.brand-status-message {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+}
+
+.brand-status-message.active {
+  background: rgba(56, 239, 125, 0.2);
+}
+
+.status-icon {
+  font-size: 24px;
+}
+
+.brand-status-message p {
+  margin: 0;
+}
+
+.status-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.status-detail {
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .time-tracking-container {
+    padding: 16px;
+  }
+
+  .time-btn {
+    width: 100%;
+    padding: 14px 24px;
+  }
+
+  .time-summary-row {
+    font-size: 13px;
+  }
+
+  .time-summary-row.highlight {
+    font-size: 15px;
+  }
+}

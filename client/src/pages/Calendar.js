@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { bookingAPI, messageAPI } from '../services/api';
 import ReactCalendar from 'react-calendar';
 import { format, isSameDay } from 'date-fns';
+import TimeTracking from '../components/TimeTracking';
 import 'react-calendar/dist/Calendar.css';
 import './Calendar.css';
 
@@ -351,6 +352,13 @@ Status: Cancelled`;
                               </button>
                             </div>
                           )}
+
+                          {/* Time Tracking */}
+                          <TimeTracking
+                            bookingId={booking.id}
+                            bookingStatus={booking.status}
+                            onUpdate={fetchBookings}
+                          />
                         </div>
                       ))}
                     </div>
@@ -503,6 +511,13 @@ Status: Cancelled`;
                         Cancel Booking
                       </button>
                     </div>
+
+                    {/* Time Tracking */}
+                    <TimeTracking
+                      bookingId={booking.id}
+                      bookingStatus={booking.status}
+                      onUpdate={fetchBookings}
+                    />
                   </div>
                 ))}
               </div>

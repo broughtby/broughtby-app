@@ -18,4 +18,9 @@ router.put('/:id/status', auth, bookingController.updateBookingStatus);
 // Delete a booking
 router.delete('/:id', auth, bookingController.deleteBooking);
 
+// Time tracking endpoints
+router.post('/:id/check-in', auth, bookingController.checkIn);
+router.post('/:id/check-out', auth, bookingController.checkOut);
+router.get('/:id/time-status', auth, bookingController.getTimeStatus);
+
 module.exports = router;

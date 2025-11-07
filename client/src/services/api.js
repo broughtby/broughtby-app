@@ -61,6 +61,9 @@ export const bookingAPI = {
   getBookingById: (id) => api.get(`/bookings/${id}`),
   updateBookingStatus: (id, status) => api.put(`/bookings/${id}/status`, { status }),
   deleteBooking: (id) => api.delete(`/bookings/${id}`),
+  checkIn: (id) => api.post(`/bookings/${id}/check-in`),
+  checkOut: (id) => api.post(`/bookings/${id}/check-out`),
+  getTimeStatus: (id) => api.get(`/bookings/${id}/time-status`),
 };
 
 // Admin endpoints

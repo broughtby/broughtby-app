@@ -204,6 +204,37 @@ const migrations = [
   `
     UPDATE users SET is_admin = TRUE WHERE email = 'team@luxewellness.com';
   `,
+
+  // Add time tracking columns to bookings table
+  `
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                     WHERE table_name = 'bookings' AND column_name = 'checked_in_at') THEN
+        ALTER TABLE bookings ADD COLUMN checked_in_at TIMESTAMP;
+      END IF;
+    END $$;
+  `,
+
+  `
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                     WHERE table_name = 'bookings' AND column_name = 'checked_out_at') THEN
+        ALTER TABLE bookings ADD COLUMN checked_out_at TIMESTAMP;
+      END IF;
+    END $$;
+  `,
+
+  `
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                     WHERE table_name = 'bookings' AND column_name = 'actual_hours') THEN
+        ALTER TABLE bookings ADD COLUMN actual_hours NUMERIC(10,2);
+      END IF;
+    END $$;
+  `,
 ];
 
 async function runMigrations() {
