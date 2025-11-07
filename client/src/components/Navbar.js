@@ -100,13 +100,6 @@ const Navbar = () => {
                 Profile
               </Link>
 
-              {/* Debug indicator - remove after testing */}
-              {isAuthenticated && (
-                <span style={{ color: 'white', fontSize: '10px', marginRight: '10px' }}>
-                  Admin: {isAdmin ? '✓' : '✗'}
-                </span>
-              )}
-
               {/* Admin User Switcher - Only visible to admins */}
               {isAdmin && (
                 <div className="admin-switcher" ref={dropdownRef}>
