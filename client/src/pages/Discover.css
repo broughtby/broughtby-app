@@ -764,6 +764,21 @@
     font-size: 1.75rem;
   }
 
+  /* Fix scrolling for mobile card view */
+  .ambassador-card {
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 280px);
+    overflow: hidden;
+  }
+
+  .card-content {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    flex: 1;
+    min-height: 0;
+  }
+
   .ambassadors-grid {
     grid-template-columns: 1fr;
     gap: 1.5rem;
@@ -775,6 +790,7 @@
 
   .card-image-container {
     height: 350px;
+    flex-shrink: 0;
   }
 
   .action-button {
