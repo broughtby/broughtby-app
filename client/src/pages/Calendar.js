@@ -13,6 +13,7 @@ const Calendar = () => {
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [viewMode, setViewMode] = useState('calendar'); // 'calendar' or 'list'
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   useEffect(() => {
     fetchBookings();
@@ -195,6 +196,12 @@ Status: Cancelled`;
   // Handle date click
   const handleDateClick = (date) => {
     setSelectedDate(date);
+    setMobileSidebarOpen(true); // Open sidebar on mobile when date is selected
+  };
+
+  // Close mobile sidebar
+  const closeMobileSidebar = () => {
+    setMobileSidebarOpen(false);
   };
 
   // Group bookings by status
@@ -266,10 +273,19 @@ Status: Cancelled`;
                   />
                 </div>
 
-                <div className="day-detail-sidebar">
-                  <h2 className="day-detail-title">
-                    {format(selectedDate, 'EEEE, MMMM d, yyyy')}
-                  </h2>
+                <div className={`day-detail-sidebar ${mobileSidebarOpen ? 'mobile-sidebar-open' : ''}`}>
+                  <div className="day-detail-title">
+                    <button
+                      className="close-sidebar-btn"
+                      onClick={closeMobileSidebar}
+                      aria-label="Close sidebar"
+                    >
+                      ← Back to Calendar
+                    </button>
+                    <h2 className="day-detail-title-text">
+                      {format(selectedDate, 'EEEE, MMMM d, yyyy')}
+                    </h2>
+                  </div>
 
                   {selectedDateBookings.length === 0 ? (
                     <div className="no-bookings-message">

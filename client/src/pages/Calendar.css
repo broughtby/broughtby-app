@@ -200,6 +200,11 @@
   border-bottom: 2px solid var(--light-gray);
 }
 
+/* Hide close button on desktop - only needed on mobile */
+.close-sidebar-btn {
+  display: none;
+}
+
 .no-bookings-message {
   text-align: center;
   padding: 2rem 1rem;
@@ -523,12 +528,12 @@
   /* Day Detail as Full-Screen Modal on Mobile */
   .day-detail-sidebar {
     position: fixed;
-    top: 0;
+    top: 80px; /* Start below navbar */
     left: 0;
     right: 0;
     bottom: 0;
-    z-index: 1000;
-    max-height: 100vh;
+    z-index: 999;
+    max-height: calc(100vh - 80px);
     border-radius: 0;
     margin: 0;
     overflow-y: auto;
@@ -536,19 +541,43 @@
     transition: transform 0.3s ease-in-out;
   }
 
-  .calendar-grid-container:has(.day-detail-sidebar) .day-detail-sidebar {
+  .day-detail-sidebar.mobile-sidebar-open {
     transform: translateY(0);
   }
 
   .day-detail-title {
-    font-size: 1.15rem;
     position: sticky;
     top: 0;
     background-color: var(--white);
     z-index: 10;
     margin: 0;
-    padding: 1.5rem;
+    padding: 1rem 1.5rem;
     border-bottom: 2px solid var(--light-gray);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .day-detail-title-text {
+    font-size: 1.15rem;
+    margin: 0;
+  }
+
+  .close-sidebar-btn {
+    display: block;
+    background: none;
+    border: none;
+    color: var(--navy);
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0.5rem 0;
+    text-align: left;
+    transition: color 0.2s;
+  }
+
+  .close-sidebar-btn:hover {
+    color: var(--gold);
   }
 
   .day-bookings-list {

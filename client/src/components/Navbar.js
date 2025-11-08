@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { adminAPI } from '../services/api';
 import './Navbar.css';
@@ -7,11 +7,14 @@ import './Navbar.css';
 const Navbar = () => {
   const { logout, isAuthenticated, isAdmin, impersonateUser, user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const mobileMenuRef = useRef(null);
 
   // Debug: Log admin status
   React.useEffect(() => {
@@ -25,15 +28,35 @@ const Navbar = () => {
   }, [isAuthenticated, isAdmin, user]);
 
   const handleLogout = () => {
+    setMobileMenuOpen(false);
     logout();
     navigate('/login');
   };
 
-  // Close dropdown when clicking outside
+  const closeMobileMenu = () => {
+    setMobileMenuOpen(false);
+  };
+
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
+
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location]);
+
+  // Close dropdown and mobile menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setShowDropdown(false);
+      }
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target)) {
+        // Don't close if clicking the hamburger button
+        if (!event.target.closest('.hamburger-button')) {
+          setMobileMenuOpen(false);
+        }
       }
     };
 
@@ -84,19 +107,30 @@ const Navbar = () => {
           BroughtBy
         </Link>
 
-        <div className="navbar-menu">
+        {/* Hamburger button - only visible on mobile */}
+        <button
+          className="hamburger-button"
+          onClick={toggleMobileMenu}
+          aria-label="Toggle menu"
+        >
+          <span className={`hamburger-line ${mobileMenuOpen ? 'open' : ''}`}></span>
+          <span className={`hamburger-line ${mobileMenuOpen ? 'open' : ''}`}></span>
+          <span className={`hamburger-line ${mobileMenuOpen ? 'open' : ''}`}></span>
+        </button>
+
+        <div className={`navbar-menu ${mobileMenuOpen ? 'mobile-open' : ''}`} ref={mobileMenuRef}>
           {isAuthenticated ? (
             <>
-              <Link to="/discover" className="nav-link">
+              <Link to="/discover" className="nav-link" onClick={closeMobileMenu}>
                 Discover
               </Link>
-              <Link to="/matches" className="nav-link">
+              <Link to="/matches" className="nav-link" onClick={closeMobileMenu}>
                 Matches
               </Link>
-              <Link to="/calendar" className="nav-link">
+              <Link to="/calendar" className="nav-link" onClick={closeMobileMenu}>
                 Calendar
               </Link>
-              <Link to="/profile" className="nav-link">
+              <Link to="/profile" className="nav-link" onClick={closeMobileMenu}>
                 Profile
               </Link>
 
@@ -163,10 +197,10 @@ const Navbar = () => {
             </>
           ) : (
             <>
-              <Link to="/login" className="nav-link">
+              <Link to="/login" className="nav-link" onClick={closeMobileMenu}>
                 Login
               </Link>
-              <Link to="/register" className="nav-button-link">
+              <Link to="/register" className="nav-button-link" onClick={closeMobileMenu}>
                 <button className="nav-button">Sign Up</button>
               </Link>
             </>

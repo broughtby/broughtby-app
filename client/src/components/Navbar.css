@@ -181,21 +181,117 @@
   letter-spacing: 0.5px;
 }
 
+/* Hamburger Menu Button */
+.hamburger-button {
+  display: none;
+  flex-direction: column;
+  justify-content: space-around;
+  width: 30px;
+  height: 24px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.hamburger-line {
+  width: 30px;
+  height: 3px;
+  background-color: var(--gold);
+  border-radius: 2px;
+  transition: all 0.3s ease;
+  transform-origin: center;
+}
+
+.hamburger-line.open:nth-child(1) {
+  transform: rotate(45deg) translateY(8px);
+}
+
+.hamburger-line.open:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger-line.open:nth-child(3) {
+  transform: rotate(-45deg) translateY(-8px);
+}
+
+/* Mobile Responsive Styles */
 @media (max-width: 768px) {
+  .navbar {
+    z-index: 1000;
+  }
+
+  .navbar-content {
+    position: relative;
+    z-index: 1002;
+  }
+
+  .navbar-brand {
+    position: relative;
+    z-index: 1002;
+  }
+
+  .hamburger-button {
+    display: flex;
+    position: relative;
+    z-index: 1002;
+  }
+
   .navbar-menu {
-    gap: 1rem;
+    position: fixed;
+    top: 0;
+    right: -100%;
+    height: 100vh;
+    width: 280px;
+    background-color: var(--navy);
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 80px 2rem 2rem;
+    gap: 1.5rem;
+    transition: right 0.3s ease;
+    box-shadow: -4px 0 12px rgba(0, 0, 0, 0.2);
+    z-index: 1001;
+    overflow-y: auto;
+  }
+
+  .navbar-menu.mobile-open {
+    right: 0;
   }
 
   .nav-link {
-    font-size: 0.9rem;
+    font-size: 1.1rem;
+    width: 100%;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(212, 175, 55, 0.2);
   }
 
   .nav-button {
-    padding: 0.5rem 1rem;
-    font-size: 0.9rem;
+    width: 100%;
+    text-align: center;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+  }
+
+  .nav-button-link {
+    width: 100%;
   }
 
   .admin-switcher {
-    display: none;
+    width: 100%;
+    min-width: unset;
+    order: -1;
+    margin-bottom: 1rem;
+  }
+
+  .admin-search-input {
+    width: 100%;
+  }
+
+  .admin-dropdown {
+    position: fixed;
+    left: 1rem;
+    right: 1rem;
+    top: 140px;
+    max-width: calc(280px - 4rem);
   }
 }
