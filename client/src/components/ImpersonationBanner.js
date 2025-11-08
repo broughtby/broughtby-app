@@ -54,7 +54,7 @@ const ImpersonationBanner = () => {
           onClick={handleStopImpersonation}
           className="stop-impersonation-btn"
         >
-          Return to Admin View
+          Return to My Account
         </button>
       </div>
     </div>
