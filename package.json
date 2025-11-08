@@ -12,6 +12,7 @@
     "db:migrate": "node server/db/migrate.js",
     "db:seed": "node server/db/seed.js",
     "db:clean": "node server/db/clean-test-data.js",
+    "db:reset-user": "node server/db/reset-user-data.js",
     "install:all": "npm install && cd client && npm install"
   },
   "keywords": [
