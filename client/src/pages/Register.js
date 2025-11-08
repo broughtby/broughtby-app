@@ -307,7 +307,7 @@ const Register = () => {
                       value={formData.hourly_rate}
                       onChange={handleChange}
                       min="0"
-                      placeholder="150"
+                      placeholder="20"
                     />
                   </div>
 
