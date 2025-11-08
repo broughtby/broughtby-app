@@ -118,6 +118,47 @@
   margin: 0.25rem 0;
 }
 
+.forgot-password-link {
+  text-align: right;
+  margin-top: -0.5rem;
+}
+
+.forgot-password-link a {
+  color: var(--navy);
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.forgot-password-link a:hover {
+  text-decoration: underline;
+  color: var(--gold);
+}
+
+.success-icon {
+  width: 80px;
+  height: 80px;
+  background-color: #10B981;
+  color: white;
+  font-size: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+}
+
+.auth-message {
+  color: var(--dark-gray);
+  text-align: center;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+.auth-button-link {
+  text-decoration: none;
+  display: block;
+}
+
 @media (max-width: 768px) {
   .auth-card {
     padding: 2rem 1.5rem;

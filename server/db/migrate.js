@@ -235,6 +235,27 @@ const migrations = [
       END IF;
     END $$;
   `,
+
+  // Add password reset token columns to users table
+  `
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                     WHERE table_name = 'users' AND column_name = 'reset_token') THEN
+        ALTER TABLE users ADD COLUMN reset_token VARCHAR(255);
+      END IF;
+    END $$;
+  `,
+
+  `
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                     WHERE table_name = 'users' AND column_name = 'reset_token_expires') THEN
+        ALTER TABLE users ADD COLUMN reset_token_expires TIMESTAMP;
+      END IF;
+    END $$;
+  `,
 ];
 
 async function runMigrations() {

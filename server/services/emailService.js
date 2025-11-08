@@ -281,8 +281,185 @@ const sendPartnershipRequestEmail = async ({ ambassadorEmail, ambassadorName, br
   });
 };
 
+// Generate password reset email HTML
+const generatePasswordResetEmail = ({ userName, resetLink }) => {
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Reset Your Password</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+          background-color: #F7F8FA;
+        }
+        .email-container {
+          max-width: 600px;
+          margin: 0 auto;
+          background-color: #ffffff;
+        }
+        .header {
+          background: linear-gradient(135deg, #0A2540 0%, #0D3350 100%);
+          padding: 40px 30px;
+          text-align: center;
+        }
+        .logo {
+          color: #D4AF37;
+          font-size: 32px;
+          font-weight: 700;
+          margin: 0;
+          letter-spacing: 1px;
+        }
+        .content {
+          padding: 40px 30px;
+        }
+        .greeting {
+          font-size: 24px;
+          color: #0A2540;
+          margin: 0 0 20px 0;
+          font-weight: 600;
+        }
+        .message {
+          font-size: 16px;
+          line-height: 1.6;
+          color: #4B5563;
+          margin-bottom: 20px;
+        }
+        .cta-button {
+          display: inline-block;
+          background-color: #0A2540;
+          color: #ffffff;
+          text-decoration: none;
+          padding: 16px 40px;
+          border-radius: 8px;
+          font-size: 16px;
+          font-weight: 600;
+          margin: 20px 0;
+          text-align: center;
+        }
+        .warning-box {
+          background-color: #FEF3C7;
+          border-left: 4px solid #F59E0B;
+          padding: 15px 20px;
+          margin: 30px 0;
+          border-radius: 4px;
+        }
+        .warning-text {
+          font-size: 14px;
+          color: #92400E;
+          margin: 0;
+        }
+        .footer {
+          background-color: #F7F8FA;
+          padding: 30px;
+          text-align: center;
+          font-size: 14px;
+          color: #6B7280;
+        }
+        .footer-link {
+          color: #0A2540;
+          text-decoration: none;
+        }
+        .divider {
+          height: 1px;
+          background-color: #E5E7EB;
+          margin: 30px 0;
+        }
+        @media only screen and (max-width: 600px) {
+          .content {
+            padding: 30px 20px;
+          }
+          .header {
+            padding: 30px 20px;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+          <h1 class="logo">BroughtBy</h1>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+          <h2 class="greeting">Reset Your Password</h2>
+
+          <p class="message">
+            Hi ${userName},
+          </p>
+
+          <p class="message">
+            We received a request to reset your password for your BroughtBy account. Click the button below to create a new password:
+          </p>
+
+          <div style="text-align: center;">
+            <a href="${resetLink}" class="cta-button">
+              Reset Password
+            </a>
+          </div>
+
+          <div class="warning-box">
+            <p class="warning-text">
+              ⏱️ This link expires in 1 hour for security reasons.
+            </p>
+          </div>
+
+          <div class="divider"></div>
+
+          <p class="message" style="font-size: 14px;">
+            If you didn't request a password reset, you can safely ignore this email. Your password will remain unchanged.
+          </p>
+
+          <p class="message" style="font-size: 14px; color: #9CA3AF;">
+            If the button doesn't work, copy and paste this link into your browser:<br>
+            <span style="color: #0A2540; word-break: break-all;">${resetLink}</span>
+          </p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+          <p style="margin: 0 0 10px 0;">
+            <strong>BroughtBy</strong> - Premium Brand Ambassador Marketplace
+          </p>
+          <p style="margin: 0;">
+            <a href="https://app.broughtby.co" class="footer-link">Visit BroughtBy</a> ·
+            <a href="https://app.broughtby.co/profile" class="footer-link">Manage Account</a>
+          </p>
+          <p style="margin-top: 20px; font-size: 12px; color: #9CA3AF;">
+            You're receiving this email because a password reset was requested for this account.
+          </p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+};
+
+// Send password reset email
+const sendPasswordResetEmail = async ({ userEmail, userName, resetLink }) => {
+  const subject = 'Reset Your BroughtBy Password';
+  const html = generatePasswordResetEmail({
+    userName,
+    resetLink,
+  });
+
+  return await sendEmail({
+    to: userEmail,
+    subject,
+    html,
+  });
+};
+
 module.exports = {
   sendEmail,
   sendPartnershipRequestEmail,
   generatePartnershipRequestEmail,
+  sendPasswordResetEmail,
+  generatePasswordResetEmail,
 };
