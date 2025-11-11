@@ -193,6 +193,7 @@ const BookingModal = ({ ambassador, onClose, onSubmit }) => {
               {errors.endTime && <span className="error-message">{errors.endTime}</span>}
             </div>
           </div>
+          <p className="timezone-note">🕐 All times in Central Time (Chicago)</p>
 
           {/* Event Location */}
           <div className="form-group">

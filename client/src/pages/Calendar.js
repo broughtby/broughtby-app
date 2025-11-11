@@ -235,6 +235,7 @@ Status: Cancelled`;
           <p className="calendar-subtitle">
             {isBrand ? 'Manage your bookings with ambassadors' : 'View and confirm booking requests'}
           </p>
+          <p className="timezone-info">🕐 All bookings shown in Central Time (Chicago)</p>
         </div>
         <div className="view-toggle">
           <button

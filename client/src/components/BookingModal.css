@@ -173,6 +173,14 @@
   margin-bottom: 1.5rem;
 }
 
+/* Timezone Note */
+.timezone-note {
+  color: #6B7280;
+  font-size: 0.875rem;
+  margin: -0.5rem 0 1.5rem 0;
+  font-style: italic;
+}
+
 /* Error Message */
 .error-message {
   display: block;
