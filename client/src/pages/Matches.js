@@ -50,8 +50,21 @@ const Matches = () => {
 
   // Parse date string as local date (not UTC) to prevent timezone shifting
   const parseLocalDate = (dateString) => {
-    if (!dateString) return null;
-    const [year, month, day] = dateString.split('-').map(Number);
+    if (!dateString) {
+      console.error('parseLocalDate: No date string provided');
+      return new Date();
+    }
+
+    // Handle both YYYY-MM-DD and full timestamp formats
+    const dateOnly = dateString.split('T')[0]; // Get just the date part if it's a timestamp
+    const [year, month, day] = dateOnly.split('-').map(Number);
+
+    // Validate the parsed values
+    if (!year || !month || !day || month < 1 || month > 12 || day < 1 || day > 31) {
+      console.error('parseLocalDate: Invalid date string:', dateString);
+      return new Date();
+    }
+
     return new Date(year, month - 1, day);
   };
 
