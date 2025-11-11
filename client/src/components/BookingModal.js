@@ -14,6 +14,13 @@ const BookingModal = ({ ambassador, onClose, onSubmit }) => {
 
   const [errors, setErrors] = useState({});
 
+  // Parse date string as local date (not UTC) to prevent timezone shifting
+  const parseLocalDate = (dateString) => {
+    if (!dateString) return null;
+    const [year, month, day] = dateString.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -41,7 +48,7 @@ const BookingModal = ({ ambassador, onClose, onSubmit }) => {
     if (!formData.eventDate) {
       newErrors.eventDate = 'Event date is required';
     } else {
-      const selectedDate = new Date(formData.eventDate);
+      const selectedDate = parseLocalDate(formData.eventDate);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       if (selectedDate < today) {

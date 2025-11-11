@@ -48,6 +48,13 @@ const Matches = () => {
     return `${hour12}:${minutes} ${ampm}`;
   };
 
+  // Parse date string as local date (not UTC) to prevent timezone shifting
+  const parseLocalDate = (dateString) => {
+    if (!dateString) return null;
+    const [year, month, day] = dateString.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  };
+
   const handleAcceptRequest = async (brandId) => {
     try {
       await matchAPI.createMatch(brandId);
@@ -104,7 +111,7 @@ const Matches = () => {
       const bookingMessage = `📅 New Booking Request
 
 Event: ${bookingData.eventName}
-Date: ${new Date(bookingData.eventDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+Date: ${parseLocalDate(bookingData.eventDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
 Time: ${formatTime(bookingData.startTime)} - ${formatTime(bookingData.endTime)} CST (${bookingData.duration} hours)
 Location: ${bookingData.eventLocation}${bookingData.notes ? `\nNotes: ${bookingData.notes}` : ''}
 

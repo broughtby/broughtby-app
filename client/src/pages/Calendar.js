@@ -43,6 +43,13 @@ const Calendar = () => {
     return `${hour12}:${minutes} ${ampm}`;
   };
 
+  // Parse date string as local date (not UTC) to prevent timezone shifting
+  const parseLocalDate = (dateString) => {
+    if (!dateString) return null;
+    const [year, month, day] = dateString.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  };
+
   const handleConfirm = async (booking) => {
     try {
       await bookingAPI.updateBookingStatus(booking.id, 'confirmed');
@@ -52,7 +59,7 @@ const Calendar = () => {
 
 ${user.name} has confirmed the booking for:
 Event: ${booking.event_name}
-Date: ${new Date(booking.event_date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+Date: ${parseLocalDate(booking.event_date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
 Time: ${formatTime(booking.start_time)} - ${formatTime(booking.end_time)} CST
 Location: ${booking.event_location}
 
@@ -81,7 +88,7 @@ Status: ✅ Confirmed`;
 
 ${user.name} has declined the booking request for:
 Event: ${booking.event_name}
-Date: ${new Date(booking.event_date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+Date: ${parseLocalDate(booking.event_date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
 Time: ${formatTime(booking.start_time)} - ${formatTime(booking.end_time)} CST
 
 Please discuss alternative arrangements in the chat.`;
@@ -111,7 +118,7 @@ Please discuss alternative arrangements in the chat.`;
 
 ${user.name} has cancelled the booking:
 Event: ${booking.event_name}
-Date: ${new Date(booking.event_date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+Date: ${parseLocalDate(booking.event_date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
 Time: ${formatTime(booking.start_time)} - ${formatTime(booking.end_time)} CST
 
 Status: Cancelled`;
@@ -161,7 +168,7 @@ Status: Cancelled`;
   // Get bookings for a specific date
   const getBookingsForDate = (date) => {
     return bookings.filter(booking => {
-      const bookingDate = new Date(booking.event_date);
+      const bookingDate = parseLocalDate(booking.event_date);
       return isSameDay(bookingDate, date);
     });
   };
@@ -401,7 +408,7 @@ Status: Cancelled`;
                         {getStatusText(booking.status)}
                       </span>
                       <span className="booking-date">
-                        {new Date(booking.event_date).toLocaleDateString('en-US', {
+                        {parseLocalDate(booking.event_date).toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
                           year: 'numeric'
@@ -483,7 +490,7 @@ Status: Cancelled`;
                         {getStatusText(booking.status)}
                       </span>
                       <span className="booking-date">
-                        {new Date(booking.event_date).toLocaleDateString('en-US', {
+                        {parseLocalDate(booking.event_date).toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
                           year: 'numeric'
@@ -554,7 +561,7 @@ Status: Cancelled`;
                         {getStatusText(booking.status)}
                       </span>
                       <span className="booking-date">
-                        {new Date(booking.event_date).toLocaleDateString('en-US', {
+                        {parseLocalDate(booking.event_date).toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
                           year: 'numeric'
