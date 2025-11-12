@@ -145,7 +145,7 @@ const getAmbassadors = async (req, res) => {
          LEFT JOIN likes l ON l.ambassador_id = u.id AND l.brand_id = $1
          LEFT JOIN matches m ON (m.ambassador_id = u.id AND m.brand_id = $1)
          LEFT JOIN passes p ON p.ambassador_id = u.id AND p.brand_id = $1
-         WHERE u.role = 'ambassador'
+         WHERE u.role = 'ambassador' AND u.is_active = TRUE
          ORDER BY u.rating DESC, u.created_at DESC
          LIMIT $2 OFFSET $3`,
         [req.user.userId, limit, offset]
@@ -175,6 +175,7 @@ const getAmbassadors = async (req, res) => {
          FROM users u
          WHERE u.role = 'ambassador'
          AND u.id != $1
+         AND u.is_active = TRUE
          ORDER BY u.rating DESC, u.created_at DESC
          LIMIT $2 OFFSET $3`,
         [req.user.userId, limit, offset]
