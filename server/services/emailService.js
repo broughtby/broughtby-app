@@ -456,10 +456,646 @@ const sendPasswordResetEmail = async ({ userEmail, userName, resetLink }) => {
   });
 };
 
+// Helper functions for formatting
+const formatTime = (time) => {
+  if (!time) return '';
+  const [hours, minutes] = time.split(':');
+  const hour = parseInt(hours);
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  const displayHour = hour % 12 || 12;
+  return `${displayHour}:${minutes} ${ampm}`;
+};
+
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  return date.toLocaleDateString('en-US', options);
+};
+
+// Generate partnership accepted email HTML (to Brand when BA accepts)
+const generatePartnershipAcceptedEmail = ({ brandName, ambassadorName, ambassadorLocation, ambassadorBio }) => {
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Partnership Accepted</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+          background-color: #F7F8FA;
+        }
+        .email-container {
+          max-width: 600px;
+          margin: 0 auto;
+          background-color: #ffffff;
+        }
+        .header {
+          background: linear-gradient(135deg, #0A2540 0%, #0D3350 100%);
+          padding: 40px 30px;
+          text-align: center;
+        }
+        .logo {
+          color: #D4AF37;
+          font-size: 32px;
+          font-weight: 700;
+          margin: 0;
+          letter-spacing: 1px;
+        }
+        .content {
+          padding: 40px 30px;
+        }
+        .greeting {
+          font-size: 24px;
+          color: #0A2540;
+          margin: 0 0 20px 0;
+          font-weight: 600;
+        }
+        .message {
+          font-size: 16px;
+          line-height: 1.6;
+          color: #4B5563;
+          margin-bottom: 30px;
+        }
+        .ambassador-card {
+          background-color: #F0F9FF;
+          border-left: 4px solid #0A2540;
+          padding: 20px;
+          margin: 30px 0;
+          border-radius: 4px;
+        }
+        .ambassador-name {
+          font-size: 20px;
+          color: #0A2540;
+          font-weight: 600;
+          margin: 0 0 10px 0;
+        }
+        .ambassador-info {
+          font-size: 14px;
+          color: #6B7280;
+          margin: 5px 0;
+        }
+        .cta-button {
+          display: inline-block;
+          background-color: #0A2540;
+          color: #ffffff;
+          text-decoration: none;
+          padding: 16px 40px;
+          border-radius: 8px;
+          font-size: 16px;
+          font-weight: 600;
+          margin: 20px 0;
+          text-align: center;
+        }
+        .footer {
+          background-color: #F7F8FA;
+          padding: 30px;
+          text-align: center;
+          font-size: 14px;
+          color: #6B7280;
+        }
+        .footer-link {
+          color: #0A2540;
+          text-decoration: none;
+        }
+        .divider {
+          height: 1px;
+          background-color: #E5E7EB;
+          margin: 30px 0;
+        }
+        @media only screen and (max-width: 600px) {
+          .content {
+            padding: 30px 20px;
+          }
+          .header {
+            padding: 30px 20px;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+          <h1 class="logo">BroughtBy</h1>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+          <h2 class="greeting">${ambassadorName} accepted your partnership request!</h2>
+
+          <p class="message">
+            Great news! ${ambassadorName} is excited to work with ${brandName}.
+          </p>
+
+          <!-- Ambassador Info Card -->
+          <div class="ambassador-card">
+            <h3 class="ambassador-name">${ambassadorName}</h3>
+            ${ambassadorLocation ? `<p class="ambassador-info">📍 ${ambassadorLocation}</p>` : ''}
+            ${ambassadorBio ? `<p class="ambassador-info" style="margin-top: 15px;">${ambassadorBio}</p>` : ''}
+          </div>
+
+          <p class="message">
+            You can now start chatting with ${ambassadorName} to discuss partnership details, coordinate events, and build a great working relationship.
+          </p>
+
+          <div style="text-align: center;">
+            <a href="https://app.broughtby.co/matches" class="cta-button">
+              Start Chatting
+            </a>
+          </div>
+
+          <div class="divider"></div>
+
+          <p class="message" style="font-size: 14px;">
+            Head to your matches page to send a message and get the conversation started!
+          </p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+          <p style="margin: 0 0 10px 0;">
+            <strong>BroughtBy</strong> - Premium Brand Ambassador Marketplace
+          </p>
+          <p style="margin: 0;">
+            <a href="https://app.broughtby.co" class="footer-link">Visit BroughtBy</a> ·
+            <a href="https://app.broughtby.co/profile" class="footer-link">Manage Account</a>
+          </p>
+          <p style="margin-top: 20px; font-size: 12px; color: #9CA3AF;">
+            You're receiving this email because you have a brand account on BroughtBy.
+          </p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+};
+
+// Generate booking request email HTML (to BA when Brand creates booking)
+const generateBookingRequestEmail = ({ ambassadorName, brandName, eventName, eventDate, startTime, endTime, eventLocation, hourlyRate, totalCost, notes }) => {
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>New Booking Request</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+          background-color: #F7F8FA;
+        }
+        .email-container {
+          max-width: 600px;
+          margin: 0 auto;
+          background-color: #ffffff;
+        }
+        .header {
+          background: linear-gradient(135deg, #0A2540 0%, #0D3350 100%);
+          padding: 40px 30px;
+          text-align: center;
+        }
+        .logo {
+          color: #D4AF37;
+          font-size: 32px;
+          font-weight: 700;
+          margin: 0;
+          letter-spacing: 1px;
+        }
+        .content {
+          padding: 40px 30px;
+        }
+        .greeting {
+          font-size: 24px;
+          color: #0A2540;
+          margin: 0 0 20px 0;
+          font-weight: 600;
+        }
+        .message {
+          font-size: 16px;
+          line-height: 1.6;
+          color: #4B5563;
+          margin-bottom: 30px;
+        }
+        .booking-card {
+          background-color: #FEF3C7;
+          border-left: 4px solid #F59E0B;
+          padding: 20px;
+          margin: 30px 0;
+          border-radius: 4px;
+        }
+        .event-name {
+          font-size: 20px;
+          color: #0A2540;
+          font-weight: 600;
+          margin: 0 0 15px 0;
+        }
+        .booking-detail {
+          font-size: 14px;
+          color: #374151;
+          margin: 8px 0;
+          display: flex;
+          align-items: flex-start;
+        }
+        .detail-label {
+          font-weight: 600;
+          min-width: 100px;
+        }
+        .cta-button {
+          display: inline-block;
+          background-color: #0A2540;
+          color: #ffffff;
+          text-decoration: none;
+          padding: 16px 40px;
+          border-radius: 8px;
+          font-size: 16px;
+          font-weight: 600;
+          margin: 20px 0;
+          text-align: center;
+        }
+        .footer {
+          background-color: #F7F8FA;
+          padding: 30px;
+          text-align: center;
+          font-size: 14px;
+          color: #6B7280;
+        }
+        .footer-link {
+          color: #0A2540;
+          text-decoration: none;
+        }
+        .divider {
+          height: 1px;
+          background-color: #E5E7EB;
+          margin: 30px 0;
+        }
+        @media only screen and (max-width: 600px) {
+          .content {
+            padding: 30px 20px;
+          }
+          .header {
+            padding: 30px 20px;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+          <h1 class="logo">BroughtBy</h1>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+          <h2 class="greeting">New booking request from ${brandName} on BroughtBy</h2>
+
+          <p class="message">
+            Hi ${ambassadorName}! ${brandName} has sent you a booking request for an upcoming event.
+          </p>
+
+          <!-- Booking Details Card -->
+          <div class="booking-card">
+            <h3 class="event-name">${eventName}</h3>
+            <div class="booking-detail">
+              <span class="detail-label">📅 Date:</span>
+              <span>${formatDate(eventDate)}</span>
+            </div>
+            <div class="booking-detail">
+              <span class="detail-label">🕐 Time:</span>
+              <span>${formatTime(startTime)} - ${formatTime(endTime)}</span>
+            </div>
+            <div class="booking-detail">
+              <span class="detail-label">📍 Location:</span>
+              <span>${eventLocation}</span>
+            </div>
+            <div class="booking-detail">
+              <span class="detail-label">💰 Rate:</span>
+              <span>$${hourlyRate}/hour</span>
+            </div>
+            <div class="booking-detail">
+              <span class="detail-label">💵 Total:</span>
+              <span style="font-weight: 600; color: #0A2540;">$${totalCost}</span>
+            </div>
+            ${notes ? `
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #FDE68A;">
+              <div class="booking-detail">
+                <span class="detail-label">📝 Notes:</span>
+              </div>
+              <p style="margin: 5px 0 0 0; font-size: 14px; color: #6B7280;">${notes}</p>
+            </div>
+            ` : ''}
+          </div>
+
+          <p class="message">
+            Review the booking details and confirm your availability for this event.
+          </p>
+
+          <div style="text-align: center;">
+            <a href="https://app.broughtby.co/calendar" class="cta-button">
+              Review Booking
+            </a>
+          </div>
+
+          <div class="divider"></div>
+
+          <p class="message" style="font-size: 14px;">
+            You can accept or decline this booking from your calendar page.
+          </p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+          <p style="margin: 0 0 10px 0;">
+            <strong>BroughtBy</strong> - Premium Brand Ambassador Marketplace
+          </p>
+          <p style="margin: 0;">
+            <a href="https://app.broughtby.co" class="footer-link">Visit BroughtBy</a> ·
+            <a href="https://app.broughtby.co/profile" class="footer-link">Manage Account</a>
+          </p>
+          <p style="margin-top: 20px; font-size: 12px; color: #9CA3AF;">
+            You're receiving this email because you have an ambassador account on BroughtBy.
+          </p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+};
+
+// Generate booking confirmed email HTML (to Brand when BA confirms)
+const generateBookingConfirmedEmail = ({ brandName, ambassadorName, eventName, eventDate, startTime, endTime, eventLocation, totalCost }) => {
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Booking Confirmed</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+          background-color: #F7F8FA;
+        }
+        .email-container {
+          max-width: 600px;
+          margin: 0 auto;
+          background-color: #ffffff;
+        }
+        .header {
+          background: linear-gradient(135deg, #0A2540 0%, #0D3350 100%);
+          padding: 40px 30px;
+          text-align: center;
+        }
+        .logo {
+          color: #D4AF37;
+          font-size: 32px;
+          font-weight: 700;
+          margin: 0;
+          letter-spacing: 1px;
+        }
+        .content {
+          padding: 40px 30px;
+        }
+        .confirmed-badge {
+          display: inline-block;
+          background-color: #10B981;
+          color: #ffffff;
+          padding: 8px 16px;
+          border-radius: 20px;
+          font-size: 14px;
+          font-weight: 600;
+          margin-bottom: 20px;
+        }
+        .greeting {
+          font-size: 24px;
+          color: #0A2540;
+          margin: 0 0 20px 0;
+          font-weight: 600;
+        }
+        .message {
+          font-size: 16px;
+          line-height: 1.6;
+          color: #4B5563;
+          margin-bottom: 30px;
+        }
+        .booking-card {
+          background-color: #D1FAE5;
+          border-left: 4px solid #10B981;
+          padding: 20px;
+          margin: 30px 0;
+          border-radius: 4px;
+        }
+        .event-name {
+          font-size: 20px;
+          color: #0A2540;
+          font-weight: 600;
+          margin: 0 0 15px 0;
+        }
+        .booking-detail {
+          font-size: 14px;
+          color: #374151;
+          margin: 8px 0;
+          display: flex;
+          align-items: flex-start;
+        }
+        .detail-label {
+          font-weight: 600;
+          min-width: 120px;
+        }
+        .cta-button {
+          display: inline-block;
+          background-color: #0A2540;
+          color: #ffffff;
+          text-decoration: none;
+          padding: 16px 40px;
+          border-radius: 8px;
+          font-size: 16px;
+          font-weight: 600;
+          margin: 20px 0;
+          text-align: center;
+        }
+        .footer {
+          background-color: #F7F8FA;
+          padding: 30px;
+          text-align: center;
+          font-size: 14px;
+          color: #6B7280;
+        }
+        .footer-link {
+          color: #0A2540;
+          text-decoration: none;
+        }
+        .divider {
+          height: 1px;
+          background-color: #E5E7EB;
+          margin: 30px 0;
+        }
+        @media only screen and (max-width: 600px) {
+          .content {
+            padding: 30px 20px;
+          }
+          .header {
+            padding: 30px 20px;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+          <h1 class="logo">BroughtBy</h1>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+          <span class="confirmed-badge">✓ CONFIRMED</span>
+          <h2 class="greeting">Booking confirmed: ${ambassadorName} for ${eventName}</h2>
+
+          <p class="message">
+            Great news! ${ambassadorName} has confirmed your booking request.
+          </p>
+
+          <!-- Booking Details Card -->
+          <div class="booking-card">
+            <h3 class="event-name">${eventName}</h3>
+            <div class="booking-detail">
+              <span class="detail-label">👤 Ambassador:</span>
+              <span>${ambassadorName}</span>
+            </div>
+            <div class="booking-detail">
+              <span class="detail-label">📅 Date:</span>
+              <span>${formatDate(eventDate)}</span>
+            </div>
+            <div class="booking-detail">
+              <span class="detail-label">🕐 Time:</span>
+              <span>${formatTime(startTime)} - ${formatTime(endTime)}</span>
+            </div>
+            <div class="booking-detail">
+              <span class="detail-label">📍 Location:</span>
+              <span>${eventLocation}</span>
+            </div>
+            <div class="booking-detail">
+              <span class="detail-label">💵 Total Cost:</span>
+              <span style="font-weight: 600; color: #0A2540;">$${totalCost}</span>
+            </div>
+          </div>
+
+          <p class="message">
+            Your event is all set! You can view all your confirmed bookings in your calendar.
+          </p>
+
+          <div style="text-align: center;">
+            <a href="https://app.broughtby.co/calendar" class="cta-button">
+              View Calendar
+            </a>
+          </div>
+
+          <div class="divider"></div>
+
+          <p class="message" style="font-size: 14px;">
+            If you need to make any changes or have questions, reach out to ${ambassadorName} through your matches page.
+          </p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+          <p style="margin: 0 0 10px 0;">
+            <strong>BroughtBy</strong> - Premium Brand Ambassador Marketplace
+          </p>
+          <p style="margin: 0;">
+            <a href="https://app.broughtby.co" class="footer-link">Visit BroughtBy</a> ·
+            <a href="https://app.broughtby.co/profile" class="footer-link">Manage Account</a>
+          </p>
+          <p style="margin-top: 20px; font-size: 12px; color: #9CA3AF;">
+            You're receiving this email because you have a brand account on BroughtBy.
+          </p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+};
+
+// Send partnership accepted email to brand
+const sendPartnershipAcceptedEmail = async ({ brandEmail, brandName, ambassadorName, ambassadorLocation, ambassadorBio }) => {
+  const subject = `${ambassadorName} accepted your partnership request!`;
+  const html = generatePartnershipAcceptedEmail({
+    brandName,
+    ambassadorName,
+    ambassadorLocation,
+    ambassadorBio,
+  });
+
+  return await sendEmail({
+    to: brandEmail,
+    subject,
+    html,
+  });
+};
+
+// Send booking request email to ambassador
+const sendBookingRequestEmail = async ({ ambassadorEmail, ambassadorName, brandName, eventName, eventDate, startTime, endTime, eventLocation, hourlyRate, totalCost, notes }) => {
+  const subject = `New booking request from ${brandName} on BroughtBy`;
+  const html = generateBookingRequestEmail({
+    ambassadorName,
+    brandName,
+    eventName,
+    eventDate,
+    startTime,
+    endTime,
+    eventLocation,
+    hourlyRate,
+    totalCost,
+    notes,
+  });
+
+  return await sendEmail({
+    to: ambassadorEmail,
+    subject,
+    html,
+  });
+};
+
+// Send booking confirmed email to brand
+const sendBookingConfirmedEmail = async ({ brandEmail, brandName, ambassadorName, eventName, eventDate, startTime, endTime, eventLocation, totalCost }) => {
+  const subject = `Booking confirmed: ${ambassadorName} for ${eventName}`;
+  const html = generateBookingConfirmedEmail({
+    brandName,
+    ambassadorName,
+    eventName,
+    eventDate,
+    startTime,
+    endTime,
+    eventLocation,
+    totalCost,
+  });
+
+  return await sendEmail({
+    to: brandEmail,
+    subject,
+    html,
+  });
+};
+
 module.exports = {
   sendEmail,
   sendPartnershipRequestEmail,
   generatePartnershipRequestEmail,
   sendPasswordResetEmail,
   generatePasswordResetEmail,
+  sendPartnershipAcceptedEmail,
+  generatePartnershipAcceptedEmail,
+  sendBookingRequestEmail,
+  generateBookingRequestEmail,
+  sendBookingConfirmedEmail,
+  generateBookingConfirmedEmail,
 };

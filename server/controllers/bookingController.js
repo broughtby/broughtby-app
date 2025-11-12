@@ -1,4 +1,5 @@
 const db = require('../config/database');
+const { sendBookingRequestEmail, sendBookingConfirmedEmail } = require('../services/emailService');
 
 const createBooking = async (req, res) => {
   try {
@@ -84,6 +85,38 @@ const createBooking = async (req, res) => {
         notes,
       ]
     );
+
+    // Send booking request email to ambassador (non-blocking)
+    db.query(
+      'SELECT email, name FROM users WHERE id = $1',
+      [ambassadorId]
+    ).then(ambassadorQuery => {
+      if (ambassadorQuery.rows.length > 0) {
+        db.query(
+          'SELECT name FROM users WHERE id = $1',
+          [req.user.userId]
+        ).then(brandQuery => {
+          if (brandQuery.rows.length > 0) {
+            const ambassador = ambassadorQuery.rows[0];
+            const brand = brandQuery.rows[0];
+
+            sendBookingRequestEmail({
+              ambassadorEmail: ambassador.email,
+              ambassadorName: ambassador.name,
+              brandName: brand.name,
+              eventName,
+              eventDate,
+              startTime,
+              endTime,
+              eventLocation,
+              hourlyRate,
+              totalCost,
+              notes,
+            }).catch(error => console.error('Failed to send booking request email:', error));
+          }
+        }).catch(error => console.error('Failed to query brand info:', error));
+      }
+    }).catch(error => console.error('Failed to query ambassador info:', error));
 
     res.status(201).json({
       message: 'Booking created successfully',
@@ -198,6 +231,40 @@ const updateBookingStatus = async (req, res) => {
        RETURNING *`,
       [status, id]
     );
+
+    // Send booking confirmed email to brand if ambassador confirms (non-blocking)
+    if (status === 'confirmed' && req.user.role === 'ambassador') {
+      const booking = result.rows[0];
+
+      db.query(
+        'SELECT email, name FROM users WHERE id = $1',
+        [booking.brand_id]
+      ).then(brandQuery => {
+        if (brandQuery.rows.length > 0) {
+          db.query(
+            'SELECT name FROM users WHERE id = $1',
+            [booking.ambassador_id]
+          ).then(ambassadorQuery => {
+            if (ambassadorQuery.rows.length > 0) {
+              const brand = brandQuery.rows[0];
+              const ambassador = ambassadorQuery.rows[0];
+
+              sendBookingConfirmedEmail({
+                brandEmail: brand.email,
+                brandName: brand.name,
+                ambassadorName: ambassador.name,
+                eventName: booking.event_name,
+                eventDate: booking.event_date,
+                startTime: booking.start_time,
+                endTime: booking.end_time,
+                eventLocation: booking.event_location,
+                totalCost: booking.total_cost,
+              }).catch(error => console.error('Failed to send booking confirmed email:', error));
+            }
+          }).catch(error => console.error('Failed to query ambassador info:', error));
+        }
+      }).catch(error => console.error('Failed to query brand info:', error));
+    }
 
     res.json({
       message: 'Booking status updated successfully',
