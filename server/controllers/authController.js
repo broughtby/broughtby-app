@@ -27,7 +27,7 @@ const register = async (req, res) => {
     } = req.body;
 
     // Check if user already exists
-    const existingUser = await db.query('SELECT id FROM users WHERE email = $1', [email]);
+    const existingUser = await db.query('SELECT id FROM users WHERE LOWER(email) = LOWER($1)', [email]);
 
     if (existingUser.rows.length > 0) {
       return res.status(400).json({ error: 'Email already registered' });
@@ -107,7 +107,7 @@ const login = async (req, res) => {
     const result = await db.query(
       `SELECT id, email, password_hash, role, name, profile_photo, bio, location, age,
               skills, hourly_rate, availability, rating, is_admin, created_at
-       FROM users WHERE email = $1`,
+       FROM users WHERE LOWER(email) = LOWER($1)`,
       [email]
     );
 
@@ -192,7 +192,7 @@ const forgotPassword = async (req, res) => {
 
     // Find user by email
     const result = await db.query(
-      'SELECT id, email, name FROM users WHERE email = $1',
+      'SELECT id, email, name FROM users WHERE LOWER(email) = LOWER($1)',
       [email]
     );
 
