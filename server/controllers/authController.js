@@ -170,14 +170,14 @@ const login = async (req, res) => {
 };
 
 const registerValidation = [
-  body('email').isEmail().normalizeEmail(),
+  body('email').isEmail(),
   body('password').isLength({ min: 6 }),
   body('role').isIn(['brand', 'ambassador']),
   body('name').trim().notEmpty(),
 ];
 
 const loginValidation = [
-  body('email').isEmail().normalizeEmail(),
+  body('email').isEmail(),
   body('password').notEmpty(),
 ];
 
@@ -281,7 +281,7 @@ const resetPassword = async (req, res) => {
 };
 
 const forgotPasswordValidation = [
-  body('email').isEmail().normalizeEmail(),
+  body('email').isEmail(),
 ];
 
 const resetPasswordValidation = [
