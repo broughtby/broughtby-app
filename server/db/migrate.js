@@ -256,6 +256,22 @@ const migrations = [
       END IF;
     END $$;
   `,
+
+  // Add is_active column to users table for account status management
+  `
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                     WHERE table_name = 'users' AND column_name = 'is_active') THEN
+        ALTER TABLE users ADD COLUMN is_active BOOLEAN DEFAULT TRUE;
+      END IF;
+    END $$;
+  `,
+
+  // Create index on is_active for faster filtering
+  `
+    CREATE INDEX IF NOT EXISTS idx_users_is_active ON users(is_active);
+  `,
 ];
 
 async function runMigrations() {
