@@ -16,4 +16,7 @@ router.post('/impersonate', adminController.impersonateUser);
 // Stop impersonation
 router.post('/stop-impersonation', auth, adminController.stopImpersonation);
 
+// Reset demo data for a specific user
+router.post('/reset-demo-data', adminController.resetDemoData);
+
 module.exports = router;

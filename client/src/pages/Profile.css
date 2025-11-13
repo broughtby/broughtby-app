@@ -290,6 +290,70 @@
   transform: translateY(-1px);
 }
 
+/* Admin Section */
+.admin-section {
+  background-color: #FFF4E6;
+  border: 2px solid #FFA500;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-top: 2rem;
+}
+
+.admin-section h3 {
+  color: #D97706;
+  margin-bottom: 1rem;
+}
+
+.admin-tools {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.admin-warning {
+  color: #D97706;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin: 0;
+  padding: 0.5rem;
+  background-color: #FEF3C7;
+  border-radius: 6px;
+  text-align: center;
+}
+
+.reset-demo-data-button {
+  background-color: #DC2626;
+  color: var(--white);
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 1rem;
+  transition: all 0.3s;
+  border: 2px solid #B91C1C;
+  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
+}
+
+.reset-demo-data-button:hover:not(:disabled) {
+  background-color: #B91C1C;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(220, 38, 38, 0.3);
+}
+
+.reset-demo-data-button:disabled {
+  background-color: #9CA3AF;
+  border-color: #6B7280;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.reset-description {
+  color: #78716C;
+  font-size: 0.85rem;
+  margin: 0;
+  line-height: 1.5;
+  text-align: center;
+}
+
 @media (max-width: 768px) {
   .profile-card {
     padding: 1.5rem;
@@ -310,6 +374,10 @@
 
   .cancel-button,
   .save-button {
+    width: 100%;
+  }
+
+  .reset-demo-data-button {
     width: 100%;
   }
 }

@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const db = require('../config/database');
+const { resetUserDataById } = require('../db/reset-user-data');
 
 // Search users by email or name (admin only)
 const searchUsers = async (req, res) => {
@@ -161,8 +162,67 @@ const stopImpersonation = async (req, res) => {
   }
 };
 
+// Reset demo data for a specific user (admin only)
+const resetDemoData = async (req, res) => {
+  try {
+    const { targetUserId } = req.body;
+
+    if (!targetUserId) {
+      return res.status(400).json({ error: 'Target user ID is required' });
+    }
+
+    // Verify the target user exists first
+    const userCheck = await db.query(
+      'SELECT id, email, name, role FROM users WHERE id = $1',
+      [targetUserId]
+    );
+
+    if (userCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'Target user not found' });
+    }
+
+    const targetUser = userCheck.rows[0];
+
+    // Log the action (who performed it and when)
+    const adminInfo = req.user.isImpersonating
+      ? `Admin ID ${req.user.originalAdminId} (impersonating user ${req.user.userId})`
+      : `Admin ID ${req.user.userId}`;
+
+    console.log('═══════════════════════════════════════════════════════════════');
+    console.log(`🔄 ADMIN ACTION: Reset Demo Data`);
+    console.log(`📅 Timestamp: ${new Date().toISOString()}`);
+    console.log(`👤 Performed by: ${adminInfo}`);
+    console.log(`🎯 Target user: ${targetUser.name} (${targetUser.email}) [ID: ${targetUser.id}]`);
+    console.log(`📋 Role: ${targetUser.role}`);
+    console.log('═══════════════════════════════════════════════════════════════');
+
+    // Execute the reset
+    const result = await resetUserDataById(targetUserId);
+
+    // Log the results
+    console.log('✅ Reset completed successfully');
+    console.log(`📊 Deleted: ${result.deleted.messages} messages, ${result.deleted.bookings} bookings, ${result.deleted.matches} matches, ${result.deleted.likes} likes, ${result.deleted.passes} passes`);
+    console.log('═══════════════════════════════════════════════════════════════\n');
+
+    res.json({
+      success: true,
+      message: 'Demo data reset successfully',
+      user: result.user,
+      deleted: result.deleted
+    });
+
+  } catch (error) {
+    console.error('Reset demo data error:', error);
+    res.status(500).json({
+      error: 'Failed to reset demo data',
+      details: error.message
+    });
+  }
+};
+
 module.exports = {
   searchUsers,
   impersonateUser,
-  stopImpersonation
+  stopImpersonation,
+  resetDemoData
 };

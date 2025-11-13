@@ -169,6 +169,115 @@ async function resetUserData() {
   }
 }
 
+/**
+ * Reusable function to reset user data by userId
+ * Can be called from API endpoints without CLI interface
+ * @param {number} userId - The user ID to reset
+ * @returns {Promise<Object>} - Summary of deleted records
+ */
+async function resetUserDataById(userId) {
+  const client = await db.pool.connect();
+
+  try {
+    // Find the user
+    const userResult = await client.query(
+      'SELECT id, email, name, role FROM users WHERE id = $1',
+      [userId]
+    );
+
+    if (userResult.rows.length === 0) {
+      throw new Error(`User with ID ${userId} not found`);
+    }
+
+    const user = userResult.rows[0];
+
+    // Start transaction
+    await client.query('BEGIN');
+
+    // Count records before deletion
+    const messageCounts = await client.query(
+      'SELECT COUNT(*) FROM messages WHERE sender_id = $1',
+      [user.id]
+    );
+
+    const bookingCounts = await client.query(
+      'SELECT COUNT(*) FROM bookings WHERE brand_id = $1 OR ambassador_id = $1',
+      [user.id]
+    );
+
+    const matchCounts = await client.query(
+      'SELECT COUNT(*) FROM matches WHERE brand_id = $1 OR ambassador_id = $1',
+      [user.id]
+    );
+
+    const likeCounts = await client.query(
+      'SELECT COUNT(*) FROM likes WHERE brand_id = $1 OR ambassador_id = $1',
+      [user.id]
+    );
+
+    const passCounts = await client.query(
+      'SELECT COUNT(*) FROM passes WHERE brand_id = $1 OR ambassador_id = $1',
+      [user.id]
+    );
+
+    // Delete in correct order to respect foreign key constraints
+
+    // 1. Delete messages where user is sender
+    await client.query('DELETE FROM messages WHERE sender_id = $1', [user.id]);
+
+    // 2. Delete bookings involving this user
+    await client.query(
+      'DELETE FROM bookings WHERE brand_id = $1 OR ambassador_id = $1',
+      [user.id]
+    );
+
+    // 3. Delete matches involving this user
+    await client.query(
+      'DELETE FROM matches WHERE brand_id = $1 OR ambassador_id = $1',
+      [user.id]
+    );
+
+    // 4. Delete likes involving this user
+    await client.query(
+      'DELETE FROM likes WHERE brand_id = $1 OR ambassador_id = $1',
+      [user.id]
+    );
+
+    // 5. Delete passes involving this user
+    await client.query(
+      'DELETE FROM passes WHERE brand_id = $1 OR ambassador_id = $1',
+      [user.id]
+    );
+
+    // Commit transaction
+    await client.query('COMMIT');
+
+    // Return summary
+    return {
+      success: true,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role
+      },
+      deleted: {
+        messages: parseInt(messageCounts.rows[0].count),
+        bookings: parseInt(bookingCounts.rows[0].count),
+        matches: parseInt(matchCounts.rows[0].count),
+        likes: parseInt(likeCounts.rows[0].count),
+        passes: parseInt(passCounts.rows[0].count)
+      }
+    };
+
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
 // Run reset if this file is executed directly
 if (require.main === module) {
   resetUserData()
@@ -176,4 +285,4 @@ if (require.main === module) {
     .catch(() => process.exit(1));
 }
 
-module.exports = resetUserData;
+module.exports = { resetUserData, resetUserDataById };
