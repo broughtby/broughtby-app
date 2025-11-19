@@ -134,10 +134,25 @@ const getAmbassadors = async (req, res) => {
     const { limit = 50, offset = 0 } = req.query;
 
     if (req.user.role === 'brand') {
+      // Check if user is admin
+      const adminCheck = await db.query(
+        'SELECT is_admin FROM users WHERE id = $1',
+        [req.user.userId]
+      );
+      const isAdmin = adminCheck.rows[0]?.is_admin || false;
+
+      // Build the WHERE clause based on admin status
+      // Admins see ALL ambassadors (including test accounts)
+      // Non-admins only see active, non-test ambassadors
+      const whereClause = isAdmin
+        ? "WHERE u.role = 'ambassador' AND u.is_active = TRUE"
+        : "WHERE u.role = 'ambassador' AND u.is_active = TRUE AND (u.is_test = FALSE OR u.is_test IS NULL)";
+
       // Brands browse all ambassadors with status indicators
       const result = await db.query(
         `SELECT u.id, u.name, u.profile_photo, u.bio, u.location, u.age,
                 u.skills, u.hourly_rate, u.availability, u.rating,
+                u.is_test,
                 l.id as like_id,
                 m.id as match_id,
                 p.id as pass_id
@@ -145,7 +160,7 @@ const getAmbassadors = async (req, res) => {
          LEFT JOIN likes l ON l.ambassador_id = u.id AND l.brand_id = $1
          LEFT JOIN matches m ON (m.ambassador_id = u.id AND m.brand_id = $1)
          LEFT JOIN passes p ON p.ambassador_id = u.id AND p.brand_id = $1
-         WHERE u.role = 'ambassador' AND u.is_active = TRUE
+         ${whereClause}
          ORDER BY u.rating DESC, u.created_at DESC
          LIMIT $2 OFFSET $3`,
         [req.user.userId, limit, offset]
@@ -163,12 +178,14 @@ const getAmbassadors = async (req, res) => {
         hourly_rate: row.hourly_rate,
         availability: row.availability,
         rating: row.rating,
+        is_test: row.is_test || false,
         status: row.match_id ? 'matched' : (row.like_id ? 'pending' : (row.pass_id ? 'passed' : 'available'))
       }));
 
       return res.json({ ambassadors });
     } else if (req.user.role === 'ambassador') {
       // Ambassadors browse other ambassadors (excluding themselves) - community view
+      // Exclude test accounts from community view
       const result = await db.query(
         `SELECT u.id, u.name, u.profile_photo, u.bio, u.location, u.age,
                 u.skills, u.hourly_rate, u.availability, u.rating
@@ -176,6 +193,7 @@ const getAmbassadors = async (req, res) => {
          WHERE u.role = 'ambassador'
          AND u.id != $1
          AND u.is_active = TRUE
+         AND (u.is_test = FALSE OR u.is_test IS NULL)
          ORDER BY u.rating DESC, u.created_at DESC
          LIMIT $2 OFFSET $3`,
         [req.user.userId, limit, offset]
