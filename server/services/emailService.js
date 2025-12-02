@@ -1086,6 +1086,174 @@ const sendBookingConfirmedEmail = async ({ brandEmail, brandName, ambassadorName
   });
 };
 
+// Generate new message email HTML
+const generateNewMessageEmail = ({ recipientName, senderName, messagePreview, matchId }) => {
+  // Truncate message preview to ~100 characters
+  const preview = messagePreview.length > 100
+    ? messagePreview.substring(0, 100) + '...'
+    : messagePreview;
+
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>New Message</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+          background-color: #F7F8FA;
+        }
+        .email-container {
+          max-width: 600px;
+          margin: 0 auto;
+          background-color: #ffffff;
+        }
+        .header {
+          background: linear-gradient(135deg, #0A2540 0%, #0D3350 100%);
+          padding: 40px 30px;
+          text-align: center;
+        }
+        .logo {
+          color: #D4AF37;
+          font-size: 32px;
+          font-weight: 700;
+          margin: 0;
+          letter-spacing: 1px;
+        }
+        .content {
+          padding: 40px 30px;
+        }
+        .greeting {
+          font-size: 24px;
+          color: #0A2540;
+          margin: 0 0 20px 0;
+          font-weight: 600;
+        }
+        .message {
+          font-size: 16px;
+          line-height: 1.6;
+          color: #4B5563;
+          margin-bottom: 30px;
+        }
+        .message-card {
+          background-color: #F0F9FF;
+          border-left: 4px solid #D4AF37;
+          padding: 20px;
+          margin: 30px 0;
+          border-radius: 4px;
+        }
+        .sender-name {
+          font-size: 16px;
+          color: #0A2540;
+          font-weight: 600;
+          margin: 0 0 10px 0;
+        }
+        .message-preview {
+          font-size: 14px;
+          color: #6B7280;
+          font-style: italic;
+          margin: 0;
+          line-height: 1.5;
+        }
+        .cta-button {
+          display: inline-block;
+          background-color: #0A2540;
+          color: #ffffff;
+          text-decoration: none;
+          padding: 16px 40px;
+          border-radius: 8px;
+          font-size: 16px;
+          font-weight: 600;
+          margin: 20px 0;
+          text-align: center;
+        }
+        .footer {
+          background-color: #F7F8FA;
+          padding: 30px;
+          text-align: center;
+          font-size: 14px;
+          color: #6B7280;
+        }
+        .footer-link {
+          color: #0A2540;
+          text-decoration: none;
+        }
+        .divider {
+          height: 1px;
+          background-color: #E5E7EB;
+          margin: 30px 0;
+        }
+        @media only screen and (max-width: 600px) {
+          .content {
+            padding: 30px 20px;
+          }
+          .header {
+            padding: 30px 20px;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+          <h1 class="logo">BroughtBy</h1>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+          <h2 class="greeting">New message from ${senderName}</h2>
+
+          <p class="message">
+            Hi ${recipientName}! You have a new message on BroughtBy.
+          </p>
+
+          <!-- Message Preview Card -->
+          <div class="message-card">
+            <p class="sender-name">${senderName} wrote:</p>
+            <p class="message-preview">"${preview}"</p>
+          </div>
+
+          <p class="message">
+            Open the conversation to read the full message and reply.
+          </p>
+
+          <div style="text-align: center;">
+            <a href="https://app.broughtby.co/chat/${matchId}" class="cta-button">
+              View Conversation
+            </a>
+          </div>
+
+          <div class="divider"></div>
+
+          <p class="message" style="font-size: 14px;">
+            Stay connected with your matches and keep the conversation going!
+          </p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+          <p style="margin: 0 0 10px 0;">
+            <strong>BroughtBy</strong> - Premium Brand Ambassador Marketplace
+          </p>
+          <p style="margin: 0;">
+            <a href="https://app.broughtby.co" class="footer-link">Visit BroughtBy</a> ·
+            <a href="https://app.broughtby.co/profile" class="footer-link">Manage Account</a>
+          </p>
+          <p style="margin-top: 20px; font-size: 12px; color: #9CA3AF;">
+            You're receiving this email because you have an account on BroughtBy.
+          </p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+};
+
 module.exports = {
   sendEmail,
   sendPartnershipRequestEmail,
@@ -1098,4 +1266,5 @@ module.exports = {
   generateBookingRequestEmail,
   sendBookingConfirmedEmail,
   generateBookingConfirmedEmail,
+  generateNewMessageEmail,
 };

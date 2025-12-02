@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const db = require('./config/database');
+const { sendEmail, generateNewMessageEmail } = require('./services/emailService');
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -177,6 +178,37 @@ io.on('connection', (socket) => {
         matchId,
         message: enrichedMessage,
       });
+
+      // Send email notification (fire and forget)
+      (async () => {
+        try {
+          const recipientResult = await db.query(
+            'SELECT email, name FROM users WHERE id = $1',
+            [recipientId]
+          );
+
+          if (recipientResult.rows.length > 0) {
+            const recipient = recipientResult.rows[0];
+            const html = generateNewMessageEmail({
+              recipientName: recipient.name,
+              senderName: userResult.rows[0].name,
+              messagePreview: content,
+              matchId,
+            });
+
+            await sendEmail({
+              to: recipient.email,
+              subject: `New message from ${userResult.rows[0].name}`,
+              html,
+            });
+
+            console.log(`Email notification sent to ${recipient.email}`);
+          }
+        } catch (emailError) {
+          console.error('Failed to send email notification:', emailError);
+          // Don't throw - email failures shouldn't block the message
+        }
+      })();
     } catch (error) {
       console.error('Send message error:', error);
       socket.emit('error', { message: 'Failed to send message' });
