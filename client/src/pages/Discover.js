@@ -367,7 +367,7 @@ const Discover = () => {
                 </div>
                 {currentAmbassador.status && currentAmbassador.status !== 'available' && (
                   <div className={`status-badge status-${currentAmbassador.status}`}>
-                    {currentAmbassador.status === 'matched' ? '✓ Partnership Active' : currentAmbassador.status === 'pending' ? 'Request Pending' : 'Passed'}
+                    {currentAmbassador.status === 'matched' ? '✓ Matched' : currentAmbassador.status === 'pending' ? 'Request Pending' : 'Passed'}
                   </div>
                 )}
               </div>
@@ -469,7 +469,7 @@ const Discover = () => {
               />
               {ambassador.status && ambassador.status !== 'available' && (
                 <div className={`status-badge status-${ambassador.status}`}>
-                  {ambassador.status === 'matched' ? '✓ Partnership Active' : ambassador.status === 'pending' ? 'Request Pending' : 'Passed'}
+                  {ambassador.status === 'matched' ? '✓ Matched' : ambassador.status === 'pending' ? 'Request Pending' : 'Passed'}
                 </div>
               )}
               <div className="grid-card-overlay">
@@ -519,7 +519,7 @@ const Discover = () => {
               />
               {selectedAmbassador.status && selectedAmbassador.status !== 'available' && (
                 <div className={`status-badge status-${selectedAmbassador.status}`}>
-                  {selectedAmbassador.status === 'matched' ? '✓ Partnership Active' : selectedAmbassador.status === 'pending' ? 'Request Pending' : 'Passed'}
+                  {selectedAmbassador.status === 'matched' ? '✓ Matched' : selectedAmbassador.status === 'pending' ? 'Request Pending' : 'Passed'}
                 </div>
               )}
             </div>
