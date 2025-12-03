@@ -14,6 +14,7 @@ import Matches from './pages/Matches';
 import Chat from './pages/Chat';
 import Profile from './pages/Profile';
 import Calendar from './pages/Calendar';
+import Messages from './pages/Messages';
 
 function App() {
   return (
@@ -61,6 +62,15 @@ function App() {
               element={
                 <PrivateRoute>
                   <Calendar />
+                </PrivateRoute>
+              }
+            />
+
+            <Route
+              path="/messages"
+              element={
+                <PrivateRoute>
+                  <Messages />
                 </PrivateRoute>
               }
             />
