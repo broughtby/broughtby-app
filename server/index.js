@@ -198,7 +198,7 @@ io.on('connection', (socket) => {
 
             await sendEmail({
               to: recipient.email,
-              subject: `New message from ${userResult.rows[0].name}`,
+              subject: `[BroughtBy] ${userResult.rows[0].name} sent you a message`,
               html,
             });
 
