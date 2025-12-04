@@ -12,12 +12,10 @@ const Home = () => {
         <div className="container">
           <h1 className="hero-title">BroughtBy</h1>
           <p className="hero-subtitle">
-            The Premium Marketplace Connecting Brands with Vetted Brand Ambassadors
+            Book trusted help for pop-ups, events, and activations.
           </p>
           <p className="hero-description">
-            Think of it like a dating app for business. Brands discover ambassadors, swipe to
-            like, and when there's mutual interest, start meaningful conversations that lead to
-            powerful partnerships.
+            Browse. Chat. Book.
           </p>
           <div className="hero-buttons">
             {isAuthenticated ? (
