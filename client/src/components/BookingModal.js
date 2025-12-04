@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getPhotoUrl } from '../services/upload';
 import DisplayName from './DisplayName';
+import DisplayRate from './DisplayRate';
 import './BookingModal.css';
 
 const BookingModal = ({ ambassador, onClose, onSubmit }) => {
@@ -144,7 +145,7 @@ const BookingModal = ({ ambassador, onClose, onSubmit }) => {
           <div className="booking-ambassador-details">
             <h2><DisplayName user={ambassador} demoMode={demoMode} /></h2>
             <p className="booking-rate">
-              <span className="rate-icon">$</span> ${ambassador.hourly_rate}/hour
+              <DisplayRate user={ambassador} rate={ambassador.hourly_rate} demoMode={demoMode} suffix="/hour" />
             </p>
           </div>
         </div>

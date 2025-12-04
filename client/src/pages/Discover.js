@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { userAPI, likeAPI } from '../services/api';
 import { getPhotoUrl } from '../services/upload';
 import DisplayName from '../components/DisplayName';
+import DisplayRate from '../components/DisplayRate';
 import './Discover.css';
 
 const Discover = () => {
@@ -397,7 +398,9 @@ const Discover = () => {
               <div className="card-stats">
                 <div className="stat">
                   <span className="stat-label">Rate</span>
-                  <span className="stat-value">${currentAmbassador.hourly_rate}/hr</span>
+                  <span className="stat-value">
+                    <DisplayRate user={currentAmbassador} rate={currentAmbassador.hourly_rate} demoMode={demoMode} />
+                  </span>
                 </div>
                 <div className="stat">
                   <span className="stat-label">Availability</span>
@@ -557,7 +560,9 @@ const Discover = () => {
                 </div>
                 <div className="stat">
                   <span className="stat-label">Rate</span>
-                  <span className="stat-value">${selectedAmbassador.hourly_rate}/hr</span>
+                  <span className="stat-value">
+                    <DisplayRate user={selectedAmbassador} rate={selectedAmbassador.hourly_rate} demoMode={demoMode} />
+                  </span>
                 </div>
                 <div className="stat">
                   <span className="stat-label">Availability</span>
