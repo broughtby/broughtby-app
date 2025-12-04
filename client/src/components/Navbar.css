@@ -194,6 +194,7 @@
   justify-content: center;
   min-width: 48px;
   height: 40px;
+  position: relative;
 }
 
 .demo-mode-toggle:hover {
@@ -206,13 +207,32 @@
 .demo-mode-toggle.active {
   background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
   border-color: #8e44ad;
-  box-shadow: 0 2px 8px rgba(142, 68, 173, 0.3);
+  box-shadow: 0 0 20px rgba(142, 68, 173, 0.6),
+              0 0 40px rgba(142, 68, 173, 0.4),
+              0 4px 12px rgba(142, 68, 173, 0.3);
+  animation: pulse-glow 2s ease-in-out infinite;
 }
 
 .demo-mode-toggle.active:hover {
   background: linear-gradient(135deg, #8e44ad 0%, #7d3c98 100%);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(142, 68, 173, 0.4);
+  box-shadow: 0 0 25px rgba(142, 68, 173, 0.7),
+              0 0 50px rgba(142, 68, 173, 0.5),
+              0 6px 16px rgba(142, 68, 173, 0.4);
+  animation: none;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(142, 68, 173, 0.6),
+                0 0 40px rgba(142, 68, 173, 0.4),
+                0 4px 12px rgba(142, 68, 173, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(142, 68, 173, 0.8),
+                0 0 50px rgba(142, 68, 173, 0.5),
+                0 4px 12px rgba(142, 68, 173, 0.3);
+  }
 }
 
 .demo-icon {
