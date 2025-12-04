@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { matchAPI, likeAPI, bookingAPI, messageAPI } from '../services/api';
 import { getPhotoUrl } from '../services/upload';
+import DisplayName from '../components/DisplayName';
 import BookingModal from '../components/BookingModal';
 import './Matches.css';
 
 const Matches = () => {
-  const { isAmbassador, isBrand } = useAuth();
+  const { isAmbassador, isBrand, demoMode } = useAuth();
   const [matches, setMatches] = useState([]);
   const [likes, setLikes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -198,7 +199,7 @@ Status: Pending confirmation`;
                     className="like-photo"
                   />
                   <div className="like-info">
-                    <h3>{like.name}</h3>
+                    <h3><DisplayName user={like} demoMode={demoMode} /></h3>
                     {like.location && <p className="like-location">{like.location}</p>}
                     {like.bio && <p className="like-bio">{like.bio}</p>}
                     {like.skills && like.skills.length > 0 && (
@@ -253,7 +254,7 @@ Status: Pending confirmation`;
                     className="match-photo"
                   />
                   <div className="match-info">
-                    <h3>{match.name}</h3>
+                    <h3><DisplayName user={match} demoMode={demoMode} /></h3>
                     {match.location && <p className="match-location">{match.location}</p>}
                     {match.last_message && (
                       <p className="last-message">{match.last_message}</p>
@@ -277,6 +278,7 @@ Status: Pending confirmation`;
                             name: match.name,
                             hourly_rate: match.hourly_rate,
                             profile_photo: match.profile_photo,
+                            is_test: match.is_test,
                           });
                         }}
                       >

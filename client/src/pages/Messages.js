@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { matchAPI } from '../services/api';
 import { getPhotoUrl } from '../services/upload';
+import DisplayName from '../components/DisplayName';
 import './Messages.css';
 
 const Messages = () => {
+  const { demoMode } = useAuth();
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -83,7 +86,7 @@ const Messages = () => {
 
               <div className="conversation-details">
                 <div className="conversation-header">
-                  <h3 className="conversation-name">{conversation.name}</h3>
+                  <h3 className="conversation-name"><DisplayName user={conversation} demoMode={demoMode} /></h3>
                   {conversation.location && (
                     <span className="conversation-location">
                       {conversation.location}

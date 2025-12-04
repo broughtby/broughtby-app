@@ -1,0 +1,7 @@
+.blurred-name {
+  filter: blur(8px);
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}

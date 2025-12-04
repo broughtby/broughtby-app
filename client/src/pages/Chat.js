@@ -3,11 +3,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { messageAPI } from '../services/api';
 import socketService from '../services/socket';
+import DisplayName from '../components/DisplayName';
 import './Chat.css';
 
 const Chat = () => {
   const { matchId } = useParams();
-  const { user } = useAuth();
+  const { user, demoMode } = useAuth();
   const navigate = useNavigate();
 
   const [messages, setMessages] = useState([]);
@@ -173,7 +174,12 @@ const Chat = () => {
                   )}
                   <div className="message-content">
                     {!isMine && message.sender_name && (
-                      <p className="message-sender">{message.sender_name}</p>
+                      <p className="message-sender">
+                        <DisplayName
+                          user={{ id: message.sender_id, name: message.sender_name, is_test: message.is_test }}
+                          demoMode={demoMode}
+                        />
+                      </p>
                     )}
                     <div className="message-bubble">
                       <p>{message.content}</p>

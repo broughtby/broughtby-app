@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { userAPI, likeAPI } from '../services/api';
 import { getPhotoUrl } from '../services/upload';
+import DisplayName from '../components/DisplayName';
 import './Discover.css';
 
 const Discover = () => {
-  const { isBrand, isAmbassador } = useAuth();
+  const { isBrand, isAmbassador, demoMode } = useAuth();
   const [ambassadors, setAmbassadors] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -160,7 +161,7 @@ const Discover = () => {
                       alt={ambassador.name}
                     />
                     <div className="grid-card-overlay">
-                      <h3>{ambassador.name}</h3>
+                      <h3><DisplayName user={ambassador} demoMode={demoMode} /></h3>
                       {ambassador.location && <p>{ambassador.location}</p>}
                     </div>
                   </div>
@@ -206,7 +207,7 @@ const Discover = () => {
                     />
                   </div>
                   <div className="modal-body">
-                    <h2>{selectedAmbassador.name}</h2>
+                    <h2><DisplayName user={selectedAmbassador} demoMode={demoMode} /></h2>
                     {selectedAmbassador.location && (
                       <p className="modal-location">{selectedAmbassador.location}</p>
                     )}
@@ -360,7 +361,7 @@ const Discover = () => {
                   className="card-image"
                 />
                 <div className="card-overlay">
-                  <h2 className="card-name">{currentAmbassador.name}</h2>
+                  <h2 className="card-name"><DisplayName user={currentAmbassador} demoMode={demoMode} /></h2>
                   {currentAmbassador.location && (
                     <p className="card-location">{currentAmbassador.location}</p>
                   )}
@@ -473,7 +474,7 @@ const Discover = () => {
                 </div>
               )}
               <div className="grid-card-overlay">
-                <h3>{ambassador.name}</h3>
+                <h3><DisplayName user={ambassador} demoMode={demoMode} /></h3>
                 {ambassador.location && <p>{ambassador.location}</p>}
               </div>
             </div>
@@ -524,7 +525,7 @@ const Discover = () => {
               )}
             </div>
             <div className="modal-body">
-              <h2>{selectedAmbassador.name}</h2>
+              <h2><DisplayName user={selectedAmbassador} demoMode={demoMode} /></h2>
               {selectedAmbassador.location && (
                 <p className="modal-location">{selectedAmbassador.location}</p>
               )}

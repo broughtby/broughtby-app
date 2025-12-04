@@ -17,6 +17,11 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [impersonatedUser, setImpersonatedUser] = useState(null);
   const [originalAdminId, setOriginalAdminId] = useState(null);
+  const [demoMode, setDemoMode] = useState(() => {
+    // Initialize from localStorage
+    const stored = localStorage.getItem('demoMode');
+    return stored === 'true';
+  });
 
   useEffect(() => {
     // Check if user is already logged in and restore session
@@ -109,10 +114,20 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('originalAdminId');
+    localStorage.removeItem('demoMode');
     setUser(null);
     setImpersonatedUser(null);
     setOriginalAdminId(null);
+    setDemoMode(false);
     socketService.disconnect();
+  };
+
+  const toggleDemoMode = () => {
+    setDemoMode(prev => {
+      const newValue = !prev;
+      localStorage.setItem('demoMode', newValue);
+      return newValue;
+    });
   };
 
   const updateUser = async (data) => {
@@ -206,6 +221,8 @@ export const AuthProvider = ({ children }) => {
     isAdmin: user?.isAdmin || false,
     isImpersonating: !!impersonatedUser && !!originalAdminId,
     impersonatedUser,
+    demoMode,
+    toggleDemoMode,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

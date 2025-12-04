@@ -109,7 +109,7 @@ const getMatches = async (req, res) => {
       query = `
         SELECT m.id as match_id, m.created_at,
                u.id as user_id, u.name, u.profile_photo, u.bio, u.location,
-               u.age, u.skills, u.hourly_rate, u.availability, u.rating,
+               u.age, u.skills, u.hourly_rate, u.availability, u.rating, u.is_test,
                (SELECT content FROM messages WHERE match_id = m.id
                 ORDER BY created_at DESC LIMIT 1) as last_message,
                (SELECT created_at FROM messages WHERE match_id = m.id
@@ -124,7 +124,7 @@ const getMatches = async (req, res) => {
       // Get matches where user is the ambassador
       query = `
         SELECT m.id as match_id, m.created_at,
-               u.id as user_id, u.name, u.profile_photo, u.bio, u.location, u.skills,
+               u.id as user_id, u.name, u.profile_photo, u.bio, u.location, u.skills, u.is_test,
                (SELECT content FROM messages WHERE match_id = m.id
                 ORDER BY created_at DESC LIMIT 1) as last_message,
                (SELECT created_at FROM messages WHERE match_id = m.id

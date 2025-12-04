@@ -77,7 +77,7 @@ const getReceivedLikes = async (req, res) => {
 
     const result = await db.query(
       `SELECT l.id, l.created_at, l.status,
-              u.id as brand_id, u.name, u.profile_photo, u.bio, u.location, u.skills
+              u.id as brand_id, u.name, u.profile_photo, u.bio, u.location, u.skills, u.is_test
        FROM likes l
        JOIN users u ON l.brand_id = u.id
        WHERE l.ambassador_id = $1

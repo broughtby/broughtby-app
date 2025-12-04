@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import ImpersonationBanner from './components/ImpersonationBanner';
+import DemoModeBanner from './components/DemoModeBanner';
 import PrivateRoute from './components/PrivateRoute';
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -23,6 +24,7 @@ function App() {
         <div className="App">
           <Navbar />
           <ImpersonationBanner />
+          <DemoModeBanner />
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />

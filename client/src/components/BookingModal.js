@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
 import { getPhotoUrl } from '../services/upload';
+import DisplayName from './DisplayName';
 import './BookingModal.css';
 
 const BookingModal = ({ ambassador, onClose, onSubmit }) => {
+  const { demoMode } = useAuth();
   const [formData, setFormData] = useState({
     eventName: '',
     eventDate: '',
@@ -139,7 +142,7 @@ const BookingModal = ({ ambassador, onClose, onSubmit }) => {
             />
           )}
           <div className="booking-ambassador-details">
-            <h2>{ambassador.name}</h2>
+            <h2><DisplayName user={ambassador} demoMode={demoMode} /></h2>
             <p className="booking-rate">
               <span className="rate-icon">$</span> ${ambassador.hourly_rate}/hour
             </p>

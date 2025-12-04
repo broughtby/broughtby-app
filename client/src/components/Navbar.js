@@ -5,7 +5,7 @@ import { adminAPI } from '../services/api';
 import './Navbar.css';
 
 const Navbar = () => {
-  const { logout, isAuthenticated, isAdmin, impersonateUser, user } = useAuth();
+  const { logout, isAuthenticated, isAdmin, impersonateUser, user, demoMode, toggleDemoMode } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
@@ -192,6 +192,20 @@ const Navbar = () => {
                     </div>
                   )}
                 </div>
+              )}
+
+              {/* Demo Mode Toggle - Only visible to admins */}
+              {isAdmin && (
+                <button
+                  onClick={toggleDemoMode}
+                  className={`demo-mode-toggle ${demoMode ? 'active' : ''}`}
+                  title={demoMode ? 'Turn off demo mode' : 'Turn on demo mode'}
+                  aria-label={demoMode ? 'Turn off demo mode' : 'Turn on demo mode'}
+                >
+                  <span className="demo-icon" role="img" aria-label="Camera">
+                    🎬
+                  </span>
+                </button>
               )}
 
               <button onClick={handleLogout} className="nav-button">

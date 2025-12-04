@@ -4,11 +4,12 @@ import { bookingAPI, messageAPI } from '../services/api';
 import ReactCalendar from 'react-calendar';
 import { format, isSameDay } from 'date-fns';
 import TimeTracking from '../components/TimeTracking';
+import DisplayName from '../components/DisplayName';
 import 'react-calendar/dist/Calendar.css';
 import './Calendar.css';
 
 const Calendar = () => {
-  const { user, isBrand, isAmbassador } = useAuth();
+  const { user, isBrand, isAmbassador, demoMode } = useAuth();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -41,6 +42,25 @@ const Calendar = () => {
     const hour12 = hour % 12 || 12; // Convert 0 to 12 for midnight
 
     return `${hour12}:${minutes} ${ampm}`;
+  };
+
+  // Get user object for booking partner based on user role
+  const getBookingPartner = (booking) => {
+    if (isBrand) {
+      // Brand sees ambassador
+      return {
+        id: booking.ambassador_id,
+        name: booking.ambassador_name,
+        is_test: booking.ambassador_is_test
+      };
+    } else {
+      // Ambassador sees brand
+      return {
+        id: booking.brand_id,
+        name: booking.brand_name,
+        is_test: booking.brand_is_test
+      };
+    }
   };
 
   // Parse date string as local date (not UTC) to prevent timezone shifting
@@ -327,7 +347,7 @@ Status: Cancelled`;
                             <div className="booking-details">
                               <div className="booking-detail">
                                 <span className="detail-icon">👤</span>
-                                <span>{isBrand ? booking.ambassador_name : booking.brand_name}</span>
+                                <span><DisplayName user={getBookingPartner(booking)} demoMode={demoMode} /></span>
                               </div>
                               <div className="booking-detail">
                                 <span className="detail-icon">🕐</span>
@@ -435,7 +455,7 @@ Status: Cancelled`;
                       <div className="booking-details">
                         <div className="booking-detail">
                           <span className="detail-icon">👤</span>
-                          <span>{isBrand ? booking.ambassador_name : booking.brand_name}</span>
+                          <span><DisplayName user={getBookingPartner(booking)} demoMode={demoMode} /></span>
                         </div>
                         <div className="booking-detail">
                           <span className="detail-icon">🕐</span>
@@ -517,7 +537,7 @@ Status: Cancelled`;
                       <div className="booking-details">
                         <div className="booking-detail">
                           <span className="detail-icon">👤</span>
-                          <span>{isBrand ? booking.ambassador_name : booking.brand_name}</span>
+                          <span><DisplayName user={getBookingPartner(booking)} demoMode={demoMode} /></span>
                         </div>
                         <div className="booking-detail">
                           <span className="detail-icon">🕐</span>
@@ -588,7 +608,7 @@ Status: Cancelled`;
                       <div className="booking-details">
                         <div className="booking-detail">
                           <span className="detail-icon">👤</span>
-                          <span>{isBrand ? booking.ambassador_name : booking.brand_name}</span>
+                          <span><DisplayName user={getBookingPartner(booking)} demoMode={demoMode} /></span>
                         </div>
                         <div className="booking-detail">
                           <span className="detail-icon">🕐</span>

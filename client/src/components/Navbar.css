@@ -181,6 +181,50 @@
   letter-spacing: 0.5px;
 }
 
+/* Demo Mode Toggle */
+.demo-mode-toggle {
+  background: white;
+  border: 2px solid var(--gold);
+  border-radius: var(--border-radius);
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  height: 40px;
+}
+
+.demo-mode-toggle:hover {
+  background: var(--light-gray);
+  border-color: #C19D2F;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.demo-mode-toggle.active {
+  background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+  border-color: #8e44ad;
+  box-shadow: 0 2px 8px rgba(142, 68, 173, 0.3);
+}
+
+.demo-mode-toggle.active:hover {
+  background: linear-gradient(135deg, #8e44ad 0%, #7d3c98 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(142, 68, 173, 0.4);
+}
+
+.demo-icon {
+  font-size: 20px;
+  line-height: 1;
+  display: block;
+}
+
+.demo-mode-toggle.active .demo-icon {
+  filter: brightness(2);
+}
+
 /* Hamburger Menu Button */
 .hamburger-button {
   display: none;
@@ -293,5 +337,12 @@
     right: 1rem;
     top: 140px;
     max-width: calc(280px - 4rem);
+  }
+
+  .demo-mode-toggle {
+    width: 100%;
+    order: -1;
+    margin-bottom: 0.5rem;
+    justify-content: center;
   }
 }

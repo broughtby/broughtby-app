@@ -17,7 +17,7 @@ const getMessages = async (req, res) => {
     // Get messages
     const result = await db.query(
       `SELECT m.id, m.content, m.sender_id, m.read, m.created_at,
-              u.name as sender_name, u.profile_photo as sender_photo
+              u.name as sender_name, u.profile_photo as sender_photo, u.is_test
        FROM messages m
        JOIN users u ON m.sender_id = u.id
        WHERE m.match_id = $1

@@ -139,7 +139,8 @@ const getBookings = async (req, res) => {
         SELECT b.*,
                u.name as ambassador_name,
                u.profile_photo as ambassador_photo,
-               u.email as ambassador_email
+               u.email as ambassador_email,
+               u.is_test as ambassador_is_test
         FROM bookings b
         JOIN users u ON b.ambassador_id = u.id
         WHERE b.brand_id = $1
@@ -152,7 +153,8 @@ const getBookings = async (req, res) => {
         SELECT b.*,
                u.name as brand_name,
                u.profile_photo as brand_photo,
-               u.email as brand_email
+               u.email as brand_email,
+               u.is_test as brand_is_test
         FROM bookings b
         JOIN users u ON b.brand_id = u.id
         WHERE b.ambassador_id = $1
