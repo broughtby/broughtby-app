@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { userAPI, likeAPI } from '../services/api';
+import { userAPI, likeAPI, reviewAPI } from '../services/api';
 import { getPhotoUrl } from '../services/upload';
 import DisplayName from '../components/DisplayName';
 import DisplayRate from '../components/DisplayRate';
+import ReviewsList from '../components/ReviewsList';
 import './Discover.css';
 
 const Discover = () => {
@@ -17,6 +18,10 @@ const Discover = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [selectedLocation, setSelectedLocation] = useState('all');
   const [filteredAmbassadors, setFilteredAmbassadors] = useState([]);
+  const [selectedAmbassadorReviews, setSelectedAmbassadorReviews] = useState([]);
+  const [reviewCount, setReviewCount] = useState(0);
+  const [averageRating, setAverageRating] = useState(0);
+  const [loadingReviews, setLoadingReviews] = useState(false);
 
   useEffect(() => {
     if (isBrand || isAmbassador) {
@@ -56,6 +61,30 @@ const Discover = () => {
       setLoading(false);
     }
   };
+
+  const fetchAmbassadorReviews = async (ambassadorId) => {
+    setLoadingReviews(true);
+    try {
+      const response = await reviewAPI.getUserReviews(ambassadorId);
+      setSelectedAmbassadorReviews(response.data.reviews);
+      setReviewCount(response.data.reviewCount);
+      setAverageRating(response.data.averageRating);
+    } catch (error) {
+      console.error('Failed to fetch reviews:', error);
+      setSelectedAmbassadorReviews([]);
+      setReviewCount(0);
+      setAverageRating(0);
+    } finally {
+      setLoadingReviews(false);
+    }
+  };
+
+  // Fetch reviews when an ambassador is selected
+  useEffect(() => {
+    if (selectedAmbassador) {
+      fetchAmbassadorReviews(selectedAmbassador.id);
+    }
+  }, [selectedAmbassador]);
 
   // Get unique locations from ambassadors
   const getUniqueLocations = () => {
@@ -243,9 +272,25 @@ const Discover = () => {
                         <span className="stat-value">{selectedAmbassador.availability || 'N/A'}</span>
                       </div>
                       <div className="stat">
-                        <span className="stat-label">Rating</span>
-                        <span className="stat-value">{selectedAmbassador.rating} ⭐</span>
+                        <span className="stat-label">Hourly Rate</span>
+                        <span className="stat-value">
+                          <DisplayRate user={selectedAmbassador} rate={selectedAmbassador.hourly_rate} demoMode={demoMode} suffix="/hr" />
+                        </span>
                       </div>
+                    </div>
+
+                    {/* Reviews Section */}
+                    <div className="modal-section">
+                      <h3>Reviews</h3>
+                      {loadingReviews ? (
+                        <p className="loading-reviews">Loading reviews...</p>
+                      ) : (
+                        <ReviewsList
+                          reviews={selectedAmbassadorReviews}
+                          reviewCount={reviewCount}
+                          averageRating={averageRating}
+                        />
+                      )}
                     </div>
                   </div>
                 </div>
@@ -572,6 +617,20 @@ const Discover = () => {
                   <span className="stat-label">Rating</span>
                   <span className="stat-value">{selectedAmbassador.rating} ⭐</span>
                 </div>
+              </div>
+
+              {/* Reviews Section */}
+              <div className="modal-section">
+                <h3>Reviews</h3>
+                {loadingReviews ? (
+                  <p className="loading-reviews">Loading reviews...</p>
+                ) : (
+                  <ReviewsList
+                    reviews={selectedAmbassadorReviews}
+                    reviewCount={reviewCount}
+                    averageRating={averageRating}
+                  />
+                )}
               </div>
 
               {selectedAmbassador.status === 'matched' || selectedAmbassador.status === 'pending' || selectedAmbassador.status === 'passed' ? (

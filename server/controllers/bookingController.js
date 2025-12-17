@@ -385,11 +385,12 @@ const checkOut = async (req, res) => {
       return res.status(400).json({ error: 'Already checked out' });
     }
 
-    // Calculate actual hours from check-in to check-out
+    // Calculate actual hours from check-in to check-out and mark as completed
     const result = await db.query(
       `UPDATE bookings
        SET checked_out_at = CURRENT_TIMESTAMP,
            actual_hours = EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - checked_in_at)) / 3600,
+           status = 'completed',
            updated_at = CURRENT_TIMESTAMP
        WHERE id = $1
        RETURNING *`,
@@ -397,7 +398,7 @@ const checkOut = async (req, res) => {
     );
 
     res.json({
-      message: 'Checked out successfully',
+      message: 'Checked out successfully and booking marked as completed',
       booking: result.rows[0],
     });
   } catch (error) {

@@ -272,6 +272,61 @@ const migrations = [
   `
     CREATE INDEX IF NOT EXISTS idx_users_is_active ON users(is_active);
   `,
+
+  // Add is_test column to users table for marking test/demo accounts
+  `
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                     WHERE table_name = 'users' AND column_name = 'is_test') THEN
+        ALTER TABLE users ADD COLUMN is_test BOOLEAN DEFAULT FALSE;
+      END IF;
+    END $$;
+  `,
+
+  // Create index on is_test for faster filtering
+  `
+    CREATE INDEX IF NOT EXISTS idx_users_is_test ON users(is_test);
+  `,
+
+  // Create reviews table
+  `
+    CREATE TABLE IF NOT EXISTS reviews (
+      id SERIAL PRIMARY KEY,
+      booking_id INTEGER NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
+      reviewer_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      reviewee_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      reviewer_role VARCHAR(20) NOT NULL CHECK (reviewer_role IN ('brand', 'ambassador')),
+
+      overall_rating INTEGER NOT NULL CHECK (overall_rating BETWEEN 1 AND 5),
+      would_work_again BOOLEAN,
+      comment TEXT,
+
+      punctuality_rating INTEGER CHECK (punctuality_rating BETWEEN 1 AND 5),
+      professionalism_rating INTEGER CHECK (professionalism_rating BETWEEN 1 AND 5),
+      engagement_rating INTEGER CHECK (engagement_rating BETWEEN 1 AND 5),
+
+      clear_expectations_rating INTEGER CHECK (clear_expectations_rating BETWEEN 1 AND 5),
+      onsite_support_rating INTEGER CHECK (onsite_support_rating BETWEEN 1 AND 5),
+      respectful_treatment_rating INTEGER CHECK (respectful_treatment_rating BETWEEN 1 AND 5),
+
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+      UNIQUE(booking_id, reviewer_id),
+      CHECK (reviewer_id != reviewee_id)
+    );
+  `,
+
+  // Create indexes for reviews
+  `
+    CREATE INDEX IF NOT EXISTS idx_reviews_booking ON reviews(booking_id);
+  `,
+  `
+    CREATE INDEX IF NOT EXISTS idx_reviews_reviewee ON reviews(reviewee_id);
+  `,
+  `
+    CREATE INDEX IF NOT EXISTS idx_reviews_reviewer ON reviews(reviewer_id);
+  `,
 ];
 
 async function runMigrations() {

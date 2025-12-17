@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import ImageUpload from '../components/ImageUpload';
+import ReviewsList from '../components/ReviewsList';
 import { getPhotoUrl } from '../services/upload';
 import { US_STATES, MAJOR_CITIES, parseLocation, formatLocation } from '../data/locations';
-import { adminAPI } from '../services/api';
+import { adminAPI, reviewAPI } from '../services/api';
 import './Profile.css';
 
 const Profile = () => {
@@ -24,6 +25,10 @@ const Profile = () => {
   const [newSkill, setNewSkill] = useState('');
   const [message, setMessage] = useState('');
   const [isResetting, setIsResetting] = useState(false);
+  const [reviews, setReviews] = useState([]);
+  const [reviewCount, setReviewCount] = useState(0);
+  const [averageRating, setAverageRating] = useState(0);
+  const [loadingReviews, setLoadingReviews] = useState(true);
 
   useEffect(() => {
     if (user) {
@@ -42,8 +47,26 @@ const Profile = () => {
         hourly_rate: user.hourly_rate || '',
         availability: user.availability || '',
       });
+
+      // Fetch reviews for the user
+      fetchReviews();
     }
   }, [user]);
+
+  const fetchReviews = async () => {
+    if (!user) return;
+
+    try {
+      const response = await reviewAPI.getUserReviews(user.userId);
+      setReviews(response.data.reviews);
+      setReviewCount(response.data.reviewCount);
+      setAverageRating(response.data.averageRating);
+    } catch (error) {
+      console.error('Failed to fetch reviews:', error);
+    } finally {
+      setLoadingReviews(false);
+    }
+  };
 
   const handleChange = (e) => {
     setFormData({
@@ -389,6 +412,20 @@ const Profile = () => {
                 </div>
               </div>
             )}
+
+            {/* Reviews Section */}
+            <div className="profile-section">
+              <h3>Reviews</h3>
+              {loadingReviews ? (
+                <p className="loading-reviews">Loading reviews...</p>
+              ) : (
+                <ReviewsList
+                  reviews={reviews}
+                  reviewCount={reviewCount}
+                  averageRating={averageRating}
+                />
+              )}
+            </div>
 
             {user.isAdmin && (
               <div className="profile-section admin-section">

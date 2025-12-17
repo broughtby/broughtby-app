@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { bookingAPI, messageAPI } from '../services/api';
+import { bookingAPI, messageAPI, reviewAPI } from '../services/api';
 import ReactCalendar from 'react-calendar';
 import { format, isSameDay } from 'date-fns';
 import TimeTracking from '../components/TimeTracking';
 import DisplayName from '../components/DisplayName';
+import ReviewModal from '../components/ReviewModal';
 import 'react-calendar/dist/Calendar.css';
 import './Calendar.css';
 
@@ -15,6 +16,9 @@ const Calendar = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [viewMode, setViewMode] = useState('calendar'); // 'calendar' or 'list'
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [selectedBookingForReview, setSelectedBookingForReview] = useState(null);
+  const [bookingReviews, setBookingReviews] = useState({}); // Map of booking ID to review status
 
   useEffect(() => {
     fetchBookings();
@@ -23,7 +27,24 @@ const Calendar = () => {
   const fetchBookings = async () => {
     try {
       const response = await bookingAPI.getBookings();
-      setBookings(response.data.bookings);
+      const bookingsData = response.data.bookings;
+      setBookings(bookingsData);
+
+      // Fetch review status for completed bookings
+      const completedBookings = bookingsData.filter(b => b.status === 'completed');
+      const reviewStatuses = {};
+
+      for (const booking of completedBookings) {
+        try {
+          const reviewResponse = await reviewAPI.getBookingReviews(booking.id);
+          const userReview = reviewResponse.data.reviews.find(r => r.reviewer_id === user.userId);
+          reviewStatuses[booking.id] = !!userReview;
+        } catch (error) {
+          reviewStatuses[booking.id] = false;
+        }
+      }
+
+      setBookingReviews(reviewStatuses);
     } catch (error) {
       console.error('Failed to fetch bookings:', error);
     } finally {
@@ -244,6 +265,31 @@ Status: Cancelled`;
     setMobileSidebarOpen(false);
   };
 
+  // Handle opening review modal
+  const handleOpenReview = (booking) => {
+    setSelectedBookingForReview(booking);
+    setShowReviewModal(true);
+  };
+
+  // Handle closing review modal
+  const handleCloseReview = () => {
+    setShowReviewModal(false);
+    setSelectedBookingForReview(null);
+  };
+
+  // Handle review submission
+  const handleSubmitReview = async (reviewData) => {
+    try {
+      await reviewAPI.createReview(reviewData);
+      alert('Review submitted successfully!');
+      handleCloseReview();
+      await fetchBookings(); // Refresh to update review status
+    } catch (error) {
+      console.error('Failed to submit review:', error);
+      alert(error.response?.data?.error || 'Failed to submit review. Please try again.');
+    }
+  };
+
   // Group bookings by status
   const pendingBookings = bookings.filter(b => b.status === 'pending');
   const confirmedBookings = bookings.filter(b => b.status === 'confirmed');
@@ -407,6 +453,23 @@ Status: Cancelled`;
                               >
                                 Cancel Booking
                               </button>
+                            </div>
+                          )}
+
+                          {booking.status === 'completed' && !bookingReviews[booking.id] && (
+                            <div className="booking-actions">
+                              <button
+                                className="action-btn review-btn"
+                                onClick={() => handleOpenReview(booking)}
+                              >
+                                Leave Review
+                              </button>
+                            </div>
+                          )}
+
+                          {booking.status === 'completed' && bookingReviews[booking.id] && (
+                            <div className="booking-actions">
+                              <span className="reviewed-badge">✓ Reviewed</span>
                             </div>
                           )}
 
@@ -630,6 +693,23 @@ Status: Cancelled`;
                         </div>
                       </div>
                     </div>
+
+                    {booking.status === 'completed' && !bookingReviews[booking.id] && (
+                      <div className="booking-actions">
+                        <button
+                          className="action-btn review-btn"
+                          onClick={() => handleOpenReview(booking)}
+                        >
+                          Leave Review
+                        </button>
+                      </div>
+                    )}
+
+                    {booking.status === 'completed' && bookingReviews[booking.id] && (
+                      <div className="booking-actions">
+                        <span className="reviewed-badge">✓ Reviewed</span>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -638,6 +718,16 @@ Status: Cancelled`;
             </>
           )}
         </>
+      )}
+
+      {/* Review Modal */}
+      {showReviewModal && selectedBookingForReview && (
+        <ReviewModal
+          booking={selectedBookingForReview}
+          partnerInfo={getBookingPartner(selectedBookingForReview)}
+          onClose={handleCloseReview}
+          onSubmit={handleSubmitReview}
+        />
       )}
     </div>
   );

@@ -76,4 +76,12 @@ export const adminAPI = {
   resetDemoData: (targetUserId) => api.post('/admin/reset-demo-data', { targetUserId }),
 };
 
+// Review endpoints
+export const reviewAPI = {
+  createReview: (data) => api.post('/reviews', data),
+  getBookingReviews: (bookingId) => api.get(`/reviews/booking/${bookingId}`),
+  getUserReviews: (userId) => api.get(`/reviews/user/${userId}`),
+  getBookingsNeedingReview: () => api.get('/reviews/needs-review'),
+};
+
 export default api;

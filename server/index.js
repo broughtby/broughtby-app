@@ -17,6 +17,7 @@ const messageRoutes = require('./routes/messages');
 const uploadRoutes = require('./routes/upload');
 const bookingRoutes = require('./routes/bookings');
 const adminRoutes = require('./routes/admin');
+const reviewRoutes = require('./routes/reviews');
 
 const app = express();
 const server = http.createServer(app);
@@ -72,6 +73,7 @@ app.use('/api/matches', matchRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/reviews', reviewRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
