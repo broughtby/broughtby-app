@@ -710,6 +710,13 @@ Status: Cancelled`;
                         <span className="reviewed-badge">✓ Reviewed</span>
                       </div>
                     )}
+
+                    {/* Time Tracking */}
+                    <TimeTracking
+                      bookingId={booking.id}
+                      bookingStatus={booking.status}
+                      onUpdate={fetchBookings}
+                    />
                   </div>
                 ))}
               </div>
