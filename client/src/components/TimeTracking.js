@@ -79,8 +79,8 @@ const TimeTracking = ({ bookingId, bookingStatus, onUpdate }) => {
     return <div className="time-tracking-loading">Loading time tracking...</div>;
   }
 
-  // Only show for confirmed bookings
-  if (bookingStatus !== 'confirmed') {
+  // Only show for confirmed and completed bookings (need to see hours for payroll)
+  if (bookingStatus !== 'confirmed' && bookingStatus !== 'completed') {
     return null;
   }
 
