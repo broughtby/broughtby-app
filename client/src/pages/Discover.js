@@ -481,7 +481,11 @@ const Discover = () => {
                   title="Tap to view reviews"
                 >
                   <span className="stat-label">Rating</span>
-                  <span className="stat-value">{currentAmbassador.rating} ⭐</span>
+                  <span className="stat-value">
+                    {currentAmbassador.rating} ⭐
+                    <span className="tap-indicator">›</span>
+                  </span>
+                  <span className="tap-hint">Tap to view</span>
                 </div>
               </div>
             </div>
