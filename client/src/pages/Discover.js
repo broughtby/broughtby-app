@@ -95,9 +95,9 @@ const Discover = () => {
   };
 
   const handleLike = async () => {
-    if (liking || ambassadors.length === 0) return;
+    if (liking || filteredAmbassadors.length === 0) return;
 
-    const currentAmbassador = ambassadors[currentIndex % ambassadors.length];
+    const currentAmbassador = filteredAmbassadors[currentIndex % filteredAmbassadors.length];
 
     // Don't allow liking if already matched
     if (currentAmbassador.status === 'matched') return;
@@ -110,9 +110,10 @@ const Discover = () => {
       if (currentAmbassador.status === 'available') {
         await likeAPI.createLike(currentAmbassador.id);
 
-        // Update local state to reflect new status
-        const updatedAmbassadors = [...ambassadors];
-        updatedAmbassadors[currentIndex % ambassadors.length].status = 'pending';
+        // Update local state to reflect new status - update by ID to handle filtered arrays
+        const updatedAmbassadors = ambassadors.map(a =>
+          a.id === currentAmbassador.id ? { ...a, status: 'pending' } : a
+        );
         setAmbassadors(updatedAmbassadors);
       }
 
