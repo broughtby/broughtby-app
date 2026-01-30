@@ -22,6 +22,8 @@ const Discover = () => {
   const [reviewCount, setReviewCount] = useState(0);
   const [averageRating, setAverageRating] = useState(0);
   const [loadingReviews, setLoadingReviews] = useState(false);
+  const [showMobileReviews, setShowMobileReviews] = useState(false);
+  const [mobileReviewsAmbassador, setMobileReviewsAmbassador] = useState(null);
 
   useEffect(() => {
     if (isBrand || isAmbassador) {
@@ -85,6 +87,27 @@ const Discover = () => {
       fetchAmbassadorReviews(selectedAmbassador.id);
     }
   }, [selectedAmbassador]);
+
+  // Fetch reviews for mobile bottom sheet
+  useEffect(() => {
+    if (mobileReviewsAmbassador) {
+      fetchAmbassadorReviews(mobileReviewsAmbassador.id);
+    }
+  }, [mobileReviewsAmbassador]);
+
+  // Handle opening mobile reviews bottom sheet
+  const handleOpenMobileReviews = (ambassador) => {
+    setMobileReviewsAmbassador(ambassador);
+    setShowMobileReviews(true);
+  };
+
+  // Handle closing mobile reviews bottom sheet
+  const handleCloseMobileReviews = () => {
+    setShowMobileReviews(false);
+    setTimeout(() => {
+      setMobileReviewsAmbassador(null);
+    }, 300); // Wait for animation to complete
+  };
 
   // Get unique locations from ambassadors
   const getUniqueLocations = () => {
@@ -452,7 +475,11 @@ const Discover = () => {
                   <span className="stat-label">Availability</span>
                   <span className="stat-value">{currentAmbassador.availability}</span>
                 </div>
-                <div className="stat">
+                <div
+                  className="stat stat-clickable"
+                  onClick={() => handleOpenMobileReviews(currentAmbassador)}
+                  title="Tap to view reviews"
+                >
                   <span className="stat-label">Rating</span>
                   <span className="stat-value">{currentAmbassador.rating} ⭐</span>
                 </div>
@@ -489,6 +516,38 @@ const Discover = () => {
             >
               <span>Request to Work Together</span>
             </button>
+          </div>
+        )}
+
+        {/* Mobile Reviews Bottom Sheet */}
+        {showMobileReviews && mobileReviewsAmbassador && (
+          <div className="reviews-bottom-sheet-overlay" onClick={handleCloseMobileReviews}>
+            <div
+              className={`reviews-bottom-sheet ${showMobileReviews ? 'open' : ''}`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="bottom-sheet-header">
+                <div className="bottom-sheet-handle"></div>
+                <h3>
+                  <DisplayName user={mobileReviewsAmbassador} demoMode={demoMode} />
+                  's Reviews
+                </h3>
+                <button className="bottom-sheet-close" onClick={handleCloseMobileReviews}>
+                  ×
+                </button>
+              </div>
+              <div className="bottom-sheet-content">
+                {loadingReviews ? (
+                  <p className="loading-reviews">Loading reviews...</p>
+                ) : (
+                  <ReviewsList
+                    reviews={selectedAmbassadorReviews}
+                    reviewCount={reviewCount}
+                    averageRating={averageRating}
+                  />
+                )}
+              </div>
+            </div>
           </div>
         )}
       </div>
