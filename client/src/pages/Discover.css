@@ -816,4 +816,23 @@
   .modal-stats {
     grid-template-columns: 1fr;
   }
+
+  .card-stats {
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.5rem;
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+  }
+
+  .stat-value {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .card-stats {
+    grid-template-columns: 1fr;
+  }
 }
