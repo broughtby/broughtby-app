@@ -57,7 +57,7 @@ const Profile = () => {
     if (!user) return;
 
     try {
-      const response = await reviewAPI.getUserReviews(user.userId);
+      const response = await reviewAPI.getUserReviews(user.id);
       setReviews(response.data.reviews);
       setReviewCount(response.data.reviewCount);
       setAverageRating(response.data.averageRating);
