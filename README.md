@@ -7,45 +7,46 @@ This repository reflects ongoing product development.
 
 A premium marketplace connecting brands with vetted brand ambassadors. Think of it like a dating app for business: brands swipe through ambassador profiles, and when there's mutual interest, they can message and eventually book.
 
-##Features
+## Features
 
-  Core User Flows:
+  **Core User Flows**
   - Dual User Roles: Brand and Brand Ambassador accounts
   - Smart Matching: Swipe-based interface for brands to discover ambassadors
   - Partnership Requests: Like/accept flow for creating matches
   - Real-time Messaging: Chat with matched ambassadors using Socket.io
 
-  Booking & Time Management:
+  **Booking & Time Management**
   - Booking System: Create, manage, and track ambassador bookings
   - Time Tracking: Clock in/out functionality for completed bookings
   - Booking Status Management: Pending, confirmed, in-progress, completed states
 
-  Reviews & Ratings:
+  **Reviews & Ratings**
   - Review System: Brands and ambassadors can review each other after bookings
   - Rating Display: Star ratings and review counts on profiles
   - Review Lists: View reviews in profiles and discovery flow
 
-  Profile & Discovery:
+  **Profile & Discovery**
   - Profile Management: Detailed profiles with photos, bios, skills, rates, and availability
   - Location Filtering: Filter ambassadors by location in discovery
   - Mobile-Responsive Design: Touch-optimized swipe cards and interfaces
 
-  Notifications:
+  **Notifications**
   - Email Notifications: Partnership requests, message notifications, booking updates
   - Partnership Request Emails: Notify ambassadors of new brand interest
   - Chat Notifications: Alert users of new messages
 
-  Admin & Demo Tooling:
+  **Admin & Demo Tooling**
   - Test Accounts: Flag accounts for demo purposes (is_test field)
   - Demo Mode: Blur real names and rates during video recording
   - Demo Accept: Instant match creation for test accounts during demos
   - Reset Demo Data: Clear user interactions while preserving test reviews
   - Admin Impersonation: Admins can impersonate users for testing
 
-  Additional Features:
+  **Additional Features** 
   - Messages Page: Top-level navigation access to all conversations
   - Ambassador Community: Ambassadors can browse (view-only) other ambassadors
   - Auto-Welcome Messages: Automated greeting when matches are created
+    
 ## Tech Stack
 
 - **Frontend**: React with responsive design
