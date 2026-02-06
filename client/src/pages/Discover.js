@@ -175,6 +175,21 @@ const Discover = () => {
     }, 300);
   };
 
+  const handleDemoAccept = async (ambassadorId) => {
+    try {
+      await likeAPI.demoAcceptLike(ambassadorId);
+
+      // Update local state to reflect match status
+      const updatedAmbassadors = ambassadors.map(a =>
+        a.id === ambassadorId ? { ...a, status: 'matched' } : a
+      );
+      setAmbassadors(updatedAmbassadors);
+    } catch (error) {
+      console.error('Failed to demo accept:', error);
+      alert('Failed to accept request. Make sure this is a test account.');
+    }
+  };
+
   if (loading) {
     return (
       <div className="discover-container">
@@ -503,6 +518,15 @@ const Discover = () => {
 
         {currentAmbassador.status === 'matched' || currentAmbassador.status === 'pending' || currentAmbassador.status === 'passed' ? (
           <div className="action-buttons">
+            {currentAmbassador.status === 'pending' && currentAmbassador.is_test && isBrand && (
+              <button
+                className="action-button demo-accept-button"
+                onClick={() => handleDemoAccept(currentAmbassador.id)}
+                style={{ marginBottom: '0.5rem', background: '#10B981', border: '2px solid #059669' }}
+              >
+                <span>⚡ Demo: Accept Now</span>
+              </button>
+            )}
             <button
               className="action-button next-button"
               onClick={handleNext}
@@ -698,13 +722,27 @@ const Discover = () => {
               </div>
 
               {selectedAmbassador.status === 'matched' || selectedAmbassador.status === 'pending' || selectedAmbassador.status === 'passed' ? (
-                <button
-                  className="action-button next-button"
-                  onClick={() => setSelectedAmbassador(null)}
-                  style={{ marginTop: '1.5rem' }}
-                >
-                  Close
-                </button>
+                <div style={{ marginTop: '1.5rem' }}>
+                  {selectedAmbassador.status === 'pending' && selectedAmbassador.is_test && isBrand && (
+                    <button
+                      className="action-button demo-accept-button"
+                      onClick={async () => {
+                        await handleDemoAccept(selectedAmbassador.id);
+                        setSelectedAmbassador(null);
+                      }}
+                      style={{ marginBottom: '0.5rem', background: '#10B981', border: '2px solid #059669', width: '100%' }}
+                    >
+                      <span>⚡ Demo: Accept Now</span>
+                    </button>
+                  )}
+                  <button
+                    className="action-button next-button"
+                    onClick={() => setSelectedAmbassador(null)}
+                    style={{ width: '100%' }}
+                  >
+                    Close
+                  </button>
+                </div>
               ) : (
                 <div className="action-buttons single-button" style={{ marginTop: '1.5rem' }}>
                   <button

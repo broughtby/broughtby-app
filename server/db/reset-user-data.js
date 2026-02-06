@@ -18,13 +18,14 @@ async function resetUserData() {
   console.log(`\n📧 User: ${userEmail}`);
   console.log('\n📋 This script will DELETE:');
   console.log('   • All messages sent by this user');
-  console.log('   • All bookings involving this user');
-  console.log('   • All matches involving this user');
+  console.log('   • All bookings involving this user (except those with test account reviews)');
+  console.log('   • All matches involving this user (except those with test account reviews)');
   console.log('   • All likes/partnership requests involving this user');
   console.log('   • All passes involving this user');
   console.log('\n✅ This script will PRESERVE:');
   console.log('   • User profile (name, bio, photo, skills, etc.)');
   console.log('   • User account credentials');
+  console.log('   • Bookings and reviews involving test accounts (for demo purposes)');
   console.log('\n⚠️  This operation CANNOT be undone!');
   console.log('⚠️  ═══════════════════════════════════════════════════════════════\n');
 
@@ -101,27 +102,47 @@ async function resetUserData() {
     console.log('\n🗑️  Deleting records...\n');
 
     // Delete in correct order to respect foreign key constraints
+    // PRESERVE bookings/matches that have reviews involving test accounts (for demo purposes)
 
     // 1. Delete messages where user is sender
     console.log('   Deleting messages...');
     await client.query('DELETE FROM messages WHERE sender_id = $1', [user.id]);
     console.log('   ✓ Deleted messages');
 
-    // 2. Delete bookings involving this user
-    console.log('   Deleting bookings...');
+    // 2. Delete bookings involving this user EXCEPT those with reviews from/to test accounts
+    console.log('   Deleting bookings (preserving test account reviews)...');
     await client.query(
-      'DELETE FROM bookings WHERE brand_id = $1 OR ambassador_id = $1',
+      `DELETE FROM bookings
+       WHERE (brand_id = $1 OR ambassador_id = $1)
+       AND id NOT IN (
+         SELECT DISTINCT r.booking_id
+         FROM reviews r
+         JOIN users reviewer ON r.reviewer_id = reviewer.id
+         JOIN users reviewee ON r.reviewee_id = reviewee.id
+         WHERE (reviewer.is_test = true OR reviewee.is_test = true)
+         AND r.booking_id IS NOT NULL
+       )`,
       [user.id]
     );
-    console.log('   ✓ Deleted bookings');
+    console.log('   ✓ Deleted bookings (test account reviews preserved)');
 
-    // 3. Delete matches involving this user
-    console.log('   Deleting matches...');
+    // 3. Delete matches involving this user EXCEPT those with bookings that have test account reviews
+    console.log('   Deleting matches (preserving those with test account reviews)...');
     await client.query(
-      'DELETE FROM matches WHERE brand_id = $1 OR ambassador_id = $1',
+      `DELETE FROM matches
+       WHERE (brand_id = $1 OR ambassador_id = $1)
+       AND id NOT IN (
+         SELECT DISTINCT b.match_id
+         FROM bookings b
+         JOIN reviews r ON r.booking_id = b.id
+         JOIN users reviewer ON r.reviewer_id = reviewer.id
+         JOIN users reviewee ON r.reviewee_id = reviewee.id
+         WHERE (reviewer.is_test = true OR reviewee.is_test = true)
+         AND b.match_id IS NOT NULL
+       )`,
       [user.id]
     );
-    console.log('   ✓ Deleted matches');
+    console.log('   ✓ Deleted matches (those with test account reviews preserved)');
 
     // 4. Delete likes involving this user
     console.log('   Deleting likes...');
@@ -221,19 +242,39 @@ async function resetUserDataById(userId) {
     );
 
     // Delete in correct order to respect foreign key constraints
+    // PRESERVE bookings/matches that have reviews involving test accounts (for demo purposes)
 
     // 1. Delete messages where user is sender
     await client.query('DELETE FROM messages WHERE sender_id = $1', [user.id]);
 
-    // 2. Delete bookings involving this user
+    // 2. Delete bookings involving this user EXCEPT those with reviews from/to test accounts
     await client.query(
-      'DELETE FROM bookings WHERE brand_id = $1 OR ambassador_id = $1',
+      `DELETE FROM bookings
+       WHERE (brand_id = $1 OR ambassador_id = $1)
+       AND id NOT IN (
+         SELECT DISTINCT r.booking_id
+         FROM reviews r
+         JOIN users reviewer ON r.reviewer_id = reviewer.id
+         JOIN users reviewee ON r.reviewee_id = reviewee.id
+         WHERE (reviewer.is_test = true OR reviewee.is_test = true)
+         AND r.booking_id IS NOT NULL
+       )`,
       [user.id]
     );
 
-    // 3. Delete matches involving this user
+    // 3. Delete matches involving this user EXCEPT those with bookings that have test account reviews
     await client.query(
-      'DELETE FROM matches WHERE brand_id = $1 OR ambassador_id = $1',
+      `DELETE FROM matches
+       WHERE (brand_id = $1 OR ambassador_id = $1)
+       AND id NOT IN (
+         SELECT DISTINCT b.match_id
+         FROM bookings b
+         JOIN reviews r ON r.booking_id = b.id
+         JOIN users reviewer ON r.reviewer_id = reviewer.id
+         JOIN users reviewee ON r.reviewee_id = reviewee.id
+         WHERE (reviewer.is_test = true OR reviewee.is_test = true)
+         AND b.match_id IS NOT NULL
+       )`,
       [user.id]
     );
 

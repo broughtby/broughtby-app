@@ -41,6 +41,7 @@ export const likeAPI = {
   createLike: (ambassadorId) => api.post('/likes', { ambassadorId }),
   createPass: (ambassadorId) => api.post('/likes/pass', { ambassadorId }),
   declineLike: (brandId) => api.post('/likes/decline', { brandId }),
+  demoAcceptLike: (ambassadorId) => api.post('/likes/demo-accept', { ambassadorId }),
   getReceivedLikes: () => api.get('/likes/received'),
 };
 
