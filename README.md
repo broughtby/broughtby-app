@@ -1,14 +1,20 @@
 # BroughtBy
 
+## Status
+
+BroughtBy is an actively developed MVP currently used for live demos and early customer pilots.  
+This repository reflects ongoing product development.
+
+
 A premium marketplace connecting brands with vetted brand ambassadors. Think of it like a dating app for business: brands swipe through ambassador profiles, and when there's mutual interest, they can message and eventually book.
 
 ## Features
 
-- **Dual User Roles**: Brand and Brand Ambassador accounts
-- **Smart Matching**: Swipe-based interface for brands to discover ambassadors
-- **Real-time Messaging**: Chat with matched ambassadors using Socket.io
-- **Profile Management**: Detailed profiles with photos, bio, skills, rates, and availability
-- **Premium Design**: Sophisticated UI with deep navy and gold accents
+- Dual User Roles: Brand and Brand Ambassador accounts
+- Smart Matching: Swipe-based interface for brands to discover ambassadors
+- Real-time Messaging: Chat with matched ambassadors using Socket.io
+- Profile Management: Detailed profiles with photos, bios, skills, rates, and availability
+- Admin & Demo Tooling: Test accounts, demo mode, and data reset flows
 
 ## Tech Stack
 
