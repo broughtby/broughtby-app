@@ -1,6 +1,6 @@
 # BroughtBy
 
-A premium marketplace connecting brands with vetted brand ambassadors. Think of it like a dating app for business: brands swipe through ambassador profiles, and when there's mutual interest, they can message and eventually book.
+A premium marketplace connecting brands with vetted brand ambassadors. Think of it like a B2B TaskRabbit with the look/feel of a dating app: brands swipe through ambassador profiles, match, message, and book instantly for IRL marketing. 
 
 ## Status
 
