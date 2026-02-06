@@ -1,11 +1,11 @@
 # BroughtBy
 
+A premium marketplace connecting brands with vetted brand ambassadors. Think of it like a dating app for business: brands swipe through ambassador profiles, and when there's mutual interest, they can message and eventually book.
+
 ## Status
 
 BroughtBy is an actively developed MVP currently used for live demos and early customer pilots.  
 This repository reflects ongoing product development.
-
-A premium marketplace connecting brands with vetted brand ambassadors. Think of it like a dating app for business: brands swipe through ambassador profiles, and when there's mutual interest, they can message and eventually book.
 
 ## Features
 
