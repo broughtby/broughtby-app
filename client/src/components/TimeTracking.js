@@ -51,7 +51,9 @@ const TimeTracking = ({ bookingId, bookingStatus, onUpdate, isPreview, onCheckou
       if (onUpdate) onUpdate();
 
       // For preview brands, trigger review prompt after checkout
+      console.log('Checkout complete - isPreview:', isPreview, 'isBrand:', isBrand, 'hasCallback:', !!onCheckoutComplete);
       if (isPreview && isBrand && onCheckoutComplete) {
+        console.log('Triggering review prompt for preview brand');
         setTimeout(() => {
           onCheckoutComplete();
         }, 500); // Small delay for better UX
