@@ -1,5 +1,6 @@
 const db = require('../config/database');
 const { sendPartnershipAcceptedEmail } = require('../services/emailService');
+const Anthropic = require('@anthropic-ai/sdk');
 
 const createMatch = async (req, res) => {
   try {
@@ -58,6 +59,73 @@ const createMatch = async (req, res) => {
          VALUES ($1, $2, $3)`,
         [matchId, brandId, welcomeMessage]
       );
+
+      // AI auto-reply from preview ambassador (non-blocking)
+      (async () => {
+        try {
+          // Check if brand is a preview user
+          const brandCheck = await db.query(
+            'SELECT is_preview FROM users WHERE id = $1',
+            [brandId]
+          );
+
+          const isPreviewBrand = brandCheck.rows[0]?.is_preview || false;
+
+          // Check if ambassador is the preview ambassador
+          const ambassadorCheck = await db.query(
+            'SELECT is_preview_ambassador, name, profile_photo FROM users WHERE id = $1',
+            [req.user.userId]
+          );
+
+          const isPreviewAmbassador = ambassadorCheck.rows[0]?.is_preview_ambassador || false;
+
+          // Only generate AI reply if brand is preview and ambassador is preview ambassador
+          if (!isPreviewBrand || !isPreviewAmbassador) {
+            return;
+          }
+
+          console.log(`🤖 Generating AI welcome reply from ${ambassadorName}...`);
+
+          // Call Anthropic API
+          const anthropic = new Anthropic({
+            apiKey: process.env.ANTHROPIC_API_KEY,
+          });
+
+          const systemPrompt = `You are Allan Sokol, a Founder & Marketer with one past startup exit. You graduated from the University of Illinois with a degree in Communication. You have experience working in startups, small businesses, and corporations which speaks to your versatility. You also helped run a 3-day tech week event in Chicago bringing together entrepreneurs across the city. You're friendly, professional, enthusiastic about brand ambassador work, and excited to connect with brands on field marketing activations and events. Keep your responses short and conversational (1-3 sentences). Don't be overly formal — you're chatting, not writing an email.`;
+
+          const response = await anthropic.messages.create({
+            model: 'claude-sonnet-4-5-20250929',
+            max_tokens: 1024,
+            system: systemPrompt,
+            messages: [
+              {
+                role: 'user',
+                content: welcomeMessage
+              }
+            ],
+          });
+
+          const aiReply = response.content[0].text;
+
+          console.log(`🤖 AI welcome reply generated: "${aiReply}"`);
+
+          // Wait 2-3 seconds before sending reply (random delay for natural feel)
+          const delay = 2000 + Math.random() * 1000; // 2-3 seconds
+          await new Promise(resolve => setTimeout(resolve, delay));
+
+          // Save AI reply to database
+          await db.query(
+            `INSERT INTO messages (match_id, sender_id, content)
+             VALUES ($1, $2, $3)`,
+            [matchId, req.user.userId, aiReply]
+          );
+
+          console.log(`🤖 AI welcome reply saved to database for match ${matchId}`);
+        } catch (aiError) {
+          console.error('Failed to generate AI welcome reply:', aiError);
+          // Don't throw - AI reply failures shouldn't block the match creation
+        }
+      })();
     }
 
     // Send partnership accepted email to brand (non-blocking)
