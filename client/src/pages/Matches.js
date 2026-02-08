@@ -195,8 +195,8 @@ Status: Pending confirmation`;
               {likes.map((like) => (
                 <div key={like.id} className="like-card">
                   <BrandAvatar
-                    companyLogo={like.company_logo || like.profile_photo}
-                    personPhoto={like.profile_photo}
+                    companyLogo={like.profile_photo}
+                    personPhoto={like.company_logo}
                     companyName={like.company_name}
                     personName={like.name}
                     size="large"
@@ -253,8 +253,8 @@ Status: Pending confirmation`;
                 <div key={match.match_id} className="match-card">
                   {isAmbassador ? (
                     <BrandAvatar
-                      companyLogo={match.company_logo || match.profile_photo}
-                      personPhoto={match.profile_photo}
+                      companyLogo={match.profile_photo}
+                      personPhoto={match.company_logo}
                       companyName={match.company_name}
                       personName={match.name}
                       size="large"

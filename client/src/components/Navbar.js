@@ -168,8 +168,8 @@ const Navbar = () => {
                             <div className="user-info">
                               {user.role === 'brand' ? (
                                 <BrandAvatar
-                                  companyLogo={user.company_logo || user.profile_photo}
-                                  personPhoto={user.profile_photo}
+                                  companyLogo={user.profile_photo}
+                                  personPhoto={user.company_logo}
                                   companyName={user.company_name}
                                   personName={user.name}
                                   size="small"

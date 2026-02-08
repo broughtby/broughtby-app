@@ -613,8 +613,8 @@ Status: Pending confirmation`;
         {isBrand && user && (
           <div className="welcome-banner" onClick={() => navigate('/profile')}>
             <BrandAvatar
-              companyLogo={user.company_logo || user.profile_photo}
-              personPhoto={user.profile_photo}
+              companyLogo={user.profile_photo}
+              personPhoto={user.company_logo}
               companyName={user.company_name}
               personName={user.name}
               size="large"
@@ -891,8 +891,8 @@ Status: Pending confirmation`;
       {isBrand && user && (
         <div className="welcome-banner" onClick={() => navigate('/profile')}>
           <BrandAvatar
-            companyLogo={user.company_logo || user.profile_photo}
-            personPhoto={user.profile_photo}
+            companyLogo={user.profile_photo}
+            personPhoto={user.company_logo}
             companyName={user.company_name}
             personName={user.name}
             size="large"
