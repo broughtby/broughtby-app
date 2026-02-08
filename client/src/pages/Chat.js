@@ -357,7 +357,7 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
             <h2>{bookingAutoConfirmed ? 'Booking Confirmed!' : 'Booking Request Sent!'}</h2>
             <p>
               {bookingAutoConfirmed
-                ? 'Your booking is confirmed! You can now check in when your activation begins.'
+                ? 'Your booking is confirmed! View it in Calendar to track time and manage the activation.'
                 : 'Your booking request has been sent and is pending confirmation from the ambassador.'}
             </p>
             <div className="booking-success-actions">
