@@ -23,7 +23,11 @@ const register = async (req, res) => {
       age,
       skills,
       hourly_rate,
-      availability
+      availability,
+      company_name,
+      company_logo,
+      company_website,
+      contact_title
     } = req.body;
 
     // Check if user already exists
@@ -40,11 +44,13 @@ const register = async (req, res) => {
     const result = await db.query(
       `INSERT INTO users (
         email, password_hash, role, name, profile_photo, bio, location,
-        age, skills, hourly_rate, availability
+        age, skills, hourly_rate, availability,
+        company_name, company_logo, company_website, contact_title
       )
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
        RETURNING id, email, role, name, profile_photo, bio, location, age,
-                 skills, hourly_rate, availability, rating, is_admin, created_at`,
+                 skills, hourly_rate, availability, rating, is_admin, created_at,
+                 company_name, company_logo, company_website, contact_title`,
       [
         email,
         passwordHash,
@@ -56,7 +62,11 @@ const register = async (req, res) => {
         age || null,
         skills || [],
         hourly_rate || null,
-        availability || null
+        availability || null,
+        company_name || null,
+        company_logo || null,
+        company_website || null,
+        contact_title || null
       ]
     );
 
@@ -86,6 +96,10 @@ const register = async (req, res) => {
         availability: user.availability,
         rating: user.rating,
         isAdmin: user.is_admin || false,
+        company_name: user.company_name,
+        company_logo: user.company_logo,
+        company_website: user.company_website,
+        contact_title: user.contact_title,
       },
     });
   } catch (error) {
@@ -106,7 +120,8 @@ const login = async (req, res) => {
     // Find user
     const result = await db.query(
       `SELECT id, email, password_hash, role, name, profile_photo, bio, location, age,
-              skills, hourly_rate, availability, rating, is_admin, created_at
+              skills, hourly_rate, availability, rating, is_admin, created_at,
+              company_name, company_logo, company_website, contact_title
        FROM users WHERE LOWER(email) = LOWER($1)`,
       [email]
     );
@@ -154,6 +169,10 @@ const login = async (req, res) => {
       availability: user.availability,
       rating: user.rating,
       isAdmin: isAdminValue,
+      company_name: user.company_name,
+      company_logo: user.company_logo,
+      company_website: user.company_website,
+      contact_title: user.contact_title,
     };
 
     console.log('📤 Full response user object:', responseUser);

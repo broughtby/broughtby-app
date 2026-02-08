@@ -26,6 +26,11 @@ const Register = () => {
     // Ambassador-specific
     hourly_rate: '',
     availability: '',
+    // Brand-specific
+    company_name: '',
+    company_logo: '',
+    company_website: '',
+    contact_title: '',
   });
   const [newSkill, setNewSkill] = useState('');
   const [error, setError] = useState('');
@@ -92,6 +97,12 @@ const Register = () => {
       delete registrationData.age;
       delete registrationData.hourly_rate;
       delete registrationData.availability;
+    } else {
+      // Remove brand-specific fields if registering as ambassador
+      delete registrationData.company_name;
+      delete registrationData.company_logo;
+      delete registrationData.company_website;
+      delete registrationData.contact_title;
     }
 
     const result = await register(registrationData);
@@ -145,7 +156,7 @@ const Register = () => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="name">Full Name</label>
+              <label htmlFor="name">{formData.role === 'brand' ? 'Your Full Name' : 'Full Name'}</label>
               <input
                 type="text"
                 id="name"
@@ -156,6 +167,35 @@ const Register = () => {
                 placeholder="John Doe"
               />
             </div>
+
+            {formData.role === 'brand' && (
+              <>
+                <div className="form-group">
+                  <label htmlFor="contact_title">Your Job Title</label>
+                  <input
+                    type="text"
+                    id="contact_title"
+                    name="contact_title"
+                    value={formData.contact_title}
+                    onChange={handleChange}
+                    placeholder="e.g. Marketing Manager"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="company_name">Company Name</label>
+                  <input
+                    type="text"
+                    id="company_name"
+                    name="company_name"
+                    value={formData.company_name}
+                    onChange={handleChange}
+                    required
+                    placeholder="Your Company Name"
+                  />
+                </div>
+              </>
+            )}
 
             <div className="form-group">
               <label htmlFor="email">Email</label>
@@ -197,11 +237,11 @@ const Register = () => {
             <ImageUpload
               currentImage={formData.profile_photo ? getPhotoUrl(formData.profile_photo) : ''}
               onImageChange={(filePath) => setFormData({ ...formData, profile_photo: filePath })}
-              label="Profile Photo"
+              label={formData.role === 'brand' ? 'Company Logo' : 'Profile Photo'}
             />
 
             <div className="form-group">
-              <label htmlFor="bio">Bio</label>
+              <label htmlFor="bio">{formData.role === 'brand' ? 'About Your Brand' : 'Bio'}</label>
               <textarea
                 id="bio"
                 name="bio"
@@ -215,6 +255,20 @@ const Register = () => {
                 }
               />
             </div>
+
+            {formData.role === 'brand' && (
+              <div className="form-group">
+                <label htmlFor="company_website">Company Website (Optional)</label>
+                <input
+                  type="url"
+                  id="company_website"
+                  name="company_website"
+                  value={formData.company_website}
+                  onChange={handleChange}
+                  placeholder="https://yourcompany.com"
+                />
+              </div>
+            )}
 
             <div className="form-row">
               <div className="form-group">

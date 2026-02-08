@@ -327,6 +327,47 @@ const migrations = [
   `
     CREATE INDEX IF NOT EXISTS idx_reviews_reviewer ON reviews(reviewer_id);
   `,
+
+  // Add company-specific fields for brand users
+  `
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                     WHERE table_name = 'users' AND column_name = 'company_name') THEN
+        ALTER TABLE users ADD COLUMN company_name VARCHAR(255);
+      END IF;
+    END $$;
+  `,
+
+  `
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                     WHERE table_name = 'users' AND column_name = 'company_logo') THEN
+        ALTER TABLE users ADD COLUMN company_logo TEXT;
+      END IF;
+    END $$;
+  `,
+
+  `
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                     WHERE table_name = 'users' AND column_name = 'company_website') THEN
+        ALTER TABLE users ADD COLUMN company_website VARCHAR(255);
+      END IF;
+    END $$;
+  `,
+
+  `
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                     WHERE table_name = 'users' AND column_name = 'contact_title') THEN
+        ALTER TABLE users ADD COLUMN contact_title VARCHAR(255);
+      END IF;
+    END $$;
+  `,
 ];
 
 async function runMigrations() {

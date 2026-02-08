@@ -433,7 +433,7 @@ const Discover = () => {
               )}
             </div>
             <div className="welcome-text">
-              <h2>Welcome back, {user.name?.split(' ')[0]}!</h2>
+              <h2>Welcome back, {user.company_name || user.name?.split(' ')[0]}!</h2>
               <p>Find your next brand ambassador</p>
             </div>
           </div>
@@ -616,7 +616,7 @@ const Discover = () => {
             )}
           </div>
           <div className="welcome-text">
-            <h2>Welcome back, {user.name?.split(' ')[0]}!</h2>
+            <h2>Welcome back, {user.company_name || user.name?.split(' ')[0]}!</h2>
             <p>Find your next brand ambassador</p>
           </div>
         </div>

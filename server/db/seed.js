@@ -99,8 +99,12 @@ const sampleBrands = [
   {
     email: 'team@luxewellness.com',
     password: 'password123',
-    name: 'LuxeWellness Co.',
-    profile_photo: 'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=400',
+    name: 'Jessica Chen',
+    company_name: 'Luxe Wellness Co.',
+    company_logo: 'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=400',
+    company_website: null,
+    contact_title: 'Marketing Director',
+    profile_photo: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400',
     bio: 'Premium wellness brand offering organic supplements and holistic health products. Looking for authentic ambassadors to promote our new product line.',
     location: 'Santa Monica, CA',
     age: null,
@@ -112,8 +116,12 @@ const sampleBrands = [
   {
     email: 'partnerships@techfusion.com',
     password: 'password123',
-    name: 'TechFusion',
-    profile_photo: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400',
+    name: 'Michael Torres',
+    company_name: 'TechFusion',
+    company_logo: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400',
+    company_website: null,
+    contact_title: 'Partnerships Manager',
+    profile_photo: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400',
     bio: 'Innovative tech startup specializing in smart home devices. Seeking tech-savvy ambassadors for our product launch campaign.',
     location: 'San Francisco, CA',
     age: null,
@@ -125,8 +133,12 @@ const sampleBrands = [
   {
     email: 'brand@ecochic.com',
     password: 'password123',
-    name: 'EcoChic Fashion',
-    profile_photo: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400',
+    name: 'Sarah Anderson',
+    company_name: 'EcoChic Fashion',
+    company_logo: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400',
+    company_website: null,
+    contact_title: 'Brand Manager',
+    profile_photo: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400',
     bio: 'Sustainable fashion brand committed to ethical manufacturing. Looking for fashion influencers who share our values of sustainability and style.',
     location: 'Brooklyn, NY',
     age: null,
@@ -138,8 +150,12 @@ const sampleBrands = [
   {
     email: 'hello@fitforge.com',
     password: 'password123',
-    name: 'FitForge Athletics',
-    profile_photo: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400',
+    name: 'David Kim',
+    company_name: 'FitForge Athletics',
+    company_logo: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400',
+    company_website: null,
+    contact_title: 'Community Director',
+    profile_photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
     bio: 'Performance athletic wear brand for serious athletes. Seeking fitness ambassadors to represent our brand at events and on social media.',
     location: 'Austin, TX',
     age: null,
@@ -151,8 +167,12 @@ const sampleBrands = [
   {
     email: 'contact@greenbite.com',
     password: 'password123',
-    name: 'GreenBite Foods',
-    profile_photo: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400',
+    name: 'Rachel Green',
+    company_name: 'GreenBite Foods',
+    company_logo: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400',
+    company_website: null,
+    contact_title: 'Marketing Coordinator',
+    profile_photo: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400',
     bio: 'Plant-based meal delivery service bringing healthy, delicious food to busy professionals. Looking for food content creators to showcase our meals.',
     location: 'Seattle, WA',
     age: null,
@@ -164,8 +184,12 @@ const sampleBrands = [
   {
     email: 'team@wanderluxe.com',
     password: 'password123',
-    name: 'WanderLuxe Travel',
-    profile_photo: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=400',
+    name: 'Alex Martinez',
+    company_name: 'WanderLuxe Travel',
+    company_logo: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=400',
+    company_website: null,
+    contact_title: 'Influencer Relations',
+    profile_photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400',
     bio: 'Luxury travel accessories brand for modern adventurers. Seeking travel influencers to feature our products in exotic locations.',
     location: 'San Diego, CA',
     age: null,
@@ -177,8 +201,12 @@ const sampleBrands = [
   {
     email: 'info@glownatural.com',
     password: 'password123',
-    name: 'Glow Natural Beauty',
-    profile_photo: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400',
+    name: 'Emma Wilson',
+    company_name: 'Glow Natural Beauty',
+    company_logo: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400',
+    company_website: null,
+    contact_title: 'Brand Partnerships Lead',
+    profile_photo: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400',
     bio: 'Clean beauty brand with natural, cruelty-free skincare products. Looking for beauty influencers to create authentic content featuring our products.',
     location: 'Los Angeles, CA',
     age: null,
@@ -236,8 +264,8 @@ async function seedDatabase() {
       const hashedPassword = await bcrypt.hash(brand.password, 10);
 
       await client.query(
-        `INSERT INTO users (email, password_hash, role, name, profile_photo, bio, location, skills)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+        `INSERT INTO users (email, password_hash, role, name, profile_photo, bio, location, skills, company_name, company_logo, company_website, contact_title)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
         [
           brand.email,
           hashedPassword,
@@ -247,6 +275,10 @@ async function seedDatabase() {
           brand.bio,
           brand.location,
           brand.skills,
+          brand.company_name,
+          brand.company_logo,
+          brand.company_website,
+          brand.contact_title,
         ]
       );
     }

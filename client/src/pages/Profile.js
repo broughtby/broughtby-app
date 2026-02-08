@@ -21,6 +21,11 @@ const Profile = () => {
     skills: [],
     hourly_rate: '',
     availability: '',
+    // Brand-specific
+    company_name: '',
+    company_logo: '',
+    company_website: '',
+    contact_title: '',
   });
   const [newSkill, setNewSkill] = useState('');
   const [message, setMessage] = useState('');
@@ -46,6 +51,10 @@ const Profile = () => {
         skills: user.skills || [],
         hourly_rate: user.hourly_rate || '',
         availability: user.availability || '',
+        company_name: user.company_name || '',
+        company_logo: user.company_logo || '',
+        company_website: user.company_website || '',
+        contact_title: user.contact_title || '',
       });
 
       // Fetch reviews for the user
@@ -211,6 +220,32 @@ const Profile = () => {
               </div>
             </div>
 
+            {user.role === 'brand' && (
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Company Name</label>
+                  <input
+                    type="text"
+                    name="company_name"
+                    value={formData.company_name}
+                    onChange={handleChange}
+                    placeholder="Your Company Name"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Job Title</label>
+                  <input
+                    type="text"
+                    name="contact_title"
+                    value={formData.contact_title}
+                    onChange={handleChange}
+                    placeholder="e.g. Marketing Manager"
+                  />
+                </div>
+              </div>
+            )}
+
             <ImageUpload
               currentImage={formData.profile_photo ? getPhotoUrl(formData.profile_photo) : ''}
               onImageChange={(filePath) => setFormData({ ...formData, profile_photo: filePath })}
@@ -218,15 +253,28 @@ const Profile = () => {
             />
 
             <div className="form-group">
-              <label>Bio</label>
+              <label>{user.role === 'brand' ? 'About Your Brand' : 'Bio'}</label>
               <textarea
                 name="bio"
                 value={formData.bio}
                 onChange={handleChange}
                 rows="4"
-                placeholder="Tell us about yourself..."
+                placeholder={user.role === 'brand' ? 'Tell ambassadors about your brand...' : 'Tell us about yourself...'}
               />
             </div>
+
+            {user.role === 'brand' && (
+              <div className="form-group">
+                <label>Company Website</label>
+                <input
+                  type="url"
+                  name="company_website"
+                  value={formData.company_website}
+                  onChange={handleChange}
+                  placeholder="https://yourcompany.com"
+                />
+              </div>
+            )}
 
             <div className="form-row">
               <div className="form-group">
@@ -353,11 +401,23 @@ const Profile = () => {
             <div className="profile-photo-section">
               <img
                 src={user.profile_photo ? getPhotoUrl(user.profile_photo) : 'https://via.placeholder.com/200'}
-                alt={user.name}
+                alt={user.company_name || user.name}
                 className="profile-photo"
               />
               <div className="profile-basic">
-                <h2>{user.name}</h2>
+                <h2>{user.role === 'brand' ? (user.company_name || user.name) : user.name}</h2>
+                {user.role === 'brand' && user.company_name && (
+                  <p className="profile-contact">
+                    Contact: {user.name}{user.contact_title && `, ${user.contact_title}`}
+                  </p>
+                )}
+                {user.role === 'brand' && user.company_website && (
+                  <p className="profile-website">
+                    <a href={user.company_website} target="_blank" rel="noopener noreferrer">
+                      {user.company_website}
+                    </a>
+                  </p>
+                )}
                 <p className="profile-email">{user.email}</p>
                 <span className="role-badge">{user.role === 'brand' ? 'Brand' : 'Ambassador'}</span>
               </div>

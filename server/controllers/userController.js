@@ -13,7 +13,8 @@ const getProfile = async (req, res) => {
   try {
     const result = await db.query(
       `SELECT id, email, role, name, profile_photo, bio, location, age,
-              skills, hourly_rate, availability, rating, is_admin, created_at
+              skills, hourly_rate, availability, rating, is_admin, created_at,
+              company_name, company_logo, company_website, contact_title
        FROM users WHERE id = $1`,
       [req.user.userId]
     );
@@ -37,7 +38,7 @@ const getProfile = async (req, res) => {
 
 const updateProfile = async (req, res) => {
   try {
-    const { email, name, profile_photo, bio, location, age, skills, hourly_rate, availability } = req.body;
+    const { email, name, profile_photo, bio, location, age, skills, hourly_rate, availability, company_name, company_logo, company_website, contact_title } = req.body;
 
     const updates = [];
     const values = [];
@@ -97,6 +98,22 @@ const updateProfile = async (req, res) => {
       updates.push(`availability = $${paramCount++}`);
       values.push(availability);
     }
+    if (company_name !== undefined) {
+      updates.push(`company_name = $${paramCount++}`);
+      values.push(company_name);
+    }
+    if (company_logo !== undefined) {
+      updates.push(`company_logo = $${paramCount++}`);
+      values.push(company_logo);
+    }
+    if (company_website !== undefined) {
+      updates.push(`company_website = $${paramCount++}`);
+      values.push(company_website);
+    }
+    if (contact_title !== undefined) {
+      updates.push(`contact_title = $${paramCount++}`);
+      values.push(contact_title);
+    }
 
     if (updates.length === 0) {
       return res.status(400).json({ error: 'No fields to update' });
@@ -110,7 +127,8 @@ const updateProfile = async (req, res) => {
       SET ${updates.join(', ')}
       WHERE id = $${paramCount}
       RETURNING id, email, role, name, profile_photo, bio, location, age,
-                skills, hourly_rate, availability, rating, is_admin
+                skills, hourly_rate, availability, rating, is_admin,
+                company_name, company_logo, company_website, contact_title
     `;
 
     const result = await db.query(query, values);
