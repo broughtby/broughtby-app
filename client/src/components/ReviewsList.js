@@ -170,16 +170,23 @@ const ReviewsList = ({ reviews, reviewCount, averageRating, demoMode }) => {
                 )}
               </div>
 
-              <div className="review-event-info">
-                <span className="event-name">{review.event_name}</span>
-                <span className="event-date">
-                  {new Date(review.event_date).toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric'
-                  })}
-                </span>
-              </div>
+              {/* Only show event info if there's an associated booking */}
+              {(review.event_name || review.event_date) && (
+                <div className="review-event-info">
+                  {review.event_name && (
+                    <span className="event-name">{review.event_name}</span>
+                  )}
+                  {review.event_date && (
+                    <span className="event-date">
+                      {new Date(review.event_date).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric'
+                      })}
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         ))}
