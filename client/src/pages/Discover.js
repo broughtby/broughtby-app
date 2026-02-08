@@ -61,9 +61,12 @@ const Discover = () => {
         ambassadors.filter(ambassador => ambassador.location === selectedLocation)
       );
     }
-    // Reset to first card when filter changes
-    setCurrentIndex(0);
   }, [selectedLocation, ambassadors]);
+
+  // Reset to first card only when location filter changes
+  useEffect(() => {
+    setCurrentIndex(0);
+  }, [selectedLocation]);
 
   const fetchAmbassadors = async () => {
     try {
