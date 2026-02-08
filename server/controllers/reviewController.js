@@ -161,6 +161,10 @@ const getUserReviews = async (req, res) => {
               reviewer.name as reviewer_name,
               reviewer.profile_photo as reviewer_photo,
               reviewer.role as reviewer_role,
+              reviewer.company_name as reviewer_company_name,
+              reviewer.company_logo as reviewer_company_logo,
+              reviewer.is_test as reviewer_is_test,
+              reviewer.is_preview as reviewer_is_preview,
               b.event_name,
               b.event_date
        FROM reviews r

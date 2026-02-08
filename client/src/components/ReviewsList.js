@@ -1,8 +1,10 @@
 import React from 'react';
 import { getPhotoUrl } from '../services/upload';
+import DisplayName from './DisplayName';
+import BrandAvatar from './BrandAvatar';
 import './ReviewsList.css';
 
-const ReviewsList = ({ reviews, reviewCount, averageRating }) => {
+const ReviewsList = ({ reviews, reviewCount, averageRating, demoMode }) => {
 
   const renderStars = (rating) => {
     return (
@@ -50,15 +52,53 @@ const ReviewsList = ({ reviews, reviewCount, averageRating }) => {
           <div key={review.id} className="review-card">
             <div className="review-header">
               <div className="reviewer-info">
-                {review.reviewer_photo && (
-                  <img
-                    src={getPhotoUrl(review.reviewer_photo)}
-                    alt={review.reviewer_name}
-                    className="reviewer-photo"
+                {review.reviewer_role === 'brand' ? (
+                  <BrandAvatar
+                    companyLogo={review.reviewer_photo}
+                    personPhoto={review.reviewer_company_logo}
+                    companyName={review.reviewer_company_name}
+                    personName={review.reviewer_name}
+                    size="medium"
                   />
+                ) : (
+                  review.reviewer_photo && (
+                    <img
+                      src={getPhotoUrl(review.reviewer_photo)}
+                      alt={review.reviewer_name}
+                      className="reviewer-photo"
+                    />
+                  )
                 )}
                 <div className="reviewer-details">
-                  <h4 className="reviewer-name">{review.reviewer_name}</h4>
+                  <h4 className="reviewer-name">
+                    {review.reviewer_role === 'brand' && review.reviewer_company_name ? (
+                      <>
+                        <DisplayName
+                          user={{
+                            name: review.reviewer_name,
+                            is_test: review.reviewer_is_test
+                          }}
+                          demoMode={demoMode}
+                        />
+                        {' from '}
+                        <DisplayName
+                          user={{
+                            name: review.reviewer_company_name,
+                            is_test: review.reviewer_is_test
+                          }}
+                          demoMode={demoMode}
+                        />
+                      </>
+                    ) : (
+                      <DisplayName
+                        user={{
+                          name: review.reviewer_name,
+                          is_test: review.reviewer_is_test
+                        }}
+                        demoMode={demoMode}
+                      />
+                    )}
+                  </h4>
                   <span className="reviewer-role">{review.reviewer_role === 'brand' ? 'Brand' : 'Ambassador'}</span>
                 </div>
               </div>
