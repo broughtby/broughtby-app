@@ -68,18 +68,24 @@ const Chat = () => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, isTyping]);
 
   const handleNewMessage = (message) => {
     setMessages((prev) => [...prev, message]);
   };
 
-  const handleUserTyping = () => {
-    setIsTyping(true);
+  const handleUserTyping = (data) => {
+    // Only show typing indicator if it's the other person typing, not us
+    if (data.userId !== user.id) {
+      setIsTyping(true);
+    }
   };
 
-  const handleUserStopTyping = () => {
-    setIsTyping(false);
+  const handleUserStopTyping = (data) => {
+    // Only hide typing indicator if it's the other person who stopped typing
+    if (data.userId !== user.id) {
+      setIsTyping(false);
+    }
   };
 
   const scrollToBottom = () => {

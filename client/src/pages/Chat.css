@@ -112,19 +112,21 @@
 .typing-indicator {
   display: flex;
   gap: 0.4rem;
-  padding: 1rem;
-  background-color: var(--white);
+  padding: 0.75rem 1rem;
+  background-color: #e9ecef;
   border-radius: 18px;
   width: fit-content;
   margin-left: 56px;
+  margin-bottom: 0.5rem;
+  align-items: center;
 }
 
 .typing-indicator span {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background-color: var(--dark-gray);
-  animation: typing 1.4s infinite;
+  background-color: #6c757d;
+  animation: typing 1.4s infinite ease-in-out;
 }
 
 .typing-indicator span:nth-child(2) {
