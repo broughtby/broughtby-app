@@ -50,6 +50,17 @@
   opacity: 0.95;
 }
 
+.preview-hint {
+  margin: 0;
+  font-size: 14px;
+  background: rgba(212, 175, 55, 0.2);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  border-radius: 8px;
+  padding: 10px 16px;
+  color: #fff;
+  font-weight: 500;
+}
+
 .time-btn {
   padding: 12px 32px;
   border: none;

@@ -478,6 +478,7 @@ Status: Cancelled`;
                             bookingId={booking.id}
                             bookingStatus={booking.status}
                             onUpdate={fetchBookings}
+                            isPreview={user?.isPreview}
                           />
                         </div>
                       ))}
@@ -637,6 +638,7 @@ Status: Cancelled`;
                       bookingId={booking.id}
                       bookingStatus={booking.status}
                       onUpdate={fetchBookings}
+                      isPreview={user?.isPreview}
                     />
                   </div>
                 ))}
@@ -716,6 +718,7 @@ Status: Cancelled`;
                       bookingId={booking.id}
                       bookingStatus={booking.status}
                       onUpdate={fetchBookings}
+                      isPreview={user?.isPreview}
                     />
                   </div>
                 ))}

@@ -43,6 +43,18 @@ const resetPreview = async (req, res) => {
       [req.user.userId]
     );
 
+    // Delete all reviews where the brand left a review
+    await db.query(
+      'DELETE FROM reviews WHERE reviewer_id = $1',
+      [req.user.userId]
+    );
+
+    // Delete all bookings where the brand is the preview user
+    await db.query(
+      'DELETE FROM bookings WHERE brand_id = $1',
+      [req.user.userId]
+    );
+
     res.json({
       message: 'Preview reset successfully',
     });

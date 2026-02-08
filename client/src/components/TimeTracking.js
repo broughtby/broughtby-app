@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { bookingAPI } from '../services/api';
 import './TimeTracking.css';
 
-const TimeTracking = ({ bookingId, bookingStatus, onUpdate }) => {
+const TimeTracking = ({ bookingId, bookingStatus, onUpdate, isPreview }) => {
   const { isAmbassador, isBrand } = useAuth();
   const [timeStatus, setTimeStatus] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -98,6 +98,11 @@ const TimeTracking = ({ bookingId, bookingStatus, onUpdate }) => {
             {!timeStatus.checkedIn && (
               <div className="time-action-section">
                 <p className="time-instruction">Ready to start? Check in when you arrive!</p>
+                {isPreview && (
+                  <p className="preview-hint">
+                    💡 Try it: Tap Check In to start tracking time, then Check Out when done.
+                  </p>
+                )}
                 <button
                   className="time-btn check-in-btn"
                   onClick={handleCheckIn}
@@ -128,6 +133,11 @@ const TimeTracking = ({ bookingId, bookingStatus, onUpdate }) => {
             {timeStatus.checkedOut && (
               <div className="time-complete-section">
                 <div className="time-complete-badge">✅ Event Complete</div>
+                {isPreview && (
+                  <p className="preview-hint">
+                    🎉 Nice! Now leave a review to complete the full booking cycle.
+                  </p>
+                )}
                 <div className="time-summary">
                   <div className="time-summary-row">
                     <span className="summary-label">Check In:</span>

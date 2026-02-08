@@ -39,9 +39,9 @@ const createBooking = async (req, res) => {
       return res.status(400).json({ error: 'Ambassador does not match the partnership' });
     }
 
-    // Check if ambassador has set their hourly rate
+    // Check if ambassador has set their hourly rate and get preview status
     const ambassadorCheck = await db.query(
-      'SELECT hourly_rate FROM users WHERE id = $1 AND role = $2',
+      'SELECT hourly_rate, is_preview_ambassador FROM users WHERE id = $1 AND role = $2',
       [ambassadorId, 'ambassador']
     );
 
@@ -53,6 +53,14 @@ const createBooking = async (req, res) => {
       return res.status(400).json({ error: "Booking unavailable: This ambassador hasn't set their hourly rate yet. Send them a message to set their rate first." });
     }
 
+    // Check if brand is a preview account
+    const brandCheck = await db.query(
+      'SELECT is_preview FROM users WHERE id = $1',
+      [req.user.userId]
+    );
+
+    const isPreviewBooking = brandCheck.rows[0]?.is_preview && ambassadorCheck.rows[0]?.is_preview_ambassador;
+
     // Validate event date is not in the past
     const eventDateObj = new Date(eventDate);
     const today = new Date();
@@ -62,13 +70,14 @@ const createBooking = async (req, res) => {
       return res.status(400).json({ error: 'Event date cannot be in the past' });
     }
 
-    // Create booking
+    // Create booking (auto-confirm for preview mode)
+    const bookingStatus = isPreviewBooking ? 'confirmed' : 'pending';
     const result = await db.query(
       `INSERT INTO bookings (
         match_id, brand_id, ambassador_id, event_name, event_date, start_time, end_time,
-        duration, event_location, hourly_rate, total_cost, notes
+        duration, event_location, hourly_rate, total_cost, notes, status
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
       RETURNING *`,
       [
         matchId,
@@ -83,6 +92,7 @@ const createBooking = async (req, res) => {
         hourlyRate,
         totalCost,
         notes,
+        bookingStatus,
       ]
     );
 
@@ -119,8 +129,9 @@ const createBooking = async (req, res) => {
     }).catch(error => console.error('Failed to query ambassador info:', error));
 
     res.status(201).json({
-      message: 'Booking created successfully',
+      message: isPreviewBooking ? 'Booking confirmed! You can now check in when your activation begins.' : 'Booking created successfully',
       booking: result.rows[0],
+      autoConfirmed: isPreviewBooking,
     });
   } catch (error) {
     console.error('Create booking error:', error);
