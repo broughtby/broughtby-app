@@ -22,7 +22,7 @@ const BookingModal = ({ ambassador, onClose, onSubmit }) => {
     eventDate: isPreview ? getDefaultEventDate() : '',
     startTime: isPreview ? '10:00' : '',
     endTime: isPreview ? '12:00' : '',
-    eventLocation: isPreview ? 'Intelligentsia Coffee, Chicago' : '',
+    eventLocation: isPreview ? 'The Stripe Office, 350 N. Orleans St., Suite 7500-S' : '',
     notes: isPreview ? 'Please wear the branded t-shirt we sent you. Make sure attendees sign up with the QR code to join our email newsletter. Looking forward to hearing how it goes and what everyone thinks of the coffee!' : '',
   });
 
