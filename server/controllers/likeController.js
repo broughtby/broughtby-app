@@ -85,7 +85,7 @@ const createLike = async (req, res) => {
       // Create auto-welcome message from brand
       // Customize message for YC Buzz preview account
       const welcomeMessage = brand.email === 'yc@broughtby.co'
-        ? `Hi ${ambassador.name}! We're launching a new coffee brand for founders and want to do a series of coffee chats this spring and summer in chicago. I think you could be a good fit. Interested?`
+        ? `Hi ${ambassador.name}! We're launching a new coffee brand for founders and want to do a series of coffee events this spring and summer in chicago. I think you could be a good fit. Interested?`
         : `Hi ${ambassador.name}! I'm interested in learning more about you to see if you'd be a good fit for some events coming up. When would be a good time to chat?`;
 
       await db.query(
@@ -360,7 +360,7 @@ const demoAcceptLike = async (req, res) => {
     // Create auto-welcome message from brand
     // Customize message for YC Buzz preview account
     const welcomeMessage = brandEmail === 'yc@broughtby.co'
-      ? `Hi ${ambassador.name}! We're launching a new coffee brand for founders and want to do a series of coffee chats this spring and summer in chicago. I think you could be a good fit. Interested?`
+      ? `Hi ${ambassador.name}! We're launching a new coffee brand for founders and want to do a series of coffee events this spring and summer in chicago. I think you could be a good fit. Interested?`
       : `Hi ${ambassador.name}! I'm interested in learning more about you to see if you'd be a good fit for some events coming up. When would be a good time to chat?`;
 
     await db.query(
