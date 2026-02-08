@@ -218,6 +218,11 @@ io.on('connection', (socket) => {
       // AI auto-reply for preview ambassador (fire and forget)
       (async () => {
         try {
+          console.log('🔍 AI auto-reply: Checking if conditions are met...');
+          console.log('   Match ID:', matchId);
+          console.log('   Sender ID (socket.userId):', socket.userId);
+          console.log('   Recipient ID:', recipientId);
+
           // Check if sender is a preview user
           const senderCheck = await db.query(
             'SELECT is_preview FROM users WHERE id = $1',
@@ -225,6 +230,7 @@ io.on('connection', (socket) => {
           );
 
           const isPreviewUser = senderCheck.rows[0]?.is_preview || false;
+          console.log('   Is sender preview user?', isPreviewUser);
 
           // Check if recipient is the preview ambassador
           const recipientCheck = await db.query(
@@ -234,13 +240,23 @@ io.on('connection', (socket) => {
 
           const isPreviewAmbassador = recipientCheck.rows[0]?.is_preview_ambassador || false;
           const ambassadorName = recipientCheck.rows[0]?.name || 'Ambassador';
+          console.log('   Is recipient preview ambassador?', isPreviewAmbassador);
+          console.log('   Ambassador name:', ambassadorName);
 
           // Only generate AI reply if sender is preview user and recipient is preview ambassador
           if (!isPreviewUser || !isPreviewAmbassador) {
+            console.log('❌ AI auto-reply: Conditions not met. Skipping.');
             return;
           }
 
-          console.log(`🤖 Generating AI reply from ${ambassadorName}...`);
+          console.log(`🤖 AI auto-reply: Generating reply from ${ambassadorName}...`);
+
+          // Emit typing indicator
+          console.log(`📤 Emitting typing indicator to match:${matchId} from user ${recipientId}`);
+          io.to(`match:${matchId}`).emit('user_typing', {
+            userId: recipientId,
+            matchId: matchId,
+          });
 
           // Fetch recent messages for context (last 10 messages)
           const recentMessages = await db.query(
@@ -279,7 +295,15 @@ io.on('connection', (socket) => {
 
           // Wait 2-3 seconds before sending reply (random delay for natural feel)
           const delay = 2000 + Math.random() * 1000; // 2-3 seconds
+          console.log(`⏳ Waiting ${delay.toFixed(0)}ms before sending reply...`);
           await new Promise(resolve => setTimeout(resolve, delay));
+
+          // Stop typing indicator
+          console.log(`📤 Stopping typing indicator for match:${matchId} user ${recipientId}`);
+          io.to(`match:${matchId}`).emit('user_stop_typing', {
+            userId: recipientId,
+            matchId: matchId,
+          });
 
           // Save AI reply to database
           const aiMessageResult = await db.query(
@@ -304,9 +328,11 @@ io.on('connection', (socket) => {
           };
 
           // Broadcast AI reply to match room
+          console.log(`📤 Broadcasting AI reply to match:${matchId}`);
+          console.log(`   Message:`, enrichedAiMessage);
           io.to(`match:${matchId}`).emit('new_message', enrichedAiMessage);
 
-          console.log(`🤖 AI reply sent to match ${matchId}`);
+          console.log(`✅ AI auto-reply complete for match ${matchId}`);
         } catch (aiError) {
           console.error('Failed to generate AI reply:', aiError);
           // Don't throw - AI reply failures shouldn't block the message
