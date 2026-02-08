@@ -132,18 +132,6 @@
   letter-spacing: 0.5px;
 }
 
-.skill-tag-display {
-  display: inline-block;
-  background-color: var(--light-gray);
-  color: var(--navy);
-  padding: 0.6rem 1.2rem;
-  border-radius: 20px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  margin-right: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-
 /* Profile Form */
 .profile-form {
   display: flex;
@@ -188,68 +176,6 @@
 .form-group input:disabled {
   background-color: var(--light-gray);
   cursor: not-allowed;
-}
-
-.skills-input {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.skills-input input {
-  flex: 1;
-  padding: 0.9rem;
-  border: 2px solid var(--medium-gray);
-  border-radius: 8px;
-  font-size: 1rem;
-}
-
-.add-skill-button {
-  background-color: var(--navy);
-  color: var(--white);
-  padding: 0.9rem 1.5rem;
-  border-radius: 8px;
-  font-weight: 600;
-  transition: all 0.3s;
-}
-
-.add-skill-button:hover {
-  background-color: #0D3A5F;
-}
-
-.skills-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.75rem;
-}
-
-.skill-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  background-color: var(--light-gray);
-  color: var(--navy);
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-.remove-skill {
-  background: none;
-  color: var(--error);
-  font-size: 1.2rem;
-  line-height: 1;
-  padding: 0;
-  width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.remove-skill:hover {
-  color: #DC2626;
 }
 
 .form-actions {

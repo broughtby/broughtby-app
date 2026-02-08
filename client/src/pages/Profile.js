@@ -18,7 +18,6 @@ const Profile = () => {
     city: '',
     state: '',
     age: '',
-    skills: [],
     hourly_rate: '',
     availability: '',
     // Brand-specific
@@ -27,7 +26,6 @@ const Profile = () => {
     company_website: '',
     contact_title: '',
   });
-  const [newSkill, setNewSkill] = useState('');
   const [message, setMessage] = useState('');
   const [isResetting, setIsResetting] = useState(false);
   const [reviews, setReviews] = useState([]);
@@ -48,7 +46,6 @@ const Profile = () => {
         city: city || '',
         state: state || '',
         age: user.age || '',
-        skills: user.skills || [],
         hourly_rate: user.hourly_rate || '',
         availability: user.availability || '',
         company_name: user.company_name || '',
@@ -81,23 +78,6 @@ const Profile = () => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
-    });
-  };
-
-  const handleAddSkill = () => {
-    if (newSkill.trim() && !formData.skills.includes(newSkill.trim())) {
-      setFormData({
-        ...formData,
-        skills: [...formData.skills, newSkill.trim()],
-      });
-      setNewSkill('');
-    }
-  };
-
-  const handleRemoveSkill = (skillToRemove) => {
-    setFormData({
-      ...formData,
-      skills: formData.skills.filter((skill) => skill !== skillToRemove),
     });
   };
 
@@ -336,36 +316,6 @@ const Profile = () => {
               </div>
             )}
 
-            <div className="form-group">
-              <label>Skills</label>
-              <div className="skills-input">
-                <input
-                  type="text"
-                  value={newSkill}
-                  onChange={(e) => setNewSkill(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddSkill())}
-                  placeholder="Add a skill..."
-                />
-                <button type="button" onClick={handleAddSkill} className="add-skill-button">
-                  Add
-                </button>
-              </div>
-              <div className="skills-list">
-                {formData.skills.map((skill, index) => (
-                  <span key={index} className="skill-tag">
-                    {skill}
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveSkill(skill)}
-                      className="remove-skill"
-                    >
-                      ×
-                    </button>
-                  </span>
-                ))}
-              </div>
-            </div>
-
             {user.role === 'ambassador' && (
               <>
                 <div className="form-row">
@@ -474,19 +424,6 @@ const Profile = () => {
                 )}
               </div>
             </div>
-
-            {user.skills && user.skills.length > 0 && (
-              <div className="profile-section">
-                <h3>Skills</h3>
-                <div className="skills-list">
-                  {user.skills.map((skill, index) => (
-                    <span key={index} className="skill-tag-display">
-                      {skill}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
 
             {/* Reviews Section */}
             <div className="profile-section">

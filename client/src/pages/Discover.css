@@ -336,21 +336,6 @@
   line-height: 1.6;
 }
 
-.skills-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.skill-tag {
-  background-color: var(--light-gray);
-  color: var(--navy);
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 500;
-}
-
 .card-stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -609,26 +594,6 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
   margin-top: 0.5rem;
-}
-
-.grid-card-skills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.skill-badge {
-  background-color: var(--light-gray);
-  color: var(--navy);
-  padding: 0.35rem 0.75rem;
-  border-radius: 15px;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-.skill-badge.more {
-  background-color: var(--gold);
-  color: var(--navy);
 }
 
 /* Profile Modal */

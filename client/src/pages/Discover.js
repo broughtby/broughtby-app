@@ -295,19 +295,6 @@ const Discover = () => {
                       </div>
                     )}
 
-                    {selectedAmbassador.skills && selectedAmbassador.skills.length > 0 && (
-                      <div className="modal-section">
-                        <h3>Skills</h3>
-                        <div className="skills-list">
-                          {selectedAmbassador.skills.map((skill, index) => (
-                            <span key={index} className="skill-tag">
-                              {skill}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
                     <div className="modal-stats">
                       <div className="stat">
                         <span className="stat-label">Age</span>
@@ -698,19 +685,6 @@ const Discover = () => {
                 <div className="modal-section">
                   <h3>About</h3>
                   <p>{selectedAmbassador.bio}</p>
-                </div>
-              )}
-
-              {selectedAmbassador.skills && selectedAmbassador.skills.length > 0 && (
-                <div className="modal-section">
-                  <h3>Skills</h3>
-                  <div className="skills-list">
-                    {selectedAmbassador.skills.map((skill, index) => (
-                      <span key={index} className="skill-tag">
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
                 </div>
               )}
 

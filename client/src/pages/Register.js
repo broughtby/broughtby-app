@@ -22,7 +22,6 @@ const Register = () => {
     city: '',
     state: '',
     age: '',
-    skills: [],
     // Ambassador-specific
     hourly_rate: '',
     availability: '',
@@ -32,7 +31,6 @@ const Register = () => {
     company_website: '',
     contact_title: '',
   });
-  const [newSkill, setNewSkill] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -43,23 +41,6 @@ const Register = () => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
-    });
-  };
-
-  const handleAddSkill = () => {
-    if (newSkill.trim() && !formData.skills.includes(newSkill.trim())) {
-      setFormData({
-        ...formData,
-        skills: [...formData.skills, newSkill.trim()],
-      });
-      setNewSkill('');
-    }
-  };
-
-  const handleRemoveSkill = (skillToRemove) => {
-    setFormData({
-      ...formData,
-      skills: formData.skills.filter((skill) => skill !== skillToRemove),
     });
   };
 
@@ -316,38 +297,6 @@ const Register = () => {
                 />
               </div>
             )}
-
-            <div className="form-group">
-              <label>Skills & Expertise</label>
-              <div className="skills-input">
-                <input
-                  type="text"
-                  value={newSkill}
-                  onChange={(e) => setNewSkill(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddSkill())}
-                  placeholder="Add a skill (e.g., Social Media Marketing)"
-                />
-                <button type="button" onClick={handleAddSkill} className="add-skill-btn">
-                  Add
-                </button>
-              </div>
-              {formData.skills.length > 0 && (
-                <div className="skills-list">
-                  {formData.skills.map((skill, index) => (
-                    <span key={index} className="skill-tag">
-                      {skill}
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveSkill(skill)}
-                        className="remove-skill"
-                      >
-                        ×
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
 
             {formData.role === 'ambassador' && (
               <>
