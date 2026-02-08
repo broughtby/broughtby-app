@@ -1064,11 +1064,30 @@ Status: Pending confirmation`;
                       }
 
                       try {
-                        await likeAPI.createLike(selectedAmbassador.id);
-                        const updatedAmbassadors = ambassadors.map(a =>
-                          a.id === selectedAmbassador.id ? { ...a, status: 'pending' } : a
-                        );
-                        setAmbassadors(updatedAmbassadors);
+                        const response = await likeAPI.createLike(selectedAmbassador.id);
+
+                        // Check if auto-matched in preview mode
+                        if (response.data.autoMatched) {
+                          const updatedAmbassadors = ambassadors.map(a =>
+                            a.id === selectedAmbassador.id ? { ...a, status: 'matched' } : a
+                          );
+                          setAmbassadors(updatedAmbassadors);
+
+                          // Show auto-match toast
+                          setAutoMatchedAmbassador(selectedAmbassador);
+                          setShowAutoMatchToast(true);
+
+                          // Auto-hide toast after 5 seconds
+                          setTimeout(() => {
+                            setShowAutoMatchToast(false);
+                          }, 5000);
+                        } else {
+                          const updatedAmbassadors = ambassadors.map(a =>
+                            a.id === selectedAmbassador.id ? { ...a, status: 'pending' } : a
+                          );
+                          setAmbassadors(updatedAmbassadors);
+                        }
+
                         setSelectedAmbassador(null);
                       } catch (error) {
                         console.error('Failed to send request:', error);
