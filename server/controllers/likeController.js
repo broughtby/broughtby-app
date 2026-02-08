@@ -12,7 +12,7 @@ const createLike = async (req, res) => {
 
     // Verify ambassador exists and is actually an ambassador
     const ambassadorCheck = await db.query(
-      'SELECT id, role, email, name, is_test FROM users WHERE id = $1',
+      'SELECT id, role, email, name, is_test, is_preview_ambassador FROM users WHERE id = $1',
       [ambassadorId]
     );
 
@@ -24,9 +24,9 @@ const createLike = async (req, res) => {
       return res.status(400).json({ error: 'User is not an ambassador' });
     }
 
-    // Get brand information
+    // Get brand information including preview status
     const brandCheck = await db.query(
-      'SELECT name, location, bio FROM users WHERE id = $1',
+      'SELECT name, location, bio, is_preview FROM users WHERE id = $1',
       [req.user.userId]
     );
 
@@ -46,6 +46,39 @@ const createLike = async (req, res) => {
     const ambassador = ambassadorCheck.rows[0];
     const brand = brandCheck.rows[0];
 
+    // Check if this is a preview brand liking a preview ambassador
+    const isPreviewMatch = brand.is_preview && ambassador.is_preview_ambassador;
+
+    // Auto-create match for preview mode
+    if (isPreviewMatch) {
+      // Update like status to accepted
+      await db.query(
+        `UPDATE likes SET status = 'accepted' WHERE brand_id = $1 AND ambassador_id = $2`,
+        [req.user.userId, ambassadorId]
+      );
+
+      // Create match
+      const matchResult = await db.query(
+        `INSERT INTO matches (brand_id, ambassador_id)
+         VALUES ($1, $2)
+         ON CONFLICT (brand_id, ambassador_id) DO NOTHING
+         RETURNING id, created_at`,
+        [req.user.userId, ambassadorId]
+      );
+
+      if (matchResult.rows.length === 0) {
+        return res.status(400).json({ error: 'Match already exists' });
+      }
+
+      return res.status(201).json({
+        message: 'Match created successfully',
+        like: result.rows[0],
+        match: matchResult.rows[0],
+        autoMatched: true,
+        isTest: ambassador.is_test || false,
+      });
+    }
+
     // Send email notification to non-test accounts (don't fail request if email fails)
     if (!ambassador.is_test) {
       sendPartnershipRequestEmail({
@@ -63,6 +96,7 @@ const createLike = async (req, res) => {
     res.status(201).json({
       message: 'Partnership request sent successfully',
       like: result.rows[0],
+      autoMatched: false,
       isTest: ambassador.is_test || false,
     });
   } catch (error) {

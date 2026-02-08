@@ -31,6 +31,8 @@ const Discover = () => {
   const [matches, setMatches] = useState([]);
   const [bookingAmbassador, setBookingAmbassador] = useState(null);
   const [showPreviewToast, setShowPreviewToast] = useState(false);
+  const [showAutoMatchToast, setShowAutoMatchToast] = useState(false);
+  const [autoMatchedAmbassador, setAutoMatchedAmbassador] = useState(null);
 
   useEffect(() => {
     if (isBrand || isAmbassador) {
@@ -242,13 +244,31 @@ Status: Pending confirmation`;
     try {
       // Only send like request if not already liked
       if (currentAmbassador.status === 'available') {
-        await likeAPI.createLike(currentAmbassador.id);
+        const response = await likeAPI.createLike(currentAmbassador.id);
 
-        // Update local state to reflect new status - update by ID to handle filtered arrays
-        const updatedAmbassadors = ambassadors.map(a =>
-          a.id === currentAmbassador.id ? { ...a, status: 'pending' } : a
-        );
-        setAmbassadors(updatedAmbassadors);
+        // Check if auto-matched in preview mode
+        if (response.data.autoMatched) {
+          // Update local state to reflect match status
+          const updatedAmbassadors = ambassadors.map(a =>
+            a.id === currentAmbassador.id ? { ...a, status: 'matched' } : a
+          );
+          setAmbassadors(updatedAmbassadors);
+
+          // Show auto-match toast
+          setAutoMatchedAmbassador(currentAmbassador);
+          setShowAutoMatchToast(true);
+
+          // Auto-hide toast after 5 seconds
+          setTimeout(() => {
+            setShowAutoMatchToast(false);
+          }, 5000);
+        } else {
+          // Update local state to reflect pending status
+          const updatedAmbassadors = ambassadors.map(a =>
+            a.id === currentAmbassador.id ? { ...a, status: 'pending' } : a
+          );
+          setAmbassadors(updatedAmbassadors);
+        }
       }
 
       setTimeout(() => {
@@ -674,15 +694,6 @@ Status: Pending confirmation`;
 
         {currentAmbassador.status === 'matched' || currentAmbassador.status === 'pending' || currentAmbassador.status === 'passed' ? (
           <div className="action-buttons">
-            {currentAmbassador.status === 'pending' && currentAmbassador.is_test && isBrand && (
-              <button
-                className="action-button demo-accept-button"
-                onClick={() => handleDemoAccept(currentAmbassador.id)}
-                style={{ marginBottom: '0.5rem', background: '#10B981', border: '2px solid #059669' }}
-              >
-                <span>⚡ Demo: Accept Now</span>
-              </button>
-            )}
             {currentAmbassador.status === 'matched' && isBrand ? (
               <>
                 <button
@@ -792,6 +803,32 @@ Status: Pending confirmation`;
               <button
                 className="preview-toast-close"
                 onClick={() => setShowPreviewToast(false)}
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Auto-Match Success Toast */}
+        {showAutoMatchToast && autoMatchedAmbassador && (
+          <div className="preview-toast">
+            <div className="preview-toast-content" style={{ borderColor: '#10B981' }}>
+              <p className="preview-toast-text">
+                <strong>You've been matched!</strong> Start chatting with <DisplayName user={autoMatchedAmbassador} demoMode={demoMode} /> now
+              </p>
+              <button
+                className="preview-toast-button"
+                onClick={() => {
+                  navigate('/matches');
+                  setShowAutoMatchToast(false);
+                }}
+              >
+                Go to Matches
+              </button>
+              <button
+                className="preview-toast-close"
+                onClick={() => setShowAutoMatchToast(false)}
               >
                 ×
               </button>
@@ -971,18 +1008,6 @@ Status: Pending confirmation`;
 
               {selectedAmbassador.status === 'matched' || selectedAmbassador.status === 'pending' || selectedAmbassador.status === 'passed' ? (
                 <div style={{ marginTop: '1.5rem' }}>
-                  {selectedAmbassador.status === 'pending' && selectedAmbassador.is_test && isBrand && (
-                    <button
-                      className="action-button demo-accept-button"
-                      onClick={async () => {
-                        await handleDemoAccept(selectedAmbassador.id);
-                        setSelectedAmbassador(null);
-                      }}
-                      style={{ marginBottom: '0.5rem', background: '#10B981', border: '2px solid #059669', width: '100%' }}
-                    >
-                      <span>⚡ Demo: Accept Now</span>
-                    </button>
-                  )}
                   {selectedAmbassador.status === 'matched' && isBrand ? (
                     <div className="action-buttons" style={{ display: 'flex', gap: '1rem' }}>
                       <button
@@ -1084,6 +1109,32 @@ Status: Pending confirmation`;
             <button
               className="preview-toast-close"
               onClick={() => setShowPreviewToast(false)}
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Auto-Match Success Toast */}
+      {showAutoMatchToast && autoMatchedAmbassador && (
+        <div className="preview-toast">
+          <div className="preview-toast-content" style={{ borderColor: '#10B981' }}>
+            <p className="preview-toast-text">
+              <strong>You've been matched!</strong> Start chatting with <DisplayName user={autoMatchedAmbassador} demoMode={demoMode} /> now
+            </p>
+            <button
+              className="preview-toast-button"
+              onClick={() => {
+                navigate('/matches');
+                setShowAutoMatchToast(false);
+              }}
+            >
+              Go to Matches
+            </button>
+            <button
+              className="preview-toast-close"
+              onClick={() => setShowAutoMatchToast(false)}
             >
               ×
             </button>
