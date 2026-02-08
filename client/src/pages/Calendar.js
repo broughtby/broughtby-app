@@ -74,6 +74,7 @@ const Calendar = () => {
       return {
         id: booking.ambassador_id,
         name: booking.ambassador_name,
+        profile_photo: booking.ambassador_photo,
         is_test: booking.ambassador_is_test
       };
     } else {
@@ -81,6 +82,7 @@ const Calendar = () => {
       return {
         id: booking.brand_id,
         name: booking.brand_name,
+        profile_photo: booking.brand_photo,
         is_test: booking.brand_is_test
       };
     }
