@@ -95,12 +95,8 @@ const createMatch = async (req, res) => {
 
           console.log(`🤖 Generating AI welcome reply from ${ambassadorName}...`);
 
-          // Emit typing indicator
-          const ioInstance = getIo();
-          ioInstance.to(`match:${matchId}`).emit('user_typing', {
-            userId: req.user.userId,
-            matchId: matchId,
-          });
+          // Note: No typing indicator for welcome messages since user may not be in chat room yet
+          // Typing indicator works great for subsequent messages when user is actively chatting
 
           // Call Anthropic API
           const anthropic = new Anthropic({
@@ -125,15 +121,9 @@ const createMatch = async (req, res) => {
 
           console.log(`🤖 AI welcome reply generated: "${aiReply}"`);
 
-          // Wait 2-3 seconds before sending reply (random delay for natural feel)
+          // Wait 2-3 seconds before sending reply (realistic response time)
           const delay = 2000 + Math.random() * 1000; // 2-3 seconds
           await new Promise(resolve => setTimeout(resolve, delay));
-
-          // Stop typing indicator
-          ioInstance.to(`match:${matchId}`).emit('user_stop_typing', {
-            userId: req.user.userId,
-            matchId: matchId,
-          });
 
           // Save AI reply to database
           const aiMessageResult = await db.query(
@@ -155,22 +145,12 @@ const createMatch = async (req, res) => {
           };
 
           // Broadcast AI reply to match room via Socket.io
+          const ioInstance = getIo();
           ioInstance.to(`match:${matchId}`).emit('new_message', enrichedAiMessage);
 
           console.log(`🤖 AI welcome reply sent to match ${matchId}`);
         } catch (aiError) {
           console.error('Failed to generate AI welcome reply:', aiError);
-
-          // Stop typing indicator on error
-          try {
-            const ioInstance = getIo();
-            ioInstance.to(`match:${matchId}`).emit('user_stop_typing', {
-              userId: req.user.userId,
-              matchId: matchId,
-            });
-          } catch (stopTypingError) {
-            console.error('Failed to stop typing indicator:', stopTypingError);
-          }
           // Don't throw - AI reply failures shouldn't block the match creation
         }
       })();
