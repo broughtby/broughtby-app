@@ -170,7 +170,7 @@ const getAmbassadors = async (req, res) => {
       const result = await db.query(
         `SELECT u.id, u.name, u.profile_photo, u.bio, u.location, u.age,
                 u.skills, u.hourly_rate, u.availability, u.rating,
-                u.is_test,
+                u.is_test, u.is_preview_ambassador,
                 l.id as like_id,
                 m.id as match_id,
                 p.id as pass_id
@@ -197,6 +197,7 @@ const getAmbassadors = async (req, res) => {
         availability: row.availability,
         rating: row.rating,
         is_test: row.is_test || false,
+        is_preview_ambassador: row.is_preview_ambassador || false,
         status: row.match_id ? 'matched' : (row.like_id ? 'pending' : (row.pass_id ? 'passed' : 'available'))
       }));
 

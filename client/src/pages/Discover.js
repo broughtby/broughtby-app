@@ -12,7 +12,7 @@ import './Discover.css';
 
 const Discover = () => {
   const navigate = useNavigate();
-  const { isBrand, isAmbassador, demoMode, user } = useAuth();
+  const { isBrand, isAmbassador, demoMode, user, isPreview } = useAuth();
   const [ambassadors, setAmbassadors] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -30,6 +30,7 @@ const Discover = () => {
   const [mobileReviewsAmbassador, setMobileReviewsAmbassador] = useState(null);
   const [matches, setMatches] = useState([]);
   const [bookingAmbassador, setBookingAmbassador] = useState(null);
+  const [showPreviewToast, setShowPreviewToast] = useState(false);
 
   useEffect(() => {
     if (isBrand || isAmbassador) {
@@ -300,6 +301,37 @@ Status: Pending confirmation`;
     }
   };
 
+  // Preview mode helpers
+  const findPreviewAmbassador = () => {
+    return filteredAmbassadors.find(a => a.is_preview_ambassador);
+  };
+
+  const scrollToPreviewAmbassador = () => {
+    const previewAmbassador = findPreviewAmbassador();
+    if (previewAmbassador) {
+      const index = filteredAmbassadors.findIndex(a => a.id === previewAmbassador.id);
+      if (index !== -1) {
+        setCurrentIndex(index);
+        // Close modal if open
+        if (selectedAmbassador) {
+          setSelectedAmbassador(null);
+        }
+      }
+    }
+  };
+
+  const handlePreviewButtonClick = () => {
+    const previewAmbassador = findPreviewAmbassador();
+    const previewName = previewAmbassador?.name || 'Kim Kardashian';
+
+    setShowPreviewToast(true);
+
+    // Auto-hide toast after 5 seconds
+    setTimeout(() => {
+      setShowPreviewToast(false);
+    }, 5000);
+  };
+
   if (loading) {
     return (
       <div className="discover-container">
@@ -535,6 +567,25 @@ Status: Pending confirmation`;
             </div>
           </div>
         )}
+
+        {/* Preview Mode Banner */}
+        {isPreview && isBrand && (
+          <div className="preview-banner">
+            <div className="preview-banner-content">
+              <span className="preview-icon">🎬</span>
+              <p className="preview-text">
+                <strong>Preview Mode</strong> — Browse real ambassadors, then book {findPreviewAmbassador()?.name || 'Kim Kardashian'} to try the full experience
+              </p>
+              <button
+                className="preview-find-button"
+                onClick={scrollToPreviewAmbassador}
+              >
+                Find {findPreviewAmbassador()?.name?.split(' ')[0] || 'Kim'}
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="discover-header">
           <h1>Discover Ambassadors</h1>
           <LocationFilter />
@@ -675,7 +726,14 @@ Status: Pending confirmation`;
           <div className="action-buttons">
             <button
               className="action-button request-button"
-              onClick={handleLike}
+              onClick={() => {
+                // In preview mode, only allow request for preview ambassador
+                if (isPreview && !currentAmbassador.is_preview_ambassador) {
+                  handlePreviewButtonClick();
+                } else {
+                  handleLike();
+                }
+              }}
               disabled={liking}
             >
               <span>Request to Work Together</span>
@@ -714,6 +772,32 @@ Status: Pending confirmation`;
             </div>
           </div>
         )}
+
+        {/* Preview Mode Toast */}
+        {showPreviewToast && isPreview && (
+          <div className="preview-toast">
+            <div className="preview-toast-content">
+              <p className="preview-toast-text">
+                <strong>This is a live preview</strong> — try booking {findPreviewAmbassador()?.name || 'Kim Kardashian'} to experience the full flow!
+              </p>
+              <button
+                className="preview-toast-button"
+                onClick={() => {
+                  scrollToPreviewAmbassador();
+                  setShowPreviewToast(false);
+                }}
+              >
+                Find {findPreviewAmbassador()?.name?.split(' ')[0] || 'Kim'}
+              </button>
+              <button
+                className="preview-toast-close"
+                onClick={() => setShowPreviewToast(false)}
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -733,6 +817,24 @@ Status: Pending confirmation`;
           <div className="welcome-text">
             <h2>Welcome back, {user.company_name || user.name?.split(' ')[0]}!</h2>
             <p>Find your next brand ambassador</p>
+          </div>
+        </div>
+      )}
+
+      {/* Preview Mode Banner */}
+      {isPreview && isBrand && (
+        <div className="preview-banner">
+          <div className="preview-banner-content">
+            <span className="preview-icon">🎬</span>
+            <p className="preview-text">
+              <strong>Preview Mode</strong> — Browse real ambassadors, then book {findPreviewAmbassador()?.name || 'Kim Kardashian'} to try the full experience
+            </p>
+            <button
+              className="preview-find-button"
+              onClick={scrollToPreviewAmbassador}
+            >
+              Find {findPreviewAmbassador()?.name?.split(' ')[0] || 'Kim'}
+            </button>
           </div>
         </div>
       )}
@@ -927,6 +1029,12 @@ Status: Pending confirmation`;
                   <button
                     className="action-button request-button"
                     onClick={async () => {
+                      // In preview mode, only allow request for preview ambassador
+                      if (isPreview && !selectedAmbassador.is_preview_ambassador) {
+                        handlePreviewButtonClick();
+                        return;
+                      }
+
                       try {
                         await likeAPI.createLike(selectedAmbassador.id);
                         const updatedAmbassadors = ambassadors.map(a =>
@@ -955,6 +1063,32 @@ Status: Pending confirmation`;
           onClose={() => setBookingAmbassador(null)}
           onSubmit={handleBookingSubmit}
         />
+      )}
+
+      {/* Preview Mode Toast */}
+      {showPreviewToast && isPreview && (
+        <div className="preview-toast">
+          <div className="preview-toast-content">
+            <p className="preview-toast-text">
+              <strong>This is a live preview</strong> — try booking {findPreviewAmbassador()?.name || 'Kim Kardashian'} to experience the full flow!
+            </p>
+            <button
+              className="preview-toast-button"
+              onClick={() => {
+                scrollToPreviewAmbassador();
+                setShowPreviewToast(false);
+              }}
+            >
+              Find {findPreviewAmbassador()?.name?.split(' ')[0] || 'Kim'}
+            </button>
+            <button
+              className="preview-toast-close"
+              onClick={() => setShowPreviewToast(false)}
+            >
+              ×
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

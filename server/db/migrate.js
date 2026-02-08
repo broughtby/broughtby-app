@@ -368,6 +368,38 @@ const migrations = [
       END IF;
     END $$;
   `,
+
+  // Add is_preview column for YC preview brand accounts
+  `
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                     WHERE table_name = 'users' AND column_name = 'is_preview') THEN
+        ALTER TABLE users ADD COLUMN is_preview BOOLEAN DEFAULT FALSE;
+      END IF;
+    END $$;
+  `,
+
+  // Create index on is_preview for faster filtering
+  `
+    CREATE INDEX IF NOT EXISTS idx_users_is_preview ON users(is_preview);
+  `,
+
+  // Add is_preview_ambassador column for test ambassador in preview mode
+  `
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                     WHERE table_name = 'users' AND column_name = 'is_preview_ambassador') THEN
+        ALTER TABLE users ADD COLUMN is_preview_ambassador BOOLEAN DEFAULT FALSE;
+      END IF;
+    END $$;
+  `,
+
+  // Create index on is_preview_ambassador for faster filtering
+  `
+    CREATE INDEX IF NOT EXISTS idx_users_is_preview_ambassador ON users(is_preview_ambassador);
+  `,
 ];
 
 async function runMigrations() {

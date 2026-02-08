@@ -1055,3 +1055,210 @@
   padding: 2rem;
   font-style: italic;
 }
+
+/* Preview Mode Banner */
+.preview-banner {
+  background: linear-gradient(135deg, #f0f7ff 0%, #fef9e7 100%);
+  border: 2px solid var(--gold);
+  border-radius: 12px;
+  margin: 1rem 1.5rem;
+  padding: 1rem 1.5rem;
+  box-shadow: 0 2px 8px rgba(212, 175, 55, 0.15);
+}
+
+.preview-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.preview-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.preview-text {
+  flex: 1;
+  margin: 0;
+  color: var(--navy);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  min-width: 200px;
+}
+
+.preview-text strong {
+  color: var(--navy);
+  font-weight: 700;
+}
+
+.preview-find-button {
+  background-color: var(--gold);
+  color: var(--navy);
+  padding: 0.65rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(212, 175, 55, 0.2);
+}
+
+.preview-find-button:hover {
+  background-color: #C4A036;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(212, 175, 55, 0.3);
+}
+
+.preview-find-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(212, 175, 55, 0.2);
+}
+
+/* Preview Mode Toast */
+.preview-toast {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1100;
+  animation: slideDown 0.3s ease-out;
+  max-width: 90%;
+  width: 600px;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.preview-toast-content {
+  background-color: var(--navy);
+  color: var(--white);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 6px 20px rgba(10, 37, 64, 0.4);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  position: relative;
+  border: 2px solid var(--gold);
+}
+
+.preview-toast-text {
+  flex: 1;
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.preview-toast-text strong {
+  font-weight: 700;
+  color: var(--gold);
+}
+
+.preview-toast-button {
+  background-color: var(--gold);
+  color: var(--navy);
+  padding: 0.65rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.preview-toast-button:hover {
+  background-color: #C4A036;
+  transform: scale(1.05);
+}
+
+.preview-toast-button:active {
+  transform: scale(0.98);
+}
+
+.preview-toast-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: var(--white);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.preview-toast-close:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.preview-toast-close:active {
+  transform: scale(0.9);
+}
+
+/* Mobile responsive styles for preview components */
+@media (max-width: 768px) {
+  .preview-banner {
+    margin: 1rem;
+    padding: 1rem;
+  }
+
+  .preview-banner-content {
+    gap: 0.75rem;
+  }
+
+  .preview-icon {
+    font-size: 1.25rem;
+  }
+
+  .preview-text {
+    font-size: 0.9rem;
+  }
+
+  .preview-find-button {
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+    width: 100%;
+  }
+
+  .preview-toast {
+    top: 70px;
+    max-width: 95%;
+  }
+
+  .preview-toast-content {
+    padding: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .preview-toast-text {
+    font-size: 0.9rem;
+    padding-right: 2rem;
+  }
+
+  .preview-toast-button {
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+    width: 100%;
+  }
+}

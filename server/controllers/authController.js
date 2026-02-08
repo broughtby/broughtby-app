@@ -49,7 +49,7 @@ const register = async (req, res) => {
       )
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
        RETURNING id, email, role, name, profile_photo, bio, location, age,
-                 skills, hourly_rate, availability, rating, is_admin, created_at,
+                 skills, hourly_rate, availability, rating, is_admin, is_preview, created_at,
                  company_name, company_logo, company_website, contact_title`,
       [
         email,
@@ -96,6 +96,7 @@ const register = async (req, res) => {
         availability: user.availability,
         rating: user.rating,
         isAdmin: user.is_admin || false,
+        isPreview: user.is_preview || false,
         company_name: user.company_name,
         company_logo: user.company_logo,
         company_website: user.company_website,
@@ -120,7 +121,7 @@ const login = async (req, res) => {
     // Find user
     const result = await db.query(
       `SELECT id, email, password_hash, role, name, profile_photo, bio, location, age,
-              skills, hourly_rate, availability, rating, is_admin, created_at,
+              skills, hourly_rate, availability, rating, is_admin, is_preview, created_at,
               company_name, company_logo, company_website, contact_title
        FROM users WHERE LOWER(email) = LOWER($1)`,
       [email]
@@ -169,6 +170,7 @@ const login = async (req, res) => {
       availability: user.availability,
       rating: user.rating,
       isAdmin: isAdminValue,
+      isPreview: user.is_preview || false,
       company_name: user.company_name,
       company_logo: user.company_logo,
       company_website: user.company_website,
