@@ -14,7 +14,7 @@ const Calendar = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [viewMode, setViewMode] = useState('calendar'); // 'calendar' or 'list'
+  const [viewMode, setViewMode] = useState('list'); // 'calendar' or 'list'
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [selectedBookingForReview, setSelectedBookingForReview] = useState(null);
