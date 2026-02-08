@@ -60,7 +60,19 @@ const createMatch = async (req, res) => {
 
     if (ambassadorQuery.rows.length > 0) {
       const ambassadorName = ambassadorQuery.rows[0].name;
-      const welcomeMessage = `Hi ${ambassadorName}! I'm interested in learning more about you to see if you'd be a good fit for some events coming up. When would be a good time to chat?`;
+
+      // Get brand email to customize message for YC Buzz
+      const brandEmailQuery = await db.query(
+        'SELECT email FROM users WHERE id = $1',
+        [brandId]
+      );
+
+      const brandEmail = brandEmailQuery.rows[0]?.email;
+
+      // Customize message for YC Buzz preview account
+      const welcomeMessage = brandEmail === 'yc@broughtby.co'
+        ? `Hi ${ambassadorName}! We're launching a new coffee brand for founders and want to do a series of coffee chats this spring and summer in chicago. I think you could be a good fit. Interested?`
+        : `Hi ${ambassadorName}! I'm interested in learning more about you to see if you'd be a good fit for some events coming up. When would be a good time to chat?`;
 
       // Insert the welcome message into the messages table
       await db.query(

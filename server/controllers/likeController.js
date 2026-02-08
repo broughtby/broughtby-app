@@ -36,7 +36,7 @@ const createLike = async (req, res) => {
 
     // Get brand information including preview status
     const brandCheck = await db.query(
-      'SELECT name, location, bio, is_preview FROM users WHERE id = $1',
+      'SELECT name, location, bio, is_preview, email FROM users WHERE id = $1',
       [req.user.userId]
     );
 
@@ -83,7 +83,10 @@ const createLike = async (req, res) => {
       const matchId = matchResult.rows[0].id;
 
       // Create auto-welcome message from brand
-      const welcomeMessage = `Hi ${ambassador.name}! I'm interested in learning more about you to see if you'd be a good fit for some events coming up. When would be a good time to chat?`;
+      // Customize message for YC Buzz preview account
+      const welcomeMessage = brand.email === 'yc@broughtby.co'
+        ? `Hi ${ambassador.name}! We're launching a new coffee brand for founders and want to do a series of coffee chats this spring and summer in chicago. I think you could be a good fit. Interested?`
+        : `Hi ${ambassador.name}! I'm interested in learning more about you to see if you'd be a good fit for some events coming up. When would be a good time to chat?`;
 
       await db.query(
         `INSERT INTO messages (match_id, sender_id, content)
@@ -346,8 +349,19 @@ const demoAcceptLike = async (req, res) => {
 
     const matchId = matchResult.rows[0].id;
 
+    // Get brand email to customize message for YC Buzz
+    const brandEmailQuery = await db.query(
+      'SELECT email FROM users WHERE id = $1',
+      [req.user.userId]
+    );
+
+    const brandEmail = brandEmailQuery.rows[0]?.email;
+
     // Create auto-welcome message from brand
-    const welcomeMessage = `Hi ${ambassador.name}! I'm interested in learning more about you to see if you'd be a good fit for some events coming up. When would be a good time to chat?`;
+    // Customize message for YC Buzz preview account
+    const welcomeMessage = brandEmail === 'yc@broughtby.co'
+      ? `Hi ${ambassador.name}! We're launching a new coffee brand for founders and want to do a series of coffee chats this spring and summer in chicago. I think you could be a good fit. Interested?`
+      : `Hi ${ambassador.name}! I'm interested in learning more about you to see if you'd be a good fit for some events coming up. When would be a good time to chat?`;
 
     await db.query(
       `INSERT INTO messages (match_id, sender_id, content)
