@@ -169,7 +169,7 @@ const getUserReviews = async (req, res) => {
               b.event_date
        FROM reviews r
        JOIN users reviewer ON r.reviewer_id = reviewer.id
-       JOIN bookings b ON r.booking_id = b.id
+       LEFT JOIN bookings b ON r.booking_id = b.id
        WHERE r.reviewee_id = $1
        ORDER BY r.created_at DESC`,
       [userId]
