@@ -85,4 +85,9 @@ export const reviewAPI = {
   getBookingsNeedingReview: () => api.get('/reviews/needs-review'),
 };
 
+// Preview endpoints
+export const previewAPI = {
+  resetPreview: () => api.post('/preview/reset'),
+};
+
 export default api;

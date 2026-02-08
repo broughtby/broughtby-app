@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { userAPI, likeAPI, reviewAPI, bookingAPI, messageAPI, matchAPI } from '../services/api';
+import { userAPI, likeAPI, reviewAPI, bookingAPI, messageAPI, matchAPI, previewAPI } from '../services/api';
 import { getPhotoUrl } from '../services/upload';
 import DisplayName from '../components/DisplayName';
 import DisplayRate from '../components/DisplayRate';
@@ -355,6 +355,23 @@ Status: Pending confirmation`;
     }, 5000);
   };
 
+  const handleResetPreview = async () => {
+    const confirmed = window.confirm(
+      'Reset your preview? This will clear all your matches, messages, and likes so you can start fresh.'
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await previewAPI.resetPreview();
+      // Refresh the page to reset the discover view
+      window.location.reload();
+    } catch (error) {
+      console.error('Failed to reset preview:', error);
+      alert('Failed to reset preview. Please try again.');
+    }
+  };
+
   if (loading) {
     return (
       <div className="discover-container">
@@ -599,12 +616,20 @@ Status: Pending confirmation`;
               <p className="preview-text">
                 <strong>Preview Mode</strong> — Browse real ambassadors, then book {findPreviewAmbassador()?.name || 'Kim Kardashian'} to try the full experience
               </p>
-              <button
-                className="preview-find-button"
-                onClick={scrollToPreviewAmbassador}
-              >
-                Find {findPreviewAmbassador()?.name?.split(' ')[0] || 'Kim'}
-              </button>
+              <div className="preview-banner-actions">
+                <button
+                  className="preview-find-button"
+                  onClick={scrollToPreviewAmbassador}
+                >
+                  Find {findPreviewAmbassador()?.name?.split(' ')[0] || 'Kim'}
+                </button>
+                <button
+                  className="preview-reset-button"
+                  onClick={handleResetPreview}
+                >
+                  ↺ Start Over
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -869,12 +894,20 @@ Status: Pending confirmation`;
             <p className="preview-text">
               <strong>Preview Mode</strong> — Browse real ambassadors, then book {findPreviewAmbassador()?.name || 'Kim Kardashian'} to try the full experience
             </p>
-            <button
-              className="preview-find-button"
-              onClick={scrollToPreviewAmbassador}
-            >
-              Find {findPreviewAmbassador()?.name?.split(' ')[0] || 'Kim'}
-            </button>
+            <div className="preview-banner-actions">
+              <button
+                className="preview-find-button"
+                onClick={scrollToPreviewAmbassador}
+              >
+                Find {findPreviewAmbassador()?.name?.split(' ')[0] || 'Kim'}
+              </button>
+              <button
+                className="preview-reset-button"
+                onClick={handleResetPreview}
+              >
+                ↺ Start Over
+              </button>
+            </div>
           </div>
         </div>
       )}

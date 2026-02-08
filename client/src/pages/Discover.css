@@ -1092,6 +1092,13 @@
   font-weight: 700;
 }
 
+.preview-banner-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
 .preview-find-button {
   background-color: var(--gold);
   color: var(--navy);
@@ -1115,6 +1122,30 @@
 .preview-find-button:active {
   transform: translateY(0);
   box-shadow: 0 2px 4px rgba(212, 175, 55, 0.2);
+}
+
+.preview-reset-button {
+  background-color: transparent;
+  color: var(--navy);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 0.85rem;
+  border: 1.5px solid var(--navy);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  opacity: 0.7;
+}
+
+.preview-reset-button:hover {
+  opacity: 1;
+  background-color: rgba(10, 37, 64, 0.05);
+  transform: translateY(-1px);
+}
+
+.preview-reset-button:active {
+  transform: translateY(0);
 }
 
 /* Preview Mode Toast */
@@ -1235,9 +1266,21 @@
     font-size: 0.9rem;
   }
 
+  .preview-banner-actions {
+    width: 100%;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
   .preview-find-button {
     padding: 0.6rem 1rem;
     font-size: 0.85rem;
+    width: 100%;
+  }
+
+  .preview-reset-button {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
     width: 100%;
   }
 
