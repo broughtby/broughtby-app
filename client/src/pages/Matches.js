@@ -199,8 +199,8 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
               {likes.map((like) => (
                 <div key={like.id} className="like-card">
                   <BrandAvatar
-                    companyLogo={like.profile_photo}
-                    personPhoto={like.company_logo}
+                    companyLogo={like.company_logo}
+                    personPhoto={like.profile_photo}
                     companyName={like.company_name}
                     personName={like.name}
                     size="large"
@@ -257,8 +257,8 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
                 <div key={match.match_id} className="match-card">
                   {isAmbassador ? (
                     <BrandAvatar
-                      companyLogo={match.profile_photo}
-                      personPhoto={match.company_logo}
+                      companyLogo={match.company_logo}
+                      personPhoto={match.profile_photo}
                       companyName={match.company_name}
                       personName={match.name}
                       size="large"

@@ -617,8 +617,8 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
         {isBrand && user && (
           <div className="welcome-banner" onClick={() => navigate('/profile')}>
             <BrandAvatar
-              companyLogo={user.profile_photo}
-              personPhoto={user.company_logo}
+              companyLogo={user.company_logo}
+              personPhoto={user.profile_photo}
               companyName={user.company_name}
               personName={user.name}
               size="large"
@@ -895,8 +895,8 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
       {isBrand && user && (
         <div className="welcome-banner" onClick={() => navigate('/profile')}>
           <BrandAvatar
-            companyLogo={user.profile_photo}
-            personPhoto={user.company_logo}
+            companyLogo={user.company_logo}
+            personPhoto={user.profile_photo}
             companyName={user.company_name}
             personName={user.name}
             size="large"

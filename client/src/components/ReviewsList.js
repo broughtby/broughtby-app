@@ -54,8 +54,8 @@ const ReviewsList = ({ reviews, reviewCount, averageRating, demoMode }) => {
               <div className="reviewer-info">
                 {review.reviewer_role === 'brand' ? (
                   <BrandAvatar
-                    companyLogo={review.reviewer_photo}
-                    personPhoto={review.reviewer_company_logo}
+                    companyLogo={review.reviewer_company_logo}
+                    personPhoto={review.reviewer_photo}
                     companyName={review.reviewer_company_name}
                     personName={review.reviewer_name}
                     size="medium"
