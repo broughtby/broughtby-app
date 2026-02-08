@@ -251,6 +251,9 @@ io.on('connection', (socket) => {
 
           console.log(`🤖 AI auto-reply: Generating reply from ${ambassadorName}...`);
 
+          // Wait 500ms before showing typing indicator (let frontend process the user's message first)
+          await new Promise(resolve => setTimeout(resolve, 500));
+
           // Emit typing indicator
           console.log(`📤 Emitting typing indicator to match:${matchId} from user ${recipientId}`);
           io.to(`match:${matchId}`).emit('user_typing', {
