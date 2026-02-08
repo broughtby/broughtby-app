@@ -1,0 +1,105 @@
+/* BrandAvatar - Company logo with optional person photo overlay */
+
+.brand-avatar {
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+/* Size variants */
+.brand-avatar-small {
+  width: 36px;
+  height: 36px;
+}
+
+.brand-avatar-medium {
+  width: 48px;
+  height: 48px;
+}
+
+.brand-avatar-large {
+  width: 72px;
+  height: 72px;
+}
+
+/* Main circle - Company Logo */
+.brand-avatar-main {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Placeholder for missing company logo */
+.brand-avatar-placeholder {
+  background: var(--navy);
+  color: var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.9em;
+}
+
+.brand-avatar-small .brand-avatar-placeholder {
+  font-size: 0.75rem;
+}
+
+.brand-avatar-medium .brand-avatar-placeholder {
+  font-size: 1rem;
+}
+
+.brand-avatar-large .brand-avatar-placeholder {
+  font-size: 1.5rem;
+}
+
+/* Small overlapping circle - Person Photo */
+.brand-avatar-person {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 40%;
+  height: 40%;
+  border-radius: 50%;
+  border: 2px solid white;
+  background: white;
+  overflow: hidden;
+}
+
+.brand-avatar-person-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Placeholder for missing person photo */
+.brand-avatar-person-placeholder {
+  width: 100%;
+  height: 100%;
+  background: var(--gold);
+  color: var(--navy);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.5em;
+}
+
+.brand-avatar-small .brand-avatar-person-placeholder {
+  font-size: 0.5rem;
+}
+
+.brand-avatar-medium .brand-avatar-person-placeholder {
+  font-size: 0.6rem;
+}
+
+.brand-avatar-large .brand-avatar-person-placeholder {
+  font-size: 0.9rem;
+}
+
+/* Single avatar fallback (for old brands without company info) */
+.brand-avatar-single {
+  /* No special styling needed, just uses main circle */
+}

@@ -246,11 +246,26 @@ const Profile = () => {
               </div>
             )}
 
-            <ImageUpload
-              currentImage={formData.profile_photo ? getPhotoUrl(formData.profile_photo) : ''}
-              onImageChange={(filePath) => setFormData({ ...formData, profile_photo: filePath })}
-              label="Profile Photo"
-            />
+            {user.role === 'brand' ? (
+              <>
+                <ImageUpload
+                  currentImage={formData.company_logo ? getPhotoUrl(formData.company_logo) : ''}
+                  onImageChange={(filePath) => setFormData({ ...formData, company_logo: filePath })}
+                  label="Company Logo"
+                />
+                <ImageUpload
+                  currentImage={formData.profile_photo ? getPhotoUrl(formData.profile_photo) : ''}
+                  onImageChange={(filePath) => setFormData({ ...formData, profile_photo: filePath })}
+                  label="Your Photo"
+                />
+              </>
+            ) : (
+              <ImageUpload
+                currentImage={formData.profile_photo ? getPhotoUrl(formData.profile_photo) : ''}
+                onImageChange={(filePath) => setFormData({ ...formData, profile_photo: filePath })}
+                label="Profile Photo"
+              />
+            )}
 
             <div className="form-group">
               <label>{user.role === 'brand' ? 'About Your Brand' : 'Bio'}</label>

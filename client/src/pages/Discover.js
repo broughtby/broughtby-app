@@ -6,6 +6,7 @@ import { getPhotoUrl } from '../services/upload';
 import DisplayName from '../components/DisplayName';
 import DisplayRate from '../components/DisplayRate';
 import ReviewsList from '../components/ReviewsList';
+import BrandAvatar from '../components/BrandAvatar';
 import './Discover.css';
 
 const Discover = () => {
@@ -423,15 +424,13 @@ const Discover = () => {
       <div className="discover-container">
         {isBrand && user && (
           <div className="welcome-banner" onClick={() => navigate('/profile')}>
-            <div className="welcome-avatar">
-              {user.profile_photo ? (
-                <img src={getPhotoUrl(user.profile_photo)} alt={user.name} />
-              ) : (
-                <div className="welcome-avatar-placeholder">
-                  {user.name?.charAt(0).toUpperCase()}
-                </div>
-              )}
-            </div>
+            <BrandAvatar
+              companyLogo={user.company_logo || user.profile_photo}
+              personPhoto={user.profile_photo}
+              companyName={user.company_name}
+              personName={user.name}
+              size="large"
+            />
             <div className="welcome-text">
               <h2>Welcome back, {user.company_name || user.name?.split(' ')[0]}!</h2>
               <p>Find your next brand ambassador</p>
@@ -606,15 +605,13 @@ const Discover = () => {
     <div className="discover-container brand-grid-view">
       {isBrand && user && (
         <div className="welcome-banner" onClick={() => navigate('/profile')}>
-          <div className="welcome-avatar">
-            {user.profile_photo ? (
-              <img src={getPhotoUrl(user.profile_photo)} alt={user.name} />
-            ) : (
-              <div className="welcome-avatar-placeholder">
-                {user.name?.charAt(0).toUpperCase()}
-              </div>
-            )}
-          </div>
+          <BrandAvatar
+            companyLogo={user.company_logo || user.profile_photo}
+            personPhoto={user.profile_photo}
+            companyName={user.company_name}
+            personName={user.name}
+            size="large"
+          />
           <div className="welcome-text">
             <h2>Welcome back, {user.company_name || user.name?.split(' ')[0]}!</h2>
             <p>Find your next brand ambassador</p>

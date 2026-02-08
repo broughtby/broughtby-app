@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { adminAPI } from '../services/api';
+import BrandAvatar from './BrandAvatar';
 import './Navbar.css';
 
 const Navbar = () => {
@@ -165,7 +166,15 @@ const Navbar = () => {
                             onClick={() => handleSelectUser(user)}
                           >
                             <div className="user-info">
-                              {user.profile_photo ? (
+                              {user.role === 'brand' ? (
+                                <BrandAvatar
+                                  companyLogo={user.company_logo || user.profile_photo}
+                                  personPhoto={user.profile_photo}
+                                  companyName={user.company_name}
+                                  personName={user.name}
+                                  size="small"
+                                />
+                              ) : user.profile_photo ? (
                                 <img
                                   src={user.profile_photo}
                                   alt={user.name}
@@ -177,7 +186,7 @@ const Navbar = () => {
                                 </div>
                               )}
                               <div className="user-details">
-                                <div className="user-name">{user.name}</div>
+                                <div className="user-name">{user.company_name || user.name}</div>
                                 <div className="user-email">{user.email}</div>
                               </div>
                             </div>

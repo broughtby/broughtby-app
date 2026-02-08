@@ -5,6 +5,7 @@ import { matchAPI, likeAPI, bookingAPI, messageAPI } from '../services/api';
 import { getPhotoUrl } from '../services/upload';
 import DisplayName from '../components/DisplayName';
 import BookingModal from '../components/BookingModal';
+import BrandAvatar from '../components/BrandAvatar';
 import './Matches.css';
 
 const Matches = () => {
@@ -193,10 +194,12 @@ Status: Pending confirmation`;
             <div className="likes-grid">
               {likes.map((like) => (
                 <div key={like.id} className="like-card">
-                  <img
-                    src={like.profile_photo ? getPhotoUrl(like.profile_photo) : 'https://via.placeholder.com/200'}
-                    alt={like.name}
-                    className="like-photo"
+                  <BrandAvatar
+                    companyLogo={like.company_logo || like.profile_photo}
+                    personPhoto={like.profile_photo}
+                    companyName={like.company_name}
+                    personName={like.name}
+                    size="large"
                   />
                   <div className="like-info">
                     <h3><DisplayName user={like} demoMode={demoMode} /></h3>
@@ -248,11 +251,21 @@ Status: Pending confirmation`;
             <div className="matches-grid">
               {matches.map((match) => (
                 <div key={match.match_id} className="match-card">
-                  <img
-                    src={match.profile_photo ? getPhotoUrl(match.profile_photo) : 'https://via.placeholder.com/200'}
-                    alt={match.name}
-                    className="match-photo"
-                  />
+                  {isAmbassador ? (
+                    <BrandAvatar
+                      companyLogo={match.company_logo || match.profile_photo}
+                      personPhoto={match.profile_photo}
+                      companyName={match.company_name}
+                      personName={match.name}
+                      size="large"
+                    />
+                  ) : (
+                    <img
+                      src={match.profile_photo ? getPhotoUrl(match.profile_photo) : 'https://via.placeholder.com/200'}
+                      alt={match.name}
+                      className="match-photo"
+                    />
+                  )}
                   <div className="match-info">
                     <h3><DisplayName user={match} demoMode={demoMode} /></h3>
                     {match.location && <p className="match-location">{match.location}</p>}
