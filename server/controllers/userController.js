@@ -152,19 +152,26 @@ const getAmbassadors = async (req, res) => {
     const { limit = 50, offset = 0 } = req.query;
 
     if (req.user.role === 'brand') {
-      // Check if user is admin
-      const adminCheck = await db.query(
-        'SELECT is_admin FROM users WHERE id = $1',
+      // Check if user is admin or preview account
+      const userCheck = await db.query(
+        'SELECT is_admin, is_preview FROM users WHERE id = $1',
         [req.user.userId]
       );
-      const isAdmin = adminCheck.rows[0]?.is_admin || false;
+      const isAdmin = userCheck.rows[0]?.is_admin || false;
+      const isPreview = userCheck.rows[0]?.is_preview || false;
 
-      // Build the WHERE clause based on admin status
+      // Build the WHERE clause based on admin/preview status
       // Admins see ALL ambassadors (including test accounts)
-      // Non-admins only see active, non-test ambassadors
-      const whereClause = isAdmin
-        ? "WHERE u.role = 'ambassador' AND u.is_active = TRUE"
-        : "WHERE u.role = 'ambassador' AND u.is_active = TRUE AND (u.is_test = FALSE OR u.is_test IS NULL)";
+      // Preview brands see non-test ambassadors + preview ambassadors (even if test)
+      // Regular brands only see active, non-test ambassadors
+      let whereClause;
+      if (isAdmin) {
+        whereClause = "WHERE u.role = 'ambassador' AND u.is_active = TRUE";
+      } else if (isPreview) {
+        whereClause = "WHERE u.role = 'ambassador' AND u.is_active = TRUE AND ((u.is_test = FALSE OR u.is_test IS NULL) OR u.is_preview_ambassador = TRUE)";
+      } else {
+        whereClause = "WHERE u.role = 'ambassador' AND u.is_active = TRUE AND (u.is_test = FALSE OR u.is_test IS NULL)";
+      }
 
       // Brands browse all ambassadors with status indicators
       const result = await db.query(
