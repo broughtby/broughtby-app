@@ -50,16 +50,20 @@ const Chat = () => {
   }, [matchId]);
 
   useEffect(() => {
+    console.log('🔧 Setting up Chat component for match:', matchId);
     fetchMessages();
     fetchMatchData();
     socketService.joinMatch(matchId);
 
     // Set up socket listeners
+    console.log('🎧 Setting up socket listeners...');
     socketService.onNewMessage(handleNewMessage);
     socketService.onUserTyping(handleUserTyping);
     socketService.onUserStopTyping(handleUserStopTyping);
+    console.log('✓ Socket listeners configured');
 
     return () => {
+      console.log('🔌 Cleaning up socket listeners for match:', matchId);
       socketService.leaveMatch(matchId);
       socketService.removeAllListeners();
     };
@@ -75,15 +79,25 @@ const Chat = () => {
   };
 
   const handleUserTyping = (data) => {
+    console.log('🔔 Received user_typing event:', data);
+    console.log('   Current user ID:', user.id);
+    console.log('   Typing user ID:', data.userId);
+
     // Only show typing indicator if it's the other person typing, not us
     if (data.userId !== user.id) {
+      console.log('✓ Showing typing indicator');
       setIsTyping(true);
+    } else {
+      console.log('✗ Not showing typing indicator (same user)');
     }
   };
 
   const handleUserStopTyping = (data) => {
+    console.log('🔔 Received user_stop_typing event:', data);
+
     // Only hide typing indicator if it's the other person who stopped typing
     if (data.userId !== user.id) {
+      console.log('✓ Hiding typing indicator');
       setIsTyping(false);
     }
   };
@@ -305,6 +319,9 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
             <span></span>
           </div>
         )}
+
+        {/* Debug indicator */}
+        {isTyping && console.log('💬 Rendering typing indicator - isTyping:', isTyping)}
       </div>
 
       {/* Action Bar - Only show for brands */}
