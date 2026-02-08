@@ -4,20 +4,30 @@ import { getPhotoUrl } from '../services/upload';
 import DisplayName from './DisplayName';
 import './ReviewModal.css';
 
-const ReviewModal = ({ booking, partnerInfo, onClose, onSubmit }) => {
+const ReviewModal = ({ booking, partnerInfo, onClose, onSubmit, isPreview }) => {
   const { user, demoMode } = useAuth();
+
+  // Pre-populate with positive review for preview users
+  const getDefaultComment = () => {
+    if (!isPreview) return '';
+    if (user.role === 'brand') {
+      return 'Allan was fantastic! He showed up on time, engaged with all the founders, and made sure everyone signed up for our newsletter. He represented our brand perfectly and got so much great product feedback on our coffee. Would definitely book again for future YCBuzz events!';
+    }
+    return '';
+  };
+
   const [formData, setFormData] = useState({
-    overallRating: 0,
+    overallRating: isPreview ? 5 : 0,
     wouldWorkAgain: true,
-    comment: '',
+    comment: getDefaultComment(),
     // Brand ratings for ambassador
-    punctualityRating: 0,
-    professionalismRating: 0,
-    engagementRating: 0,
+    punctualityRating: isPreview ? 5 : 0,
+    professionalismRating: isPreview ? 5 : 0,
+    engagementRating: isPreview ? 5 : 0,
     // Ambassador ratings for brand
-    clearExpectationsRating: 0,
-    onsiteSupportRating: 0,
-    respectfulTreatmentRating: 0,
+    clearExpectationsRating: isPreview ? 5 : 0,
+    onsiteSupportRating: isPreview ? 5 : 0,
+    respectfulTreatmentRating: isPreview ? 5 : 0,
   });
 
   const [errors, setErrors] = useState({});

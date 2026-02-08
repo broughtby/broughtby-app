@@ -19,6 +19,8 @@ const Calendar = () => {
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [selectedBookingForReview, setSelectedBookingForReview] = useState(null);
   const [bookingReviews, setBookingReviews] = useState({}); // Map of booking ID to review status
+  const [showReviewPrompt, setShowReviewPrompt] = useState(false);
+  const [promptBooking, setPromptBooking] = useState(null);
 
   useEffect(() => {
     fetchBookings();
@@ -283,11 +285,31 @@ Status: Cancelled`;
       await reviewAPI.createReview(reviewData);
       alert('Review submitted successfully!');
       handleCloseReview();
+      handleCloseReviewPrompt();
       await fetchBookings(); // Refresh to update review status
     } catch (error) {
       console.error('Failed to submit review:', error);
       alert(error.response?.data?.error || 'Failed to submit review. Please try again.');
     }
+  };
+
+  // Handle checkout complete (triggers review prompt for preview users)
+  const handleCheckoutComplete = (booking) => {
+    setPromptBooking(booking);
+    setShowReviewPrompt(true);
+  };
+
+  // Handle opening review from prompt
+  const handleOpenReviewFromPrompt = () => {
+    setShowReviewPrompt(false);
+    setSelectedBookingForReview(promptBooking);
+    setShowReviewModal(true);
+  };
+
+  // Handle closing review prompt
+  const handleCloseReviewPrompt = () => {
+    setShowReviewPrompt(false);
+    setPromptBooking(null);
   };
 
   // Group bookings by status
@@ -479,6 +501,7 @@ Status: Cancelled`;
                             bookingStatus={booking.status}
                             onUpdate={fetchBookings}
                             isPreview={user?.isPreview}
+                            onCheckoutComplete={() => handleCheckoutComplete(booking)}
                           />
                         </div>
                       ))}
@@ -639,6 +662,7 @@ Status: Cancelled`;
                       bookingStatus={booking.status}
                       onUpdate={fetchBookings}
                       isPreview={user?.isPreview}
+                      onCheckoutComplete={() => handleCheckoutComplete(booking)}
                     />
                   </div>
                 ))}
@@ -719,6 +743,7 @@ Status: Cancelled`;
                       bookingStatus={booking.status}
                       onUpdate={fetchBookings}
                       isPreview={user?.isPreview}
+                      onCheckoutComplete={() => handleCheckoutComplete(booking)}
                     />
                   </div>
                 ))}
@@ -730,6 +755,31 @@ Status: Cancelled`;
         </>
       )}
 
+      {/* Review Prompt Modal */}
+      {showReviewPrompt && promptBooking && (
+        <div className="review-prompt-modal" onClick={handleCloseReviewPrompt}>
+          <div className="review-prompt-content" onClick={(e) => e.stopPropagation()}>
+            <div className="review-prompt-icon">⭐</div>
+            <h2>What did you think of Allan?</h2>
+            <p>Share your experience to help other brands discover great ambassadors!</p>
+            <div className="review-prompt-actions">
+              <button
+                className="leave-review-button"
+                onClick={handleOpenReviewFromPrompt}
+              >
+                Leave a Review
+              </button>
+              <button
+                className="skip-review-button"
+                onClick={handleCloseReviewPrompt}
+              >
+                Maybe Later
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Review Modal */}
       {showReviewModal && selectedBookingForReview && (
         <ReviewModal
@@ -737,6 +787,7 @@ Status: Cancelled`;
           partnerInfo={getBookingPartner(selectedBookingForReview)}
           onClose={handleCloseReview}
           onSubmit={handleSubmitReview}
+          isPreview={user?.isPreview}
         />
       )}
     </div>

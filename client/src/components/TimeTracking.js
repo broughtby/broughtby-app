@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { bookingAPI } from '../services/api';
 import './TimeTracking.css';
 
-const TimeTracking = ({ bookingId, bookingStatus, onUpdate, isPreview }) => {
+const TimeTracking = ({ bookingId, bookingStatus, onUpdate, isPreview, onCheckoutComplete }) => {
   const { isAmbassador, isBrand } = useAuth();
   const [timeStatus, setTimeStatus] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -49,7 +49,15 @@ const TimeTracking = ({ bookingId, bookingStatus, onUpdate, isPreview }) => {
       await bookingAPI.checkOut(bookingId);
       await fetchTimeStatus();
       if (onUpdate) onUpdate();
-      alert('Checked out successfully!');
+
+      // For preview brands, trigger review prompt after checkout
+      if (isPreview && isBrand && onCheckoutComplete) {
+        setTimeout(() => {
+          onCheckoutComplete();
+        }, 500); // Small delay for better UX
+      } else {
+        alert('Checked out successfully!');
+      }
     } catch (error) {
       console.error('Check-out failed:', error);
       alert(error.response?.data?.error || 'Failed to check out. Please try again.');
