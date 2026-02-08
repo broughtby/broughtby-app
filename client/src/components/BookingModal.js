@@ -6,14 +6,24 @@ import DisplayRate from './DisplayRate';
 import './BookingModal.css';
 
 const BookingModal = ({ ambassador, onClose, onSubmit }) => {
-  const { demoMode } = useAuth();
+  const { demoMode, user } = useAuth();
+
+  // Pre-populate with YC-themed defaults for preview users
+  const getDefaultEventDate = () => {
+    const twoWeeksOut = new Date();
+    twoWeeksOut.setDate(twoWeeksOut.getDate() + 14);
+    return twoWeeksOut.toISOString().split('T')[0];
+  };
+
+  const isPreview = user?.isPreview;
+
   const [formData, setFormData] = useState({
-    eventName: '',
-    eventDate: '',
-    startTime: '',
-    endTime: '',
-    eventLocation: '',
-    notes: '',
+    eventName: isPreview ? 'YC Founder Coffee Meetup' : '',
+    eventDate: isPreview ? getDefaultEventDate() : '',
+    startTime: isPreview ? '10:00' : '',
+    endTime: isPreview ? '12:00' : '',
+    eventLocation: isPreview ? 'Intelligentsia Coffee, Chicago' : '',
+    notes: isPreview ? 'Please wear the branded t-shirt we sent you. Make sure attendees sign up with the QR code to join our email newsletter. Looking forward to hearing how it goes and what everyone thinks of the coffee!' : '',
   });
 
   const [errors, setErrors] = useState({});
