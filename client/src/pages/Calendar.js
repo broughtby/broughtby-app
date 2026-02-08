@@ -318,16 +318,16 @@ Status: Cancelled`;
         </div>
         <div className="view-toggle">
           <button
-            className={`toggle-btn ${viewMode === 'calendar' ? 'active' : ''}`}
-            onClick={() => setViewMode('calendar')}
-          >
-            Calendar View
-          </button>
-          <button
             className={`toggle-btn ${viewMode === 'list' ? 'active' : ''}`}
             onClick={() => setViewMode('list')}
           >
             List View
+          </button>
+          <button
+            className={`toggle-btn ${viewMode === 'calendar' ? 'active' : ''}`}
+            onClick={() => setViewMode('calendar')}
+          >
+            Calendar View
           </button>
         </div>
       </div>
