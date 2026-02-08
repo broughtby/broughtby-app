@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import ImageUpload from '../components/ImageUpload';
 import ReviewsList from '../components/ReviewsList';
+import BrandAvatar from '../components/BrandAvatar';
 import { getPhotoUrl } from '../services/upload';
 import { US_STATES, MAJOR_CITIES, parseLocation, formatLocation } from '../data/locations';
 import { adminAPI, reviewAPI } from '../services/api';
@@ -364,11 +365,21 @@ const Profile = () => {
         ) : (
           <div className="profile-display">
             <div className="profile-photo-section">
-              <img
-                src={user.profile_photo ? getPhotoUrl(user.profile_photo) : 'https://via.placeholder.com/200'}
-                alt={user.company_name || user.name}
-                className="profile-photo"
-              />
+              {user.role === 'brand' ? (
+                <BrandAvatar
+                  companyLogo={user.profile_photo}
+                  personPhoto={user.company_logo}
+                  companyName={user.company_name}
+                  personName={user.name}
+                  size="large"
+                />
+              ) : (
+                <img
+                  src={user.profile_photo ? getPhotoUrl(user.profile_photo) : 'https://via.placeholder.com/200'}
+                  alt={user.name}
+                  className="profile-photo"
+                />
+              )}
               <div className="profile-basic">
                 <h2>{user.role === 'brand' ? (user.company_name || user.name) : user.name}</h2>
                 {user.role === 'brand' && user.company_name && (

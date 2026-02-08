@@ -76,6 +76,11 @@
   object-fit: cover;
 }
 
+.profile-photo-section .brand-avatar {
+  width: 150px;
+  height: 150px;
+}
+
 .profile-basic h2 {
   font-size: 1.75rem;
   margin-bottom: 0.5rem;
