@@ -247,8 +247,8 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
             <div className="empty-state">
               <p>
                 {isAmbassador
-                  ? 'No partnerships yet. Accept requests from brands to start messaging!'
-                  : 'No partnerships yet. Request to work with ambassadors to get started!'}
+                  ? 'No matches yet. Accept requests from brands to start messaging!'
+                  : 'No matches yet. Request to work with ambassadors to get started!'}
               </p>
             </div>
           ) : (
