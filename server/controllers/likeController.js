@@ -2,6 +2,15 @@ const db = require('../config/database');
 const { sendPartnershipRequestEmail } = require('../services/emailService');
 const Anthropic = require('@anthropic-ai/sdk');
 
+// Import io instance for Socket.io events
+let io;
+const getIo = () => {
+  if (!io) {
+    io = require('../index').io;
+  }
+  return io;
+};
+
 const createLike = async (req, res) => {
   try {
     const { ambassadorId } = req.body;
@@ -87,6 +96,13 @@ const createLike = async (req, res) => {
         try {
           console.log(`🤖 Generating AI welcome reply from ${ambassador.name} (auto-match)...`);
 
+          // Emit typing indicator
+          const ioInstance = getIo();
+          ioInstance.to(`match:${matchId}`).emit('user_typing', {
+            userId: ambassadorId,
+            matchId: matchId,
+          });
+
           // Call Anthropic API
           const anthropic = new Anthropic({
             apiKey: process.env.ANTHROPIC_API_KEY,
@@ -114,16 +130,51 @@ const createLike = async (req, res) => {
           const delay = 2000 + Math.random() * 1000; // 2-3 seconds
           await new Promise(resolve => setTimeout(resolve, delay));
 
+          // Stop typing indicator
+          ioInstance.to(`match:${matchId}`).emit('user_stop_typing', {
+            userId: ambassadorId,
+            matchId: matchId,
+          });
+
           // Save AI reply to database
-          await db.query(
+          const aiMessageResult = await db.query(
             `INSERT INTO messages (match_id, sender_id, content)
-             VALUES ($1, $2, $3)`,
+             VALUES ($1, $2, $3)
+             RETURNING id, match_id, sender_id, content, read, created_at`,
             [matchId, ambassadorId, aiReply]
           );
 
-          console.log(`🤖 AI welcome reply saved to database for match ${matchId}`);
+          const aiMessage = aiMessageResult.rows[0];
+
+          // Get ambassador info for enriched message
+          const ambassadorInfo = await db.query(
+            'SELECT name, profile_photo FROM users WHERE id = $1',
+            [ambassadorId]
+          );
+
+          const enrichedAiMessage = {
+            ...aiMessage,
+            sender_name: ambassadorInfo.rows[0].name,
+            sender_photo: ambassadorInfo.rows[0].profile_photo,
+          };
+
+          // Broadcast AI reply to match room via Socket.io
+          ioInstance.to(`match:${matchId}`).emit('new_message', enrichedAiMessage);
+
+          console.log(`🤖 AI welcome reply sent to match ${matchId}`);
         } catch (aiError) {
           console.error('Failed to generate AI welcome reply:', aiError);
+
+          // Stop typing indicator on error
+          try {
+            const ioInstance = getIo();
+            ioInstance.to(`match:${matchId}`).emit('user_stop_typing', {
+              userId: ambassadorId,
+              matchId: matchId,
+            });
+          } catch (stopTypingError) {
+            console.error('Failed to stop typing indicator:', stopTypingError);
+          }
           // Don't throw - AI reply failures shouldn't block the match creation
         }
       })();
@@ -350,6 +401,13 @@ const demoAcceptLike = async (req, res) => {
 
         console.log(`🤖 Generating AI welcome reply from ${ambassador.name} (demo accept)...`);
 
+        // Emit typing indicator
+        const ioInstance = getIo();
+        ioInstance.to(`match:${matchId}`).emit('user_typing', {
+          userId: ambassadorId,
+          matchId: matchId,
+        });
+
         // Call Anthropic API
         const anthropic = new Anthropic({
           apiKey: process.env.ANTHROPIC_API_KEY,
@@ -377,16 +435,51 @@ const demoAcceptLike = async (req, res) => {
         const delay = 2000 + Math.random() * 1000; // 2-3 seconds
         await new Promise(resolve => setTimeout(resolve, delay));
 
+        // Stop typing indicator
+        ioInstance.to(`match:${matchId}`).emit('user_stop_typing', {
+          userId: ambassadorId,
+          matchId: matchId,
+        });
+
         // Save AI reply to database
-        await db.query(
+        const aiMessageResult = await db.query(
           `INSERT INTO messages (match_id, sender_id, content)
-           VALUES ($1, $2, $3)`,
+           VALUES ($1, $2, $3)
+           RETURNING id, match_id, sender_id, content, read, created_at`,
           [matchId, ambassadorId, aiReply]
         );
 
-        console.log(`🤖 AI welcome reply saved to database for match ${matchId}`);
+        const aiMessage = aiMessageResult.rows[0];
+
+        // Get ambassador info for enriched message
+        const ambassadorInfo = await db.query(
+          'SELECT name, profile_photo FROM users WHERE id = $1',
+          [ambassadorId]
+        );
+
+        const enrichedAiMessage = {
+          ...aiMessage,
+          sender_name: ambassadorInfo.rows[0].name,
+          sender_photo: ambassadorInfo.rows[0].profile_photo,
+        };
+
+        // Broadcast AI reply to match room via Socket.io
+        ioInstance.to(`match:${matchId}`).emit('new_message', enrichedAiMessage);
+
+        console.log(`🤖 AI welcome reply sent to match ${matchId}`);
       } catch (aiError) {
         console.error('Failed to generate AI welcome reply:', aiError);
+
+        // Stop typing indicator on error
+        try {
+          const ioInstance = getIo();
+          ioInstance.to(`match:${matchId}`).emit('user_stop_typing', {
+            userId: ambassadorId,
+            matchId: matchId,
+          });
+        } catch (stopTypingError) {
+          console.error('Failed to stop typing indicator:', stopTypingError);
+        }
         // Don't throw - AI reply failures shouldn't block the match creation
       }
     })();
