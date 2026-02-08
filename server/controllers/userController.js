@@ -13,7 +13,7 @@ const getProfile = async (req, res) => {
   try {
     const result = await db.query(
       `SELECT id, email, role, name, profile_photo, bio, location, age,
-              skills, hourly_rate, availability, rating, is_admin, created_at,
+              skills, hourly_rate, availability, rating, is_admin, is_preview, created_at,
               company_name, company_logo, company_website, contact_title
        FROM users WHERE id = $1`,
       [req.user.userId]
@@ -27,7 +27,8 @@ const getProfile = async (req, res) => {
     res.json({
       user: {
         ...user,
-        isAdmin: user.is_admin || false
+        isAdmin: user.is_admin || false,
+        isPreview: user.is_preview || false
       }
     });
   } catch (error) {
