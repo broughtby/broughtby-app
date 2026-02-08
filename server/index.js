@@ -7,6 +7,7 @@ require('dotenv').config();
 
 const db = require('./config/database');
 const { sendEmail, generateNewMessageEmail } = require('./services/emailService');
+const Anthropic = require('@anthropic-ai/sdk');
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -211,6 +212,104 @@ io.on('connection', (socket) => {
         } catch (emailError) {
           console.error('Failed to send email notification:', emailError);
           // Don't throw - email failures shouldn't block the message
+        }
+      })();
+
+      // AI auto-reply for preview ambassador (fire and forget)
+      (async () => {
+        try {
+          // Check if sender is a preview user
+          const senderCheck = await db.query(
+            'SELECT is_preview FROM users WHERE id = $1',
+            [socket.userId]
+          );
+
+          const isPreviewUser = senderCheck.rows[0]?.is_preview || false;
+
+          // Check if recipient is the preview ambassador
+          const recipientCheck = await db.query(
+            'SELECT is_preview_ambassador, name FROM users WHERE id = $1',
+            [recipientId]
+          );
+
+          const isPreviewAmbassador = recipientCheck.rows[0]?.is_preview_ambassador || false;
+          const ambassadorName = recipientCheck.rows[0]?.name || 'Ambassador';
+
+          // Only generate AI reply if sender is preview user and recipient is preview ambassador
+          if (!isPreviewUser || !isPreviewAmbassador) {
+            return;
+          }
+
+          console.log(`🤖 Generating AI reply from ${ambassadorName}...`);
+
+          // Fetch recent messages for context (last 10 messages)
+          const recentMessages = await db.query(
+            `SELECT m.sender_id, m.content, u.name
+             FROM messages m
+             JOIN users u ON m.sender_id = u.id
+             WHERE m.match_id = $1
+             ORDER BY m.created_at DESC
+             LIMIT 10`,
+            [matchId]
+          );
+
+          // Build conversation history (reverse to chronological order)
+          const conversationHistory = recentMessages.rows.reverse().map(msg => {
+            const role = msg.sender_id === recipientId ? 'assistant' : 'user';
+            return { role, content: msg.content };
+          });
+
+          // Call Anthropic API
+          const anthropic = new Anthropic({
+            apiKey: process.env.ANTHROPIC_API_KEY,
+          });
+
+          const systemPrompt = `You are Allan Sokol, a Founder & Marketer with one past startup exit. You graduated from the University of Illinois with a degree in Communication. You have experience working in startups, small businesses, and corporations which speaks to your versatility. You also helped run a 3-day tech week event in Chicago bringing together entrepreneurs across the city. You're friendly, professional, enthusiastic about brand ambassador work, and excited to connect with brands on field marketing activations and events. Keep your responses short and conversational (1-3 sentences). Don't be overly formal — you're chatting, not writing an email.`;
+
+          const response = await anthropic.messages.create({
+            model: 'claude-sonnet-4-5-20250929',
+            max_tokens: 1024,
+            system: systemPrompt,
+            messages: conversationHistory,
+          });
+
+          const aiReply = response.content[0].text;
+
+          console.log(`🤖 AI reply generated: "${aiReply}"`);
+
+          // Wait 2-3 seconds before sending reply (random delay for natural feel)
+          const delay = 2000 + Math.random() * 1000; // 2-3 seconds
+          await new Promise(resolve => setTimeout(resolve, delay));
+
+          // Save AI reply to database
+          const aiMessageResult = await db.query(
+            `INSERT INTO messages (match_id, sender_id, content)
+             VALUES ($1, $2, $3)
+             RETURNING id, match_id, sender_id, content, read, created_at`,
+            [matchId, recipientId, aiReply]
+          );
+
+          const aiMessage = aiMessageResult.rows[0];
+
+          // Get ambassador info for enriched message
+          const ambassadorInfo = await db.query(
+            'SELECT name, profile_photo FROM users WHERE id = $1',
+            [recipientId]
+          );
+
+          const enrichedAiMessage = {
+            ...aiMessage,
+            sender_name: ambassadorInfo.rows[0].name,
+            sender_photo: ambassadorInfo.rows[0].profile_photo,
+          };
+
+          // Broadcast AI reply to match room
+          io.to(`match:${matchId}`).emit('new_message', enrichedAiMessage);
+
+          console.log(`🤖 AI reply sent to match ${matchId}`);
+        } catch (aiError) {
+          console.error('Failed to generate AI reply:', aiError);
+          // Don't throw - AI reply failures shouldn't block the message
         }
       })();
     } catch (error) {
