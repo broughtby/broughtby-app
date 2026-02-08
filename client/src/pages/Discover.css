@@ -796,6 +796,22 @@
   cursor: pointer;
 }
 
+/* Highlighted Preview Ambassador Card */
+.highlighted-preview-card {
+  animation: highlightPulse 2s ease-in-out;
+  border: 3px solid var(--gold) !important;
+  box-shadow: 0 0 30px rgba(212, 175, 55, 0.6), 0 8px 24px rgba(10, 37, 64, 0.15) !important;
+}
+
+@keyframes highlightPulse {
+  0%, 100% {
+    box-shadow: 0 0 30px rgba(212, 175, 55, 0.6), 0 8px 24px rgba(10, 37, 64, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 50px rgba(212, 175, 55, 0.9), 0 12px 32px rgba(10, 37, 64, 0.2);
+  }
+}
+
 /* Status badge positioning in modal */
 .modal-image {
   position: relative;

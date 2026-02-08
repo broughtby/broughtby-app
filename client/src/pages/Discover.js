@@ -33,6 +33,7 @@ const Discover = () => {
   const [showPreviewToast, setShowPreviewToast] = useState(false);
   const [showAutoMatchToast, setShowAutoMatchToast] = useState(false);
   const [autoMatchedAmbassador, setAutoMatchedAmbassador] = useState(null);
+  const [highlightedAmbassadorId, setHighlightedAmbassadorId] = useState(null);
 
   useEffect(() => {
     if (isBrand || isAmbassador) {
@@ -332,6 +333,7 @@ Status: Pending confirmation`;
   const scrollToPreviewAmbassador = () => {
     const previewAmbassador = findPreviewAmbassador();
     if (previewAmbassador) {
+      // For mobile: set the current index
       const index = filteredAmbassadors.findIndex(a => a.id === previewAmbassador.id);
       if (index !== -1) {
         setCurrentIndex(index);
@@ -340,6 +342,22 @@ Status: Pending confirmation`;
           setSelectedAmbassador(null);
         }
       }
+
+      // For desktop: highlight the card and scroll to it
+      setHighlightedAmbassadorId(previewAmbassador.id);
+
+      // Scroll to the card
+      setTimeout(() => {
+        const cardElement = document.querySelector(`[data-ambassador-id="${previewAmbassador.id}"]`);
+        if (cardElement) {
+          cardElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
+
+      // Remove highlight after 3 seconds
+      setTimeout(() => {
+        setHighlightedAmbassadorId(null);
+      }, 3000);
     }
   };
 
@@ -923,7 +941,8 @@ Status: Pending confirmation`;
         {filteredAmbassadors.map((ambassador) => (
           <div
             key={ambassador.id}
-            className="ambassador-grid-card brand-card"
+            className={`ambassador-grid-card brand-card ${highlightedAmbassadorId === ambassador.id ? 'highlighted-preview-card' : ''}`}
+            data-ambassador-id={ambassador.id}
           >
             <div className="grid-card-image" onClick={() => setSelectedAmbassador(ambassador)}>
               <img
