@@ -70,6 +70,17 @@ const createLike = async (req, res) => {
         return res.status(400).json({ error: 'Match already exists' });
       }
 
+      const matchId = matchResult.rows[0].id;
+
+      // Create auto-welcome message from brand
+      const welcomeMessage = `Hi ${ambassador.name}! I'm interested in learning more about you to see if you'd be a good fit for some events coming up. When would be a good time to chat?`;
+
+      await db.query(
+        `INSERT INTO messages (match_id, sender_id, content)
+         VALUES ($1, $2, $3)`,
+        [matchId, req.user.userId, welcomeMessage]
+      );
+
       return res.status(201).json({
         message: 'Match created successfully',
         like: result.rows[0],
