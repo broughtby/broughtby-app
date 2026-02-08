@@ -254,7 +254,7 @@ const BookingModal = ({ ambassador, onClose, onSubmit }) => {
 
           {/* Submit Button */}
           <button type="submit" className="booking-submit-button">
-            Continue to Review
+            Request Booking
           </button>
         </form>
       </div>

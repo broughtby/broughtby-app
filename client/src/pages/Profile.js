@@ -9,7 +9,7 @@ import { adminAPI, reviewAPI } from '../services/api';
 import './Profile.css';
 
 const Profile = () => {
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, demoMode } = useAuth();
   const [editing, setEditing] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -446,6 +446,7 @@ const Profile = () => {
                   reviews={reviews}
                   reviewCount={reviewCount}
                   averageRating={averageRating}
+                  demoMode={demoMode}
                 />
               )}
             </div>

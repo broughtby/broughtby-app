@@ -163,7 +163,7 @@ Status: Pending confirmation`;
   return (
     <div className="matches-container container">
       <div className="matches-header">
-        <h1>Connections</h1>
+        <h1>Matches</h1>
 
         {isAmbassador && (
           <div className="tabs">
