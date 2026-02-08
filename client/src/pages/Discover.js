@@ -30,6 +30,8 @@ const Discover = () => {
   const [mobileReviewsAmbassador, setMobileReviewsAmbassador] = useState(null);
   const [matches, setMatches] = useState([]);
   const [bookingAmbassador, setBookingAmbassador] = useState(null);
+  const [showBookingSuccess, setShowBookingSuccess] = useState(false);
+  const [bookingAutoConfirmed, setBookingAutoConfirmed] = useState(false);
   const [showPreviewToast, setShowPreviewToast] = useState(false);
   const [showAutoMatchToast, setShowAutoMatchToast] = useState(false);
   const [autoMatchedAmbassador, setAutoMatchedAmbassador] = useState(null);
@@ -164,10 +166,11 @@ const Discover = () => {
         notes: bookingData.notes,
       };
 
-      await bookingAPI.createBooking(bookingPayload);
+      const response = await bookingAPI.createBooking(bookingPayload);
+      const isAutoConfirmed = response.data.autoConfirmed || false;
 
       // Send a message in the chat with booking details
-      const bookingMessage = `📅 New Booking Request
+      const bookingMessage = `📅 ${isAutoConfirmed ? 'Booking Confirmed!' : 'New Booking Request'}
 
 Event: ${bookingData.eventName}
 Date: ${parseLocalDate(bookingData.eventDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
@@ -177,13 +180,14 @@ Location: ${bookingData.eventLocation}${bookingData.notes ? `\nNotes: ${bookingD
 Rate: $${bookingData.hourlyRate}/hour
 Total Cost: $${bookingData.estimatedCost.toFixed(2)}
 
-Status: Pending confirmation`;
+Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
 
       await messageAPI.createMessage(match.match_id, bookingMessage);
 
       // Close modal and show success
       setBookingAmbassador(null);
-      alert('Booking request sent! The ambassador has been notified and will review your request. Check the Calendar tab to view the status of your booking.');
+      setBookingAutoConfirmed(isAutoConfirmed);
+      setShowBookingSuccess(true);
     } catch (error) {
       console.error('Failed to create booking:', error);
 
@@ -1212,6 +1216,38 @@ Status: Pending confirmation`;
             >
               ×
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Booking Success Modal */}
+      {showBookingSuccess && (
+        <div className="booking-success-modal" onClick={() => setShowBookingSuccess(false)}>
+          <div className="booking-success-content" onClick={(e) => e.stopPropagation()}>
+            <div className="booking-success-icon">✅</div>
+            <h2>{bookingAutoConfirmed ? 'Booking Confirmed!' : 'Booking Request Sent!'}</h2>
+            <p>
+              {bookingAutoConfirmed
+                ? 'Your booking is confirmed! View in Calendar to manage the activation.'
+                : 'Your booking request has been sent and is pending confirmation from the ambassador.'}
+            </p>
+            <div className="booking-success-actions">
+              <button
+                className="view-calendar-button"
+                onClick={() => {
+                  setShowBookingSuccess(false);
+                  navigate('/calendar');
+                }}
+              >
+                View in Calendar
+              </button>
+              <button
+                className="dismiss-button"
+                onClick={() => setShowBookingSuccess(false)}
+              >
+                Stay in Discover
+              </button>
+            </div>
           </div>
         </div>
       )}
