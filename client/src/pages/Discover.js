@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { userAPI, likeAPI, reviewAPI } from '../services/api';
+import { userAPI, likeAPI, reviewAPI, bookingAPI, messageAPI, matchAPI } from '../services/api';
 import { getPhotoUrl } from '../services/upload';
 import DisplayName from '../components/DisplayName';
 import DisplayRate from '../components/DisplayRate';
 import ReviewsList from '../components/ReviewsList';
 import BrandAvatar from '../components/BrandAvatar';
+import BookingModal from '../components/BookingModal';
 import './Discover.css';
 
 const Discover = () => {
@@ -27,10 +28,15 @@ const Discover = () => {
   const [loadingReviews, setLoadingReviews] = useState(false);
   const [showMobileReviews, setShowMobileReviews] = useState(false);
   const [mobileReviewsAmbassador, setMobileReviewsAmbassador] = useState(null);
+  const [matches, setMatches] = useState([]);
+  const [bookingAmbassador, setBookingAmbassador] = useState(null);
 
   useEffect(() => {
     if (isBrand || isAmbassador) {
       fetchAmbassadors();
+      if (isBrand) {
+        fetchMatches();
+      }
     }
   }, [isBrand, isAmbassador]);
 
@@ -67,6 +73,15 @@ const Discover = () => {
     }
   };
 
+  const fetchMatches = async () => {
+    try {
+      const response = await matchAPI.getMatches();
+      setMatches(response.data.matches);
+    } catch (error) {
+      console.error('Failed to fetch matches:', error);
+    }
+  };
+
   const fetchAmbassadorReviews = async (ambassadorId) => {
     setLoadingReviews(true);
     try {
@@ -82,6 +97,98 @@ const Discover = () => {
     } finally {
       setLoadingReviews(false);
     }
+  };
+
+  // Format time from 24-hour to 12-hour format with AM/PM
+  const formatTime = (time24) => {
+    if (!time24) return '';
+
+    // Handle time format (HH:MM:SS or HH:MM)
+    const [hours, minutes] = time24.split(':');
+    const hour = parseInt(hours, 10);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const hour12 = hour % 12 || 12; // Convert 0 to 12 for midnight
+
+    return `${hour12}:${minutes} ${ampm}`;
+  };
+
+  // Parse date string as local date (not UTC) to prevent timezone shifting
+  const parseLocalDate = (dateString) => {
+    if (!dateString) {
+      console.error('parseLocalDate: No date string provided');
+      return new Date();
+    }
+
+    // Handle both YYYY-MM-DD and full timestamp formats
+    const dateOnly = dateString.split('T')[0]; // Get just the date part if it's a timestamp
+    const [year, month, day] = dateOnly.split('-').map(Number);
+
+    // Validate the parsed values
+    if (!year || !month || !day || month < 1 || month > 12 || day < 1 || day > 31) {
+      console.error('parseLocalDate: Invalid date string:', dateString);
+      return new Date();
+    }
+
+    return new Date(year, month - 1, day);
+  };
+
+  const handleBookingSubmit = async (bookingData) => {
+    try {
+      // Find the match for this ambassador
+      const match = matches.find(m => m.user_id === bookingData.ambassadorId);
+
+      if (!match) {
+        alert('Error: Could not find match. Please try again.');
+        return;
+      }
+
+      // Create booking in database
+      const bookingPayload = {
+        matchId: match.match_id,
+        ambassadorId: bookingData.ambassadorId,
+        eventName: bookingData.eventName,
+        eventDate: bookingData.eventDate,
+        startTime: bookingData.startTime,
+        endTime: bookingData.endTime,
+        duration: bookingData.duration,
+        eventLocation: bookingData.eventLocation,
+        hourlyRate: bookingData.hourlyRate,
+        totalCost: bookingData.estimatedCost,
+        notes: bookingData.notes,
+      };
+
+      await bookingAPI.createBooking(bookingPayload);
+
+      // Send a message in the chat with booking details
+      const bookingMessage = `📅 New Booking Request
+
+Event: ${bookingData.eventName}
+Date: ${parseLocalDate(bookingData.eventDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+Time: ${formatTime(bookingData.startTime)} - ${formatTime(bookingData.endTime)} CST (${bookingData.duration} hours)
+Location: ${bookingData.eventLocation}${bookingData.notes ? `\nNotes: ${bookingData.notes}` : ''}
+
+Rate: $${bookingData.hourlyRate}/hour
+Total Cost: $${bookingData.estimatedCost.toFixed(2)}
+
+Status: Pending confirmation`;
+
+      await messageAPI.createMessage(match.match_id, bookingMessage);
+
+      // Close modal and show success
+      setBookingAmbassador(null);
+      alert('Booking request sent! The ambassador has been notified and will review your request. Check the Calendar tab to view the status of your booking.');
+    } catch (error) {
+      console.error('Failed to create booking:', error);
+
+      // Check if we have a specific error message from the backend
+      const errorMessage = error.response?.data?.error || 'Failed to create booking. Please try again.';
+      alert(errorMessage);
+    }
+  };
+
+  // Helper function to get match for an ambassador
+  const getMatchForAmbassador = (ambassadorId) => {
+    return matches.find(m => m.user_id === ambassadorId);
   };
 
   // Fetch reviews when an ambassador is selected
@@ -525,13 +632,44 @@ const Discover = () => {
                 <span>⚡ Demo: Accept Now</span>
               </button>
             )}
-            <button
-              className="action-button next-button"
-              onClick={handleNext}
-            >
-              <span>Next Ambassador</span>
-              <span className="action-icon">→</span>
-            </button>
+            {currentAmbassador.status === 'matched' && isBrand ? (
+              <>
+                <button
+                  className="action-button message-button"
+                  onClick={() => {
+                    const match = getMatchForAmbassador(currentAmbassador.id);
+                    if (match) {
+                      navigate(`/chat/${match.match_id}`);
+                    }
+                  }}
+                  style={{ marginBottom: '0.5rem' }}
+                >
+                  <span>Message</span>
+                </button>
+                <button
+                  className="action-button request-button"
+                  onClick={() => {
+                    setBookingAmbassador({
+                      id: currentAmbassador.id,
+                      name: currentAmbassador.name,
+                      hourly_rate: currentAmbassador.hourly_rate,
+                      profile_photo: currentAmbassador.profile_photo,
+                      is_test: currentAmbassador.is_test,
+                    });
+                  }}
+                >
+                  <span>Book Now</span>
+                </button>
+              </>
+            ) : (
+              <button
+                className="action-button next-button"
+                onClick={handleNext}
+              >
+                <span>Next Ambassador</span>
+                <span className="action-icon">→</span>
+              </button>
+            )}
           </div>
         ) : (
           <div className="action-buttons">
@@ -743,13 +881,46 @@ const Discover = () => {
                       <span>⚡ Demo: Accept Now</span>
                     </button>
                   )}
-                  <button
-                    className="action-button next-button"
-                    onClick={() => setSelectedAmbassador(null)}
-                    style={{ width: '100%' }}
-                  >
-                    Close
-                  </button>
+                  {selectedAmbassador.status === 'matched' && isBrand ? (
+                    <div className="action-buttons" style={{ display: 'flex', gap: '1rem' }}>
+                      <button
+                        className="action-button message-button"
+                        onClick={() => {
+                          const match = getMatchForAmbassador(selectedAmbassador.id);
+                          if (match) {
+                            navigate(`/chat/${match.match_id}`);
+                          }
+                        }}
+                        style={{ flex: 1 }}
+                      >
+                        Message
+                      </button>
+                      <button
+                        className="action-button request-button"
+                        onClick={() => {
+                          setBookingAmbassador({
+                            id: selectedAmbassador.id,
+                            name: selectedAmbassador.name,
+                            hourly_rate: selectedAmbassador.hourly_rate,
+                            profile_photo: selectedAmbassador.profile_photo,
+                            is_test: selectedAmbassador.is_test,
+                          });
+                          setSelectedAmbassador(null);
+                        }}
+                        style={{ flex: 1 }}
+                      >
+                        Book Now
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      className="action-button next-button"
+                      onClick={() => setSelectedAmbassador(null)}
+                      style={{ width: '100%' }}
+                    >
+                      Close
+                    </button>
+                  )}
                 </div>
               ) : (
                 <div className="action-buttons single-button" style={{ marginTop: '1.5rem' }}>
@@ -775,6 +946,15 @@ const Discover = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Booking Modal */}
+      {bookingAmbassador && (
+        <BookingModal
+          ambassador={bookingAmbassador}
+          onClose={() => setBookingAmbassador(null)}
+          onSubmit={handleBookingSubmit}
+        />
       )}
     </div>
   );

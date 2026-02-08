@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { messageAPI } from '../services/api';
+import { messageAPI, matchAPI, bookingAPI } from '../services/api';
 import socketService from '../services/socket';
 import DisplayName from '../components/DisplayName';
+import BookingModal from '../components/BookingModal';
 import './Chat.css';
 
 const Chat = () => {
   const { matchId } = useParams();
-  const { user, demoMode } = useAuth();
+  const { user, demoMode, isBrand } = useAuth();
   const navigate = useNavigate();
 
   const [messages, setMessages] = useState([]);
@@ -16,6 +17,8 @@ const Chat = () => {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [matchData, setMatchData] = useState(null);
+  const [bookingAmbassador, setBookingAmbassador] = useState(null);
 
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
@@ -34,8 +37,19 @@ const Chat = () => {
     }
   }, [matchId, navigate]);
 
+  const fetchMatchData = useCallback(async () => {
+    try {
+      const response = await matchAPI.getMatches();
+      const match = response.data.matches.find(m => m.match_id === parseInt(matchId));
+      setMatchData(match);
+    } catch (error) {
+      console.error('Failed to fetch match data:', error);
+    }
+  }, [matchId]);
+
   useEffect(() => {
     fetchMessages();
+    fetchMatchData();
     socketService.joinMatch(matchId);
 
     // Set up socket listeners
@@ -48,7 +62,7 @@ const Chat = () => {
       socketService.removeAllListeners();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [matchId, fetchMessages]);
+  }, [matchId, fetchMessages, fetchMatchData]);
 
   useEffect(() => {
     scrollToBottom();
@@ -110,6 +124,87 @@ const Chat = () => {
       setNewMessage(messageContent); // Restore message on error
     } finally {
       setSending(false);
+    }
+  };
+
+  // Format time from 24-hour to 12-hour format with AM/PM
+  const formatTime24to12 = (time24) => {
+    if (!time24) return '';
+
+    const [hours, minutes] = time24.split(':');
+    const hour = parseInt(hours, 10);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const hour12 = hour % 12 || 12;
+
+    return `${hour12}:${minutes} ${ampm}`;
+  };
+
+  // Parse date string as local date (not UTC) to prevent timezone shifting
+  const parseLocalDate = (dateString) => {
+    if (!dateString) {
+      console.error('parseLocalDate: No date string provided');
+      return new Date();
+    }
+
+    const dateOnly = dateString.split('T')[0];
+    const [year, month, day] = dateOnly.split('-').map(Number);
+
+    if (!year || !month || !day || month < 1 || month > 12 || day < 1 || day > 31) {
+      console.error('parseLocalDate: Invalid date string:', dateString);
+      return new Date();
+    }
+
+    return new Date(year, month - 1, day);
+  };
+
+  const handleBookingSubmit = async (bookingData) => {
+    try {
+      if (!matchData) {
+        alert('Error: Could not find match. Please try again.');
+        return;
+      }
+
+      // Create booking in database
+      const bookingPayload = {
+        matchId: parseInt(matchId),
+        ambassadorId: bookingData.ambassadorId,
+        eventName: bookingData.eventName,
+        eventDate: bookingData.eventDate,
+        startTime: bookingData.startTime,
+        endTime: bookingData.endTime,
+        duration: bookingData.duration,
+        eventLocation: bookingData.eventLocation,
+        hourlyRate: bookingData.hourlyRate,
+        totalCost: bookingData.estimatedCost,
+        notes: bookingData.notes,
+      };
+
+      await bookingAPI.createBooking(bookingPayload);
+
+      // Send a message in the chat with booking details
+      const bookingMessage = `📅 New Booking Request
+
+Event: ${bookingData.eventName}
+Date: ${parseLocalDate(bookingData.eventDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+Time: ${formatTime24to12(bookingData.startTime)} - ${formatTime24to12(bookingData.endTime)} CST (${bookingData.duration} hours)
+Location: ${bookingData.eventLocation}${bookingData.notes ? `\nNotes: ${bookingData.notes}` : ''}
+
+Rate: $${bookingData.hourlyRate}/hour
+Total Cost: $${bookingData.estimatedCost.toFixed(2)}
+
+Status: Pending confirmation`;
+
+      // Send via socket for real-time delivery
+      socketService.sendMessage(parseInt(matchId), bookingMessage);
+
+      // Close modal and show success
+      setBookingAmbassador(null);
+      alert('Booking request sent! The ambassador has been notified and will review your request. Check the Calendar tab to view the status of your booking.');
+    } catch (error) {
+      console.error('Failed to create booking:', error);
+
+      const errorMessage = error.response?.data?.error || 'Failed to create booking. Please try again.';
+      alert(errorMessage);
     }
   };
 
@@ -202,6 +297,27 @@ const Chat = () => {
         )}
       </div>
 
+      {/* Action Bar - Only show for brands */}
+      {isBrand && matchData && (
+        <div className="chat-action-bar">
+          <button
+            className="action-bar-button book-button"
+            onClick={() => {
+              setBookingAmbassador({
+                id: matchData.user_id,
+                name: matchData.name,
+                hourly_rate: matchData.hourly_rate,
+                profile_photo: matchData.profile_photo,
+                is_test: matchData.is_test,
+              });
+            }}
+          >
+            <span className="action-icon">📅</span>
+            Book Now
+          </button>
+        </div>
+      )}
+
       <form onSubmit={handleSendMessage} className="message-form">
         <input
           type="text"
@@ -219,6 +335,15 @@ const Chat = () => {
           Send
         </button>
       </form>
+
+      {/* Booking Modal */}
+      {bookingAmbassador && (
+        <BookingModal
+          ambassador={bookingAmbassador}
+          onClose={() => setBookingAmbassador(null)}
+          onSubmit={handleBookingSubmit}
+        />
+      )}
     </div>
   );
 };
