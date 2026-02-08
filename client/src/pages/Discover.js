@@ -246,7 +246,11 @@ const Discover = () => {
                         </span>
                       )}
                     </div>
-                    {ambassador.skills && ambassador.skills.length > 0 && (
+                    {ambassador.bio ? (
+                      <div className="grid-card-bio">
+                        {ambassador.bio}
+                      </div>
+                    ) : ambassador.skills && ambassador.skills.length > 0 && (
                       <div className="grid-card-skills">
                         {ambassador.skills.slice(0, 3).map((skill, index) => (
                           <span key={index} className="skill-badge">
@@ -484,19 +488,6 @@ const Discover = () => {
                 </div>
               )}
 
-              {currentAmbassador.skills && currentAmbassador.skills.length > 0 && (
-                <div className="card-section">
-                  <h3>Skills</h3>
-                  <div className="skills-list">
-                    {currentAmbassador.skills.map((skill, index) => (
-                      <span key={index} className="skill-tag">
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
               <div className="card-stats">
                 <div className="stat">
                   <span className="stat-label">Rate</span>
@@ -656,7 +647,11 @@ const Discover = () => {
                   </span>
                 )}
               </div>
-              {ambassador.skills && ambassador.skills.length > 0 && (
+              {ambassador.bio ? (
+                <div className="grid-card-bio">
+                  {ambassador.bio}
+                </div>
+              ) : ambassador.skills && ambassador.skills.length > 0 && (
                 <div className="grid-card-skills">
                   {ambassador.skills.slice(0, 3).map((skill, index) => (
                     <span key={index} className="skill-badge">

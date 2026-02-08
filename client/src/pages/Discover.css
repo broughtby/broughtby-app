@@ -600,6 +600,17 @@
   font-weight: 600;
 }
 
+.grid-card-bio {
+  color: var(--dark-gray);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-top: 0.5rem;
+}
+
 .grid-card-skills {
   display: flex;
   flex-wrap: wrap;
