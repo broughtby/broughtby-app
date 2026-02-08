@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { resetPreview } = require('../controllers/previewController');
-const authMiddleware = require('../middleware/auth');
+const { auth } = require('../middleware/auth');
 
-router.post('/reset', authMiddleware, resetPreview);
+router.post('/reset', auth, resetPreview);
 
 module.exports = router;
