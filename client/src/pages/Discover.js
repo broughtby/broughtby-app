@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { userAPI, likeAPI, reviewAPI } from '../services/api';
 import { getPhotoUrl } from '../services/upload';
@@ -8,7 +9,8 @@ import ReviewsList from '../components/ReviewsList';
 import './Discover.css';
 
 const Discover = () => {
-  const { isBrand, isAmbassador, demoMode } = useAuth();
+  const navigate = useNavigate();
+  const { isBrand, isAmbassador, demoMode, user } = useAuth();
   const [ambassadors, setAmbassadors] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -419,6 +421,23 @@ const Discover = () => {
 
     return (
       <div className="discover-container">
+        {isBrand && user && (
+          <div className="welcome-banner" onClick={() => navigate('/profile')}>
+            <div className="welcome-avatar">
+              {user.profile_photo ? (
+                <img src={getPhotoUrl(user.profile_photo)} alt={user.name} />
+              ) : (
+                <div className="welcome-avatar-placeholder">
+                  {user.name?.charAt(0).toUpperCase()}
+                </div>
+              )}
+            </div>
+            <div className="welcome-text">
+              <h2>Welcome back, {user.name?.split(' ')[0]}!</h2>
+              <p>Find your next brand ambassador</p>
+            </div>
+          </div>
+        )}
         <div className="discover-header">
           <h1>Discover Ambassadors</h1>
           <LocationFilter />
@@ -585,6 +604,23 @@ const Discover = () => {
   // DESKTOP/TABLET VIEW: Gallery grid
   return (
     <div className="discover-container brand-grid-view">
+      {isBrand && user && (
+        <div className="welcome-banner" onClick={() => navigate('/profile')}>
+          <div className="welcome-avatar">
+            {user.profile_photo ? (
+              <img src={getPhotoUrl(user.profile_photo)} alt={user.name} />
+            ) : (
+              <div className="welcome-avatar-placeholder">
+                {user.name?.charAt(0).toUpperCase()}
+              </div>
+            )}
+          </div>
+          <div className="welcome-text">
+            <h2>Welcome back, {user.name?.split(' ')[0]}!</h2>
+            <p>Find your next brand ambassador</p>
+          </div>
+        </div>
+      )}
       <div className="discover-header">
         <h1>Discover Ambassadors</h1>
         <p className="community-subtitle">
