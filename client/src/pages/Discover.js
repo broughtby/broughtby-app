@@ -240,11 +240,11 @@ const Discover = () => {
                   <div className="grid-card-content">
                     <div className="grid-card-info">
                       {ambassador.age && <span className="info-item">Age {ambassador.age}</span>}
-                      {ambassador.rating && (
-                        <span className="info-item rating">
-                          {ambassador.rating} ⭐
-                        </span>
-                      )}
+                      <span className="info-item rating">
+                        {ambassador.rating && parseFloat(ambassador.rating) > 0
+                          ? `${ambassador.rating} ⭐`
+                          : 'No reviews yet'}
+                      </span>
                     </div>
                     {ambassador.bio ? (
                       <div className="grid-card-bio">
@@ -493,7 +493,9 @@ const Discover = () => {
                 >
                   <span className="stat-label">Rating</span>
                   <span className="stat-value">
-                    {currentAmbassador.rating} ⭐
+                    {currentAmbassador.rating && parseFloat(currentAmbassador.rating) > 0
+                      ? `${currentAmbassador.rating} ⭐`
+                      : 'No reviews yet'}
                     <span className="tap-indicator">›</span>
                   </span>
                   <span className="tap-hint">Tap to view</span>
@@ -628,11 +630,11 @@ const Discover = () => {
             <div className="grid-card-content">
               <div className="grid-card-info">
                 {ambassador.age && <span className="info-item">Age {ambassador.age}</span>}
-                {ambassador.rating && (
-                  <span className="info-item rating">
-                    {ambassador.rating} ⭐
-                  </span>
-                )}
+                <span className="info-item rating">
+                  {ambassador.rating && parseFloat(ambassador.rating) > 0
+                    ? `${ambassador.rating} ⭐`
+                    : 'No reviews yet'}
+                </span>
               </div>
               {ambassador.bio ? (
                 <div className="grid-card-bio">
@@ -705,7 +707,11 @@ const Discover = () => {
                 </div>
                 <div className="stat">
                   <span className="stat-label">Rating</span>
-                  <span className="stat-value">{selectedAmbassador.rating} ⭐</span>
+                  <span className="stat-value">
+                    {selectedAmbassador.rating && parseFloat(selectedAmbassador.rating) > 0
+                      ? `${selectedAmbassador.rating} ⭐`
+                      : 'No reviews yet'}
+                  </span>
                 </div>
               </div>
 
