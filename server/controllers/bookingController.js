@@ -319,16 +319,25 @@ const checkIn = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Only ambassadors can check in
-    if (req.user.role !== 'ambassador') {
+    // Check if user is a preview brand (for demo purposes)
+    const userCheck = await db.query(
+      'SELECT role, is_preview FROM users WHERE id = $1',
+      [req.user.userId]
+    );
+
+    const isPreviewBrand = userCheck.rows[0]?.role === 'brand' && userCheck.rows[0]?.is_preview;
+
+    // Only ambassadors can check in (or preview brands for demo)
+    if (req.user.role !== 'ambassador' && !isPreviewBrand) {
       return res.status(403).json({ error: 'Only ambassadors can check in' });
     }
 
-    // Get the booking
-    const bookingCheck = await db.query(
-      'SELECT * FROM bookings WHERE id = $1 AND ambassador_id = $2',
-      [id, req.user.userId]
-    );
+    // Get the booking (allow preview brands to check in for their own bookings)
+    const bookingQuery = isPreviewBrand
+      ? 'SELECT * FROM bookings WHERE id = $1 AND brand_id = $2'
+      : 'SELECT * FROM bookings WHERE id = $1 AND ambassador_id = $2';
+
+    const bookingCheck = await db.query(bookingQuery, [id, req.user.userId]);
 
     if (bookingCheck.rows.length === 0) {
       return res.status(404).json({ error: 'Booking not found or you do not have access' });
@@ -369,16 +378,25 @@ const checkOut = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Only ambassadors can check out
-    if (req.user.role !== 'ambassador') {
+    // Check if user is a preview brand (for demo purposes)
+    const userCheck = await db.query(
+      'SELECT role, is_preview FROM users WHERE id = $1',
+      [req.user.userId]
+    );
+
+    const isPreviewBrand = userCheck.rows[0]?.role === 'brand' && userCheck.rows[0]?.is_preview;
+
+    // Only ambassadors can check out (or preview brands for demo)
+    if (req.user.role !== 'ambassador' && !isPreviewBrand) {
       return res.status(403).json({ error: 'Only ambassadors can check out' });
     }
 
-    // Get the booking
-    const bookingCheck = await db.query(
-      'SELECT * FROM bookings WHERE id = $1 AND ambassador_id = $2',
-      [id, req.user.userId]
-    );
+    // Get the booking (allow preview brands to check out for their own bookings)
+    const bookingQuery = isPreviewBrand
+      ? 'SELECT * FROM bookings WHERE id = $1 AND brand_id = $2'
+      : 'SELECT * FROM bookings WHERE id = $1 AND ambassador_id = $2';
+
+    const bookingCheck = await db.query(bookingQuery, [id, req.user.userId]);
 
     if (bookingCheck.rows.length === 0) {
       return res.status(404).json({ error: 'Booking not found or you do not have access' });

@@ -165,25 +165,69 @@ const TimeTracking = ({ bookingId, bookingStatus, onUpdate, isPreview }) => {
         {isBrand && (
           <div className="time-status-section">
             {!timeStatus.checkedIn && (
-              <div className="brand-status-message">
-                <span className="status-icon">⏳</span>
-                <p>Waiting for ambassador to check in</p>
-              </div>
+              <>
+                {isPreview ? (
+                  <div className="time-action-section">
+                    <p className="preview-hint">
+                      💡 Demo Mode: Click below to simulate Allan checking in. The system automatically tracks hours worked.
+                    </p>
+                    <button
+                      className="time-btn check-in-btn"
+                      onClick={handleCheckIn}
+                      disabled={processing}
+                    >
+                      {processing ? 'Checking In...' : '✓ Check In (as Allan)'}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="brand-status-message">
+                    <span className="status-icon">⏳</span>
+                    <p>Waiting for ambassador to check in</p>
+                  </div>
+                )}
+              </>
             )}
 
             {timeStatus.checkedIn && !timeStatus.checkedOut && (
-              <div className="brand-status-message active">
-                <span className="status-icon">✓</span>
-                <div>
-                  <p className="status-title">Ambassador is currently checked in</p>
-                  <p className="status-detail">Checked in at: {formatDateTime(timeStatus.checkedInAt)}</p>
-                </div>
-              </div>
+              <>
+                {isPreview ? (
+                  <div className="time-action-section">
+                    <div className="time-status-active">
+                      <span className="status-dot"></span>
+                      <span>Allan is Currently Checked In</span>
+                    </div>
+                    <p className="time-detail">Checked in at: {formatDateTime(timeStatus.checkedInAt)}</p>
+                    <p className="preview-hint">
+                      💡 Demo Mode: Click below to simulate Allan checking out. Hours worked will be calculated automatically.
+                    </p>
+                    <button
+                      className="time-btn check-out-btn"
+                      onClick={handleCheckOut}
+                      disabled={processing}
+                    >
+                      {processing ? 'Checking Out...' : '✓ Check Out (as Allan)'}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="brand-status-message active">
+                    <span className="status-icon">✓</span>
+                    <div>
+                      <p className="status-title">Ambassador is currently checked in</p>
+                      <p className="status-detail">Checked in at: {formatDateTime(timeStatus.checkedInAt)}</p>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
 
             {timeStatus.checkedOut && (
               <div className="time-complete-section">
                 <div className="time-complete-badge">✅ Event Complete</div>
+                {isPreview && (
+                  <p className="preview-hint">
+                    🎉 Nice! Allan checked out. Now you can leave a review to complete the booking cycle.
+                  </p>
+                )}
                 <div className="time-summary">
                   <div className="time-summary-row">
                     <span className="summary-label">Check In:</span>
