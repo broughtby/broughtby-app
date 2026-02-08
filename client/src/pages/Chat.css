@@ -277,3 +277,138 @@
     padding: 0.9rem 1.5rem;
   }
 }
+
+/* Booking Success Modal */
+.booking-success-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(10, 37, 64, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1001;
+  animation: fadeIn 0.2s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.booking-success-content {
+  background: white;
+  border-radius: 16px;
+  padding: 2.5rem;
+  max-width: 500px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(10, 37, 64, 0.4);
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.booking-success-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  animation: bounceIn 0.5s ease-out;
+}
+
+@keyframes bounceIn {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.booking-success-content h2 {
+  color: var(--navy);
+  margin-bottom: 1rem;
+  font-size: 1.75rem;
+}
+
+.booking-success-content p {
+  color: var(--dark-gray);
+  margin-bottom: 2rem;
+  line-height: 1.6;
+  font-size: 1.05rem;
+}
+
+.booking-success-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.view-calendar-button {
+  background-color: var(--navy);
+  color: white;
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s;
+  border: none;
+  cursor: pointer;
+}
+
+.view-calendar-button:hover {
+  background-color: #0D3A5F;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(10, 37, 64, 0.3);
+}
+
+.dismiss-button {
+  background-color: white;
+  color: var(--dark-gray);
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s;
+  border: 2px solid var(--medium-gray);
+  cursor: pointer;
+}
+
+.dismiss-button:hover {
+  border-color: var(--navy);
+  color: var(--navy);
+}
+
+@media (max-width: 768px) {
+  .booking-success-content {
+    padding: 2rem 1.5rem;
+  }
+
+  .booking-success-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .view-calendar-button,
+  .dismiss-button {
+    width: 100%;
+  }
+}
