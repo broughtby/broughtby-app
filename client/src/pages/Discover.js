@@ -586,7 +586,7 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
     return (
       <div className="discover-container">
         <div className="discover-header">
-          <h1>Discover</h1>
+          <h1>{talentType === 'account_manager' ? 'Discover' : 'Discover Ambassadors'}</h1>
           <LocationFilter />
         </div>
         <div className="message-card">
@@ -654,7 +654,7 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
         )}
 
         <div className="discover-header">
-          <h1>Discover</h1>
+          <h1>{talentType === 'account_manager' ? 'Discover' : 'Discover Ambassadors'}</h1>
 
           <LocationFilter />
 
@@ -961,7 +961,7 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
         </div>
       )}
       <div className="discover-header">
-        <h1>Discover</h1>
+        <h1>{talentType === 'account_manager' ? 'Discover' : 'Discover Ambassadors'}</h1>
         <p className="community-subtitle">
           Browse and connect with {talentType === 'ambassador' ? 'brand ambassadors' : 'account managers'}
         </p>
