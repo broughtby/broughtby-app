@@ -276,8 +276,9 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
           </div>
         ) : (
           <>
-            {messages.map((message) => {
+            {messages.map((message, index) => {
               const isMine = message.sender_id === user.id;
+              const isFirstMessage = index === 0;
 
               return (
                 <div
@@ -304,6 +305,9 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
                       <p>{message.content}</p>
                     </div>
                     <p className="message-time">{formatTime(message.created_at)}</p>
+                    {isFirstMessage && (
+                      <p className="auto-message-label">Sent automatically when matched</p>
+                    )}
                   </div>
                 </div>
               );

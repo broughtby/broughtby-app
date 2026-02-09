@@ -109,6 +109,17 @@
   margin-top: 0.25rem;
 }
 
+.auto-message-label {
+  font-size: 0.7rem;
+  color: #9CA3AF;
+  margin-top: 0.25rem;
+  font-style: italic;
+}
+
+.message.mine .auto-message-label {
+  text-align: right;
+}
+
 .typing-indicator {
   display: flex;
   gap: 0.4rem;
