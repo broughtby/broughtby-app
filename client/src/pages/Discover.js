@@ -37,12 +37,14 @@ const Discover = () => {
   const [showAutoMatchToast, setShowAutoMatchToast] = useState(false);
   const [autoMatchedAmbassador, setAutoMatchedAmbassador] = useState(null);
   const [highlightedAmbassadorId, setHighlightedAmbassadorId] = useState(null);
+  const [hasAccountManagers, setHasAccountManagers] = useState(false);
 
   useEffect(() => {
     if (isBrand || isAmbassador || isAccountManager) {
       fetchAmbassadors();
       if (isBrand) {
         fetchMatches();
+        checkAccountManagersExist();
       }
     }
   }, [isBrand, isAmbassador, isAccountManager, talentType]);
@@ -89,6 +91,16 @@ const Discover = () => {
       setMatches(response.data.matches);
     } catch (error) {
       console.error('Failed to fetch matches:', error);
+    }
+  };
+
+  const checkAccountManagersExist = async () => {
+    try {
+      const response = await userAPI.getAmbassadors({ talentType: 'account_manager' });
+      setHasAccountManagers(response.data.ambassadors.length > 0);
+    } catch (error) {
+      console.error('Failed to check account managers:', error);
+      setHasAccountManagers(false);
     }
   };
 
@@ -588,6 +600,12 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
         <div className="discover-header">
           <h1>{talentType === 'account_manager' ? 'Discover' : 'Discover Ambassadors'}</h1>
           <LocationFilter />
+
+          {talentType === 'account_manager' && (
+            <p className="talent-type-toggle">
+              <>Viewing Account Managers • <button onClick={() => setTalentType('ambassador')} className="toggle-link">Back to Brand Ambassadors</button></>
+            </p>
+          )}
         </div>
         <div className="message-card">
           <h2>No {talentType === 'account_manager' ? 'Account Managers' : 'Ambassadors'} Found</h2>
@@ -662,13 +680,15 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
             {displayIndex} / {filteredAmbassadors.length}
           </p>
 
-          <p className="talent-type-toggle">
-            {talentType === 'ambassador' ? (
-              <>Looking for an Account Manager? <button onClick={() => { setTalentType('account_manager'); setCurrentIndex(0); }} className="toggle-link">Click here</button></>
-            ) : (
-              <>Viewing Account Managers • <button onClick={() => { setTalentType('ambassador'); setCurrentIndex(0); }} className="toggle-link">Back to Brand Ambassadors</button></>
-            )}
-          </p>
+          {hasAccountManagers && (
+            <p className="talent-type-toggle">
+              {talentType === 'ambassador' ? (
+                <>Looking for an Account Manager? <button onClick={() => { setTalentType('account_manager'); setCurrentIndex(0); }} className="toggle-link">Click here</button></>
+              ) : (
+                <>Viewing Account Managers • <button onClick={() => { setTalentType('ambassador'); setCurrentIndex(0); }} className="toggle-link">Back to Brand Ambassadors</button></>
+              )}
+            </p>
+          )}
         </div>
 
         <div className="card-container-with-nav">
@@ -968,13 +988,15 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
 
         <LocationFilter />
 
-        <p className="talent-type-toggle">
-          {talentType === 'ambassador' ? (
-            <>Looking for an Account Manager? <button onClick={() => setTalentType('account_manager')} className="toggle-link">Click here</button></>
-          ) : (
-            <>Viewing Account Managers • <button onClick={() => setTalentType('ambassador')} className="toggle-link">Back to Brand Ambassadors</button></>
-          )}
-        </p>
+        {hasAccountManagers && (
+          <p className="talent-type-toggle">
+            {talentType === 'ambassador' ? (
+              <>Looking for an Account Manager? <button onClick={() => setTalentType('account_manager')} className="toggle-link">Click here</button></>
+            ) : (
+              <>Viewing Account Managers • <button onClick={() => setTalentType('ambassador')} className="toggle-link">Back to Brand Ambassadors</button></>
+            )}
+          </p>
+        )}
       </div>
 
       <div className="ambassadors-grid">
