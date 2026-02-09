@@ -707,7 +707,12 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
                   className="card-image"
                 />
                 <div className="card-overlay">
-                  <h2 className="card-name"><DisplayName user={currentAmbassador} demoMode={demoMode} /></h2>
+                  <h2 className="card-name">
+                    <DisplayName user={currentAmbassador} demoMode={demoMode} />
+                    {currentAmbassador.role === 'account_manager' && (
+                      <span className="role-badge">Account Manager</span>
+                    )}
+                  </h2>
                   {currentAmbassador.location && (
                     <p className="card-location">{currentAmbassador.location}</p>
                   )}
@@ -731,13 +736,28 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
                 <div className="stat">
                   <span className="stat-label">Rate</span>
                   <span className="stat-value">
-                    <DisplayRate user={currentAmbassador} rate={currentAmbassador.hourly_rate} demoMode={demoMode} />
+                    {currentAmbassador.role === 'account_manager' ? (
+                      <DisplayRate
+                        user={currentAmbassador}
+                        rate={currentAmbassador.monthly_rate}
+                        demoMode={demoMode}
+                        suffix="/mo"
+                      />
+                    ) : (
+                      <DisplayRate
+                        user={currentAmbassador}
+                        rate={currentAmbassador.hourly_rate}
+                        demoMode={demoMode}
+                      />
+                    )}
                   </span>
                 </div>
-                <div className="stat">
-                  <span className="stat-label">Availability</span>
-                  <span className="stat-value">{currentAmbassador.availability}</span>
-                </div>
+                {currentAmbassador.role !== 'account_manager' && (
+                  <div className="stat">
+                    <span className="stat-label">Availability</span>
+                    <span className="stat-value">{currentAmbassador.availability}</span>
+                  </div>
+                )}
                 <div
                   className="stat stat-clickable"
                   onClick={() => handleOpenMobileReviews(currentAmbassador)}

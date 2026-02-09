@@ -116,6 +116,24 @@
   border-color: var(--navy);
 }
 
+/* Role Badge */
+.role-badge {
+  display: inline-block;
+  background-color: var(--gold);
+  color: var(--navy);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.6rem;
+  border-radius: 12px;
+  margin-left: 0.5rem;
+  vertical-align: middle;
+}
+
+.card-name .role-badge {
+  font-size: 0.65rem;
+  padding: 0.2rem 0.5rem;
+}
+
 /* Location Filter */
 .location-filter {
   display: flex;
