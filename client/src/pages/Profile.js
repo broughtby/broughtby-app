@@ -21,6 +21,7 @@ const Profile = () => {
     age: '',
     hourly_rate: '',
     availability: '',
+    monthly_rate: '',
     // Brand-specific
     company_name: '',
     company_logo: '',
@@ -49,6 +50,7 @@ const Profile = () => {
         age: user.age || '',
         hourly_rate: user.hourly_rate || '',
         availability: user.availability || '',
+        monthly_rate: user.monthly_rate || '',
         company_name: user.company_name || '',
         company_logo: user.company_logo || '',
         company_website: user.company_website || '',
@@ -249,13 +251,19 @@ const Profile = () => {
             )}
 
             <div className="form-group">
-              <label>{user.role === 'brand' ? 'About Your Brand' : 'Bio'}</label>
+              <label>{user.role === 'brand' ? 'About Your Brand' : user.role === 'account_manager' ? 'Professional Bio' : 'Bio'}</label>
               <textarea
                 name="bio"
                 value={formData.bio}
                 onChange={handleChange}
                 rows="4"
-                placeholder={user.role === 'brand' ? 'Tell ambassadors about your brand...' : 'Tell us about yourself...'}
+                placeholder={
+                  user.role === 'brand'
+                    ? 'Tell ambassadors about your brand...'
+                    : user.role === 'account_manager'
+                    ? 'Describe your experience coordinating events and managing brand activations...'
+                    : 'Tell us about yourself...'
+                }
               />
             </div>
 
@@ -302,7 +310,7 @@ const Profile = () => {
               </div>
             </div>
 
-            {user.role === 'ambassador' && (
+            {(user.role === 'ambassador' || user.role === 'account_manager') && (
               <div className="form-row">
                 <div className="form-group">
                   <label>Age</label>
@@ -344,6 +352,36 @@ const Profile = () => {
                       <option value="Flexible">Flexible</option>
                       <option value="Limited">Limited</option>
                     </select>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {user.role === 'account_manager' && (
+              <>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Monthly Rate ($)</label>
+                    <input
+                      type="number"
+                      name="monthly_rate"
+                      value={formData.monthly_rate}
+                      onChange={handleChange}
+                      min="0"
+                    />
+                    <small>Monthly retainer rate</small>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Hourly Rate (Optional)</label>
+                    <input
+                      type="number"
+                      name="hourly_rate"
+                      value={formData.hourly_rate}
+                      onChange={handleChange}
+                      min="0"
+                    />
+                    <small>For on-the-ground work</small>
                   </div>
                 </div>
               </>
@@ -395,7 +433,9 @@ const Profile = () => {
                   </p>
                 )}
                 <p className="profile-email">{user.email}</p>
-                <span className="role-badge">{user.role === 'brand' ? 'Brand' : 'Ambassador'}</span>
+                <span className="role-badge">
+                  {user.role === 'brand' ? 'Brand' : user.role === 'account_manager' ? 'Account Manager' : 'Ambassador'}
+                </span>
               </div>
             </div>
 
@@ -421,10 +461,22 @@ const Profile = () => {
                     <span>{user.age}</span>
                   </div>
                 )}
-                {user.hourly_rate && (
+                {user.monthly_rate && (
+                  <div className="detail">
+                    <span className="detail-label">Monthly Rate</span>
+                    <span>${parseFloat(user.monthly_rate).toLocaleString()}/month</span>
+                  </div>
+                )}
+                {user.hourly_rate && user.role !== 'account_manager' && (
                   <div className="detail">
                     <span className="detail-label">Rate</span>
                     <span>${user.hourly_rate}/hr</span>
+                  </div>
+                )}
+                {user.hourly_rate && user.role === 'account_manager' && (
+                  <div className="detail">
+                    <span className="detail-label">Hourly Rate</span>
+                    <span>${user.hourly_rate}/hr (for on-the-ground work)</span>
                   </div>
                 )}
                 {user.availability && (

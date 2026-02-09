@@ -218,6 +218,7 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated: !!user,
     isBrand: user?.role === 'brand',
     isAmbassador: user?.role === 'ambassador',
+    isAccountManager: user?.role === 'account_manager',
     isAdmin: user?.isAdmin || false,
     isPreview: user?.isPreview || false,
     isImpersonating: !!impersonatedUser && !!originalAdminId,

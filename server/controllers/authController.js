@@ -24,6 +24,7 @@ const register = async (req, res) => {
       skills,
       hourly_rate,
       availability,
+      monthly_rate,
       company_name,
       company_logo,
       company_website,
@@ -44,12 +45,12 @@ const register = async (req, res) => {
     const result = await db.query(
       `INSERT INTO users (
         email, password_hash, role, name, profile_photo, bio, location,
-        age, skills, hourly_rate, availability,
+        age, skills, hourly_rate, availability, monthly_rate,
         company_name, company_logo, company_website, contact_title
       )
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
        RETURNING id, email, role, name, profile_photo, bio, location, age,
-                 skills, hourly_rate, availability, rating, is_admin, is_preview, created_at,
+                 skills, hourly_rate, availability, monthly_rate, rating, is_admin, is_preview, created_at,
                  company_name, company_logo, company_website, contact_title`,
       [
         email,
@@ -63,6 +64,7 @@ const register = async (req, res) => {
         skills || [],
         hourly_rate || null,
         availability || null,
+        monthly_rate || null,
         company_name || null,
         company_logo || null,
         company_website || null,
@@ -94,6 +96,7 @@ const register = async (req, res) => {
         skills: user.skills,
         hourly_rate: user.hourly_rate,
         availability: user.availability,
+        monthly_rate: user.monthly_rate,
         rating: user.rating,
         isAdmin: user.is_admin || false,
         isPreview: user.is_preview || false,
@@ -121,7 +124,7 @@ const login = async (req, res) => {
     // Find user
     const result = await db.query(
       `SELECT id, email, password_hash, role, name, profile_photo, bio, location, age,
-              skills, hourly_rate, availability, rating, is_admin, is_preview, created_at,
+              skills, hourly_rate, availability, monthly_rate, rating, is_admin, is_preview, created_at,
               company_name, company_logo, company_website, contact_title
        FROM users WHERE LOWER(email) = LOWER($1)`,
       [email]
@@ -168,6 +171,7 @@ const login = async (req, res) => {
       skills: user.skills,
       hourly_rate: user.hourly_rate,
       availability: user.availability,
+      monthly_rate: user.monthly_rate,
       rating: user.rating,
       isAdmin: isAdminValue,
       isPreview: user.is_preview || false,
@@ -193,7 +197,7 @@ const login = async (req, res) => {
 const registerValidation = [
   body('email').isEmail(),
   body('password').isLength({ min: 6 }),
-  body('role').isIn(['brand', 'ambassador']),
+  body('role').isIn(['brand', 'ambassador', 'account_manager']),
   body('name').trim().notEmpty(),
 ];
 

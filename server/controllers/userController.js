@@ -13,7 +13,7 @@ const getProfile = async (req, res) => {
   try {
     const result = await db.query(
       `SELECT id, email, role, name, profile_photo, bio, location, age,
-              skills, hourly_rate, availability, rating, is_admin, is_preview, created_at,
+              skills, hourly_rate, availability, monthly_rate, rating, is_admin, is_preview, created_at,
               company_name, company_logo, company_website, contact_title
        FROM users WHERE id = $1`,
       [req.user.userId]
@@ -39,7 +39,7 @@ const getProfile = async (req, res) => {
 
 const updateProfile = async (req, res) => {
   try {
-    const { email, name, profile_photo, bio, location, age, skills, hourly_rate, availability, company_name, company_logo, company_website, contact_title } = req.body;
+    const { email, name, profile_photo, bio, location, age, skills, hourly_rate, availability, monthly_rate, company_name, company_logo, company_website, contact_title } = req.body;
 
     const updates = [];
     const values = [];
@@ -99,6 +99,10 @@ const updateProfile = async (req, res) => {
       updates.push(`availability = $${paramCount++}`);
       values.push(availability);
     }
+    if (monthly_rate !== undefined) {
+      updates.push(`monthly_rate = $${paramCount++}`);
+      values.push(sanitizeNumericField(monthly_rate));
+    }
     if (company_name !== undefined) {
       updates.push(`company_name = $${paramCount++}`);
       values.push(company_name);
@@ -128,7 +132,7 @@ const updateProfile = async (req, res) => {
       SET ${updates.join(', ')}
       WHERE id = $${paramCount}
       RETURNING id, email, role, name, profile_photo, bio, location, age,
-                skills, hourly_rate, availability, rating, is_admin,
+                skills, hourly_rate, availability, monthly_rate, rating, is_admin,
                 company_name, company_logo, company_website, contact_title
     `;
 
@@ -210,8 +214,8 @@ const getAmbassadors = async (req, res) => {
       }));
 
       return res.json({ ambassadors });
-    } else if (req.user.role === 'ambassador') {
-      // Ambassadors browse other ambassadors (excluding themselves) - community view
+    } else if (req.user.role === 'ambassador' || req.user.role === 'account_manager') {
+      // Ambassadors and account managers browse other ambassadors (excluding themselves) - community view
       // Exclude test accounts from community view
       const result = await db.query(
         `SELECT u.id, u.name, u.profile_photo, u.bio, u.location, u.age,

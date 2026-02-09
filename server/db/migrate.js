@@ -400,6 +400,53 @@ const migrations = [
   `
     CREATE INDEX IF NOT EXISTS idx_users_is_preview_ambassador ON users(is_preview_ambassador);
   `,
+
+  // Update role constraint to include account_manager
+  `
+    ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check;
+    ALTER TABLE users ADD CONSTRAINT users_role_check CHECK (role IN ('brand', 'ambassador', 'account_manager'));
+  `,
+
+  // Add monthly_rate column for account managers
+  `
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                     WHERE table_name = 'users' AND column_name = 'monthly_rate') THEN
+        ALTER TABLE users ADD COLUMN monthly_rate NUMERIC(10,2);
+      END IF;
+    END $$;
+  `,
+
+  // Create engagements table for monthly retainer model
+  `
+    CREATE TABLE IF NOT EXISTS engagements (
+      id SERIAL PRIMARY KEY,
+      match_id INTEGER NOT NULL REFERENCES matches(id) ON DELETE CASCADE,
+      brand_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      account_manager_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      monthly_rate NUMERIC(10,2) NOT NULL,
+      start_date DATE NOT NULL,
+      end_date DATE,
+      status VARCHAR(20) DEFAULT 'active',
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      CHECK (brand_id != account_manager_id),
+      CHECK (status IN ('pending', 'active', 'paused', 'ended'))
+    );
+  `,
+
+  // Create indexes for engagements
+  `
+    CREATE INDEX IF NOT EXISTS idx_engagements_brand ON engagements(brand_id);
+  `,
+  `
+    CREATE INDEX IF NOT EXISTS idx_engagements_am ON engagements(account_manager_id);
+  `,
+  `
+    CREATE INDEX IF NOT EXISTS idx_engagements_status ON engagements(status);
+  `,
 ];
 
 async function runMigrations() {

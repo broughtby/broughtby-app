@@ -12,7 +12,7 @@ import './Discover.css';
 
 const Discover = () => {
   const navigate = useNavigate();
-  const { isBrand, isAmbassador, demoMode, user, isPreview } = useAuth();
+  const { isBrand, isAmbassador, isAccountManager, demoMode, user, isPreview } = useAuth();
   const [ambassadors, setAmbassadors] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -38,13 +38,13 @@ const Discover = () => {
   const [highlightedAmbassadorId, setHighlightedAmbassadorId] = useState(null);
 
   useEffect(() => {
-    if (isBrand || isAmbassador) {
+    if (isBrand || isAmbassador || isAccountManager) {
       fetchAmbassadors();
       if (isBrand) {
         fetchMatches();
       }
     }
-  }, [isBrand, isAmbassador]);
+  }, [isBrand, isAmbassador, isAccountManager]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -402,8 +402,8 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
     );
   }
 
-  // For ambassadors, show gallery view
-  if (isAmbassador) {
+  // For ambassadors and account managers, show gallery view
+  if (isAmbassador || isAccountManager) {
     return (
       <div className="discover-container community-view">
         <div className="discover-header">
