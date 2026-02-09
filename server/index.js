@@ -124,9 +124,177 @@ io.on('connection', (socket) => {
   socket.join(`user:${socket.userId}`);
 
   // Join a match room for messaging
-  socket.on('join_match', (matchId) => {
+  socket.on('join_match', async (matchId) => {
     socket.join(`match:${matchId}`);
-    console.log(`User ${socket.userId} joined match ${matchId}`);
+    console.log(`👤 User ${socket.userId} joined match ${matchId}`);
+
+    // Check if this match needs an AI first response (preview mode only)
+    try {
+      // Get match details
+      const matchCheck = await db.query(
+        'SELECT brand_id, ambassador_id FROM matches WHERE id = $1',
+        [matchId]
+      );
+
+      if (matchCheck.rows.length === 0) return;
+
+      const match = matchCheck.rows[0];
+      const { brand_id, ambassador_id } = match;
+
+      // Only trigger if the joining user is the brand
+      if (socket.userId !== brand_id) return;
+
+      // Check if brand is a preview user
+      const brandCheck = await db.query(
+        'SELECT is_preview FROM users WHERE id = $1',
+        [brand_id]
+      );
+
+      const isPreviewBrand = brandCheck.rows[0]?.is_preview || false;
+      if (!isPreviewBrand) return;
+
+      // Check if ambassador is the preview ambassador
+      const ambassadorCheck = await db.query(
+        'SELECT is_preview_ambassador, name, bio, location, age, skills, profile_photo FROM users WHERE id = $1',
+        [ambassador_id]
+      );
+
+      const isPreviewAmbassador = ambassadorCheck.rows[0]?.is_preview_ambassador || false;
+      if (!isPreviewAmbassador) return;
+
+      // Use PostgreSQL advisory lock for atomic check-and-lock
+      // pg_try_advisory_lock returns true if lock was acquired, false if already locked
+      const lockResult = await db.query(
+        'SELECT pg_try_advisory_lock($1) as acquired',
+        [matchId]
+      );
+
+      const lockAcquired = lockResult.rows[0].acquired;
+      if (!lockAcquired) {
+        console.log(`🔒 Match ${matchId} is locked by another request, skipping`);
+        return;
+      }
+
+      console.log(`🔓 Acquired lock for match ${matchId}`);
+
+      try {
+        // Check if ambassador (AI) has already sent a message
+        const ambassadorMessageCount = await db.query(
+          `SELECT COUNT(*) as count FROM messages
+           WHERE match_id = $1 AND sender_id = $2`,
+          [matchId, ambassador_id]
+        );
+
+        const ambassadorMsgCount = parseInt(ambassadorMessageCount.rows[0].count);
+        if (ambassadorMsgCount > 0) {
+          // AI has already responded, don't generate again
+          console.log(`✓ Match ${matchId} already has AI response, skipping`);
+          // Release the advisory lock before returning
+          await db.query('SELECT pg_advisory_unlock($1)', [matchId]);
+          return;
+        }
+      } catch (checkError) {
+        console.error('Error checking ambassador messages:', checkError);
+        // Release lock on error
+        await db.query('SELECT pg_advisory_unlock($1)', [matchId]);
+        return;
+      }
+
+      console.log(`🤖 Brand user joined match ${matchId}, triggering AI first response...`);
+
+      // Trigger AI response in a non-blocking way
+      (async () => {
+        try {
+          // Wait a moment before showing typing indicator (let chat UI load)
+          await new Promise(resolve => setTimeout(resolve, 800));
+
+          // Emit typing indicator
+          io.to(`match:${matchId}`).emit('user_typing', {
+            userId: ambassador_id,
+            matchId: matchId,
+          });
+
+          // Get the welcome message for context
+          const welcomeMessageResult = await db.query(
+            'SELECT content FROM messages WHERE match_id = $1 ORDER BY created_at ASC LIMIT 1',
+            [matchId]
+          );
+
+          const welcomeMessage = welcomeMessageResult.rows[0]?.content || '';
+
+          // Get ambassador profile data for dynamic system prompt
+          const profile = ambassadorCheck.rows[0];
+          const skills = profile.skills ? profile.skills.join(', ') : 'various skills';
+
+          // Build dynamic system prompt based on ambassador's actual profile
+          const systemPrompt = `You are ${profile.name}, a brand ambassador${profile.age ? ` who is ${profile.age} years old` : ''}${profile.location ? ` based in ${profile.location}` : ''}. ${profile.bio || 'You are enthusiastic about brand ambassador work and connecting with brands.'} Your expertise includes: ${skills}. You're friendly, professional, and excited to work with brands on activations and events. Keep your responses short and conversational (1-3 sentences). Don't be overly formal — you're chatting, not writing an email.`;
+
+          // Call Anthropic API
+          const Anthropic = require('@anthropic-ai/sdk');
+          const anthropic = new Anthropic({
+            apiKey: process.env.ANTHROPIC_API_KEY,
+          });
+
+          const response = await anthropic.messages.create({
+            model: 'claude-sonnet-4-5-20250929',
+            max_tokens: 1024,
+            system: systemPrompt,
+            messages: [
+              {
+                role: 'user',
+                content: welcomeMessage
+              }
+            ],
+          });
+
+          const aiReply = response.content[0].text;
+
+          console.log(`🤖 AI first response generated: "${aiReply}"`);
+
+          // Wait 1-2 seconds before sending reply (realistic response time)
+          const delay = 1000 + Math.random() * 1000;
+          await new Promise(resolve => setTimeout(resolve, delay));
+
+          // Stop typing indicator
+          io.to(`match:${matchId}`).emit('user_stop_typing', {
+            userId: ambassador_id,
+            matchId: matchId,
+          });
+
+          // Save AI reply to database
+          const aiMessageResult = await db.query(
+            `INSERT INTO messages (match_id, sender_id, content)
+             VALUES ($1, $2, $3)
+             RETURNING id, match_id, sender_id, content, read, created_at`,
+            [matchId, ambassador_id, aiReply]
+          );
+
+          const aiMessage = aiMessageResult.rows[0];
+
+          const enrichedAiMessage = {
+            ...aiMessage,
+            sender_name: profile.name,
+            sender_photo: profile.profile_photo,
+          };
+
+          // Broadcast AI reply to match room
+          io.to(`match:${matchId}`).emit('new_message', enrichedAiMessage);
+
+          console.log(`✅ AI first response sent to match ${matchId}`);
+
+          // Release the advisory lock
+          await db.query('SELECT pg_advisory_unlock($1)', [matchId]);
+          console.log(`🔓 Released lock for match ${matchId}`);
+        } catch (aiError) {
+          console.error('Failed to generate AI first response:', aiError);
+          // Release lock even on error
+          await db.query('SELECT pg_advisory_unlock($1)', [matchId]);
+          console.log(`🔓 Released lock for match ${matchId} (after error)`);
+        }
+      })();
+    } catch (error) {
+      console.error('Error checking for AI first response:', error);
+    }
   });
 
   // Leave a match room
