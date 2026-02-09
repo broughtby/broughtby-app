@@ -555,10 +555,6 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
 
     return (
       <div className="location-filter">
-        <label htmlFor="location-select" className="filter-label">
-          <span className="filter-icon">📍</span>
-          Location:
-        </label>
         <select
           id="location-select"
           value={selectedLocation}
@@ -590,12 +586,12 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
     return (
       <div className="discover-container">
         <div className="discover-header">
-          <h1>Discover Ambassadors</h1>
+          <h1>Discover</h1>
           <LocationFilter />
         </div>
         <div className="message-card">
-          <h2>No Ambassadors Found</h2>
-          <p>No ambassadors found in {selectedLocation}. Try selecting a different location.</p>
+          <h2>No {talentType === 'account_manager' ? 'Account Managers' : 'Ambassadors'} Found</h2>
+          <p>No {talentType === 'account_manager' ? 'account managers' : 'ambassadors'} found in {selectedLocation}. Try selecting a different location.</p>
           <button
             className="action-button like"
             onClick={() => setSelectedLocation('all')}
@@ -658,33 +654,20 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
         )}
 
         <div className="discover-header">
-          <h1>Discover Talent</h1>
-
-          {/* Talent Type Tabs */}
-          <div className="talent-type-tabs">
-            <button
-              className={`tab-button ${talentType === 'ambassador' ? 'active' : ''}`}
-              onClick={() => {
-                setTalentType('ambassador');
-                setCurrentIndex(0);
-              }}
-            >
-              Brand Ambassadors
-            </button>
-            <button
-              className={`tab-button ${talentType === 'account_manager' ? 'active' : ''}`}
-              onClick={() => {
-                setTalentType('account_manager');
-                setCurrentIndex(0);
-              }}
-            >
-              Account Managers
-            </button>
-          </div>
+          <h1>Discover</h1>
 
           <LocationFilter />
+
           <p className="ambassador-count">
             {displayIndex} / {filteredAmbassadors.length}
+          </p>
+
+          <p className="talent-type-toggle">
+            {talentType === 'ambassador' ? (
+              <>Looking for an Account Manager? <button onClick={() => { setTalentType('account_manager'); setCurrentIndex(0); }} className="toggle-link">Click here</button></>
+            ) : (
+              <>Viewing Account Managers • <button onClick={() => { setTalentType('ambassador'); setCurrentIndex(0); }} className="toggle-link">Back to Brand Ambassadors</button></>
+            )}
           </p>
         </div>
 
@@ -978,32 +961,20 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
         </div>
       )}
       <div className="discover-header">
-        <h1>Discover Talent</h1>
-
-        {/* Talent Type Tabs */}
-        <div className="talent-type-tabs">
-          <button
-            className={`tab-button ${talentType === 'ambassador' ? 'active' : ''}`}
-            onClick={() => {
-              setTalentType('ambassador');
-            }}
-          >
-            Brand Ambassadors
-          </button>
-          <button
-            className={`tab-button ${talentType === 'account_manager' ? 'active' : ''}`}
-            onClick={() => {
-              setTalentType('account_manager');
-            }}
-          >
-            Account Managers
-          </button>
-        </div>
-
+        <h1>Discover</h1>
         <p className="community-subtitle">
           Browse and connect with {talentType === 'ambassador' ? 'brand ambassadors' : 'account managers'}
         </p>
+
         <LocationFilter />
+
+        <p className="talent-type-toggle">
+          {talentType === 'ambassador' ? (
+            <>Looking for an Account Manager? <button onClick={() => setTalentType('account_manager')} className="toggle-link">Click here</button></>
+          ) : (
+            <>Viewing Account Managers • <button onClick={() => setTalentType('ambassador')} className="toggle-link">Back to Brand Ambassadors</button></>
+          )}
+        </p>
       </div>
 
       <div className="ambassadors-grid">

@@ -86,34 +86,29 @@
   margin-bottom: 0.5rem;
 }
 
-/* Talent Type Tabs */
-.talent-type-tabs {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: center;
-  margin: 1.5rem 0;
-}
-
-.talent-type-tabs .tab-button {
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 0.95rem;
-  transition: all 0.3s;
-  background-color: var(--white);
+/* Talent Type Toggle Link */
+.talent-type-toggle {
+  text-align: center;
+  font-size: 0.85rem;
   color: var(--dark-gray);
-  border: 2px solid var(--medium-gray);
+  margin-top: 0.5rem;
+  margin-bottom: 0;
 }
 
-.talent-type-tabs .tab-button:hover {
-  border-color: var(--navy);
+.toggle-link {
+  background: none;
+  border: none;
   color: var(--navy);
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 0;
+  font-family: inherit;
+  transition: color 0.3s;
 }
 
-.talent-type-tabs .tab-button.active {
-  background-color: var(--navy);
-  color: var(--white);
-  border-color: var(--navy);
+.toggle-link:hover {
+  color: var(--gold);
 }
 
 /* Role Badge */
@@ -142,19 +137,6 @@
   gap: 0.5rem;
   margin: 1rem auto;
   max-width: 400px;
-}
-
-.filter-label {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  font-weight: 600;
-  color: var(--navy);
-  font-size: 0.9rem;
-}
-
-.filter-icon {
-  font-size: 1.1rem;
 }
 
 .location-select {
