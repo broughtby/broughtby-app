@@ -22,6 +22,7 @@ const Discover = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [selectedLocation, setSelectedLocation] = useState('all');
   const [filteredAmbassadors, setFilteredAmbassadors] = useState([]);
+  const [talentType, setTalentType] = useState('ambassador'); // 'ambassador' or 'account_manager'
   const [selectedAmbassadorReviews, setSelectedAmbassadorReviews] = useState([]);
   const [reviewCount, setReviewCount] = useState(0);
   const [averageRating, setAverageRating] = useState(0);
@@ -44,7 +45,7 @@ const Discover = () => {
         fetchMatches();
       }
     }
-  }, [isBrand, isAmbassador, isAccountManager]);
+  }, [isBrand, isAmbassador, isAccountManager, talentType]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -73,7 +74,7 @@ const Discover = () => {
 
   const fetchAmbassadors = async () => {
     try {
-      const response = await userAPI.getAmbassadors();
+      const response = await userAPI.getAmbassadors({ talentType });
       setAmbassadors(response.data.ambassadors);
     } catch (error) {
       console.error('Failed to fetch ambassadors:', error);
@@ -657,7 +658,30 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
         )}
 
         <div className="discover-header">
-          <h1>Discover Ambassadors</h1>
+          <h1>Discover Talent</h1>
+
+          {/* Talent Type Tabs */}
+          <div className="talent-type-tabs">
+            <button
+              className={`tab-button ${talentType === 'ambassador' ? 'active' : ''}`}
+              onClick={() => {
+                setTalentType('ambassador');
+                setCurrentIndex(0);
+              }}
+            >
+              Brand Ambassadors
+            </button>
+            <button
+              className={`tab-button ${talentType === 'account_manager' ? 'active' : ''}`}
+              onClick={() => {
+                setTalentType('account_manager');
+                setCurrentIndex(0);
+              }}
+            >
+              Account Managers
+            </button>
+          </div>
+
           <LocationFilter />
           <p className="ambassador-count">
             {displayIndex} / {filteredAmbassadors.length}
@@ -934,9 +958,30 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
         </div>
       )}
       <div className="discover-header">
-        <h1>Discover Ambassadors</h1>
+        <h1>Discover Talent</h1>
+
+        {/* Talent Type Tabs */}
+        <div className="talent-type-tabs">
+          <button
+            className={`tab-button ${talentType === 'ambassador' ? 'active' : ''}`}
+            onClick={() => {
+              setTalentType('ambassador');
+            }}
+          >
+            Brand Ambassadors
+          </button>
+          <button
+            className={`tab-button ${talentType === 'account_manager' ? 'active' : ''}`}
+            onClick={() => {
+              setTalentType('account_manager');
+            }}
+          >
+            Account Managers
+          </button>
+        </div>
+
         <p className="community-subtitle">
-          Browse and connect with brand ambassadors
+          Browse and connect with {talentType === 'ambassador' ? 'brand ambassadors' : 'account managers'}
         </p>
         <LocationFilter />
       </div>

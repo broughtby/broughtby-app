@@ -86,6 +86,36 @@
   margin-bottom: 0.5rem;
 }
 
+/* Talent Type Tabs */
+.talent-type-tabs {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin: 1.5rem 0;
+}
+
+.talent-type-tabs .tab-button {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.3s;
+  background-color: var(--white);
+  color: var(--dark-gray);
+  border: 2px solid var(--medium-gray);
+}
+
+.talent-type-tabs .tab-button:hover {
+  border-color: var(--navy);
+  color: var(--navy);
+}
+
+.talent-type-tabs .tab-button.active {
+  background-color: var(--navy);
+  color: var(--white);
+  border-color: var(--navy);
+}
+
 /* Location Filter */
 .location-filter {
   display: flex;

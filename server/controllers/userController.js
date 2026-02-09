@@ -154,7 +154,7 @@ const updateProfile = async (req, res) => {
 
 const getAmbassadors = async (req, res) => {
   try {
-    const { limit = 50, offset = 0 } = req.query;
+    const { limit = 50, offset = 0, talentType = 'ambassador' } = req.query;
 
     if (req.user.role === 'brand') {
       // Check if user is admin or preview account
@@ -165,23 +165,26 @@ const getAmbassadors = async (req, res) => {
       const isAdmin = userCheck.rows[0]?.is_admin || false;
       const isPreview = userCheck.rows[0]?.is_preview || false;
 
+      // Determine which role to filter by
+      const targetRole = talentType === 'account_manager' ? 'account_manager' : 'ambassador';
+
       // Build the WHERE clause based on admin/preview status
-      // Admins see ALL ambassadors (including test accounts)
-      // Preview brands see non-test ambassadors + preview ambassadors (even if test)
-      // Regular brands only see active, non-test ambassadors
+      // Admins see ALL talent (including test accounts)
+      // Preview brands see non-test talent + preview ambassadors (even if test)
+      // Regular brands only see active, non-test talent
       let whereClause;
       if (isAdmin) {
-        whereClause = "WHERE u.role = 'ambassador' AND u.is_active = TRUE";
+        whereClause = `WHERE u.role = '${targetRole}' AND u.is_active = TRUE`;
       } else if (isPreview) {
-        whereClause = "WHERE u.role = 'ambassador' AND u.is_active = TRUE AND ((u.is_test = FALSE OR u.is_test IS NULL) OR u.is_preview_ambassador = TRUE)";
+        whereClause = `WHERE u.role = '${targetRole}' AND u.is_active = TRUE AND ((u.is_test = FALSE OR u.is_test IS NULL) OR u.is_preview_ambassador = TRUE)`;
       } else {
-        whereClause = "WHERE u.role = 'ambassador' AND u.is_active = TRUE AND (u.is_test = FALSE OR u.is_test IS NULL)";
+        whereClause = `WHERE u.role = '${targetRole}' AND u.is_active = TRUE AND (u.is_test = FALSE OR u.is_test IS NULL)`;
       }
 
-      // Brands browse all ambassadors with status indicators
+      // Brands browse all talent with status indicators
       const result = await db.query(
         `SELECT u.id, u.name, u.profile_photo, u.bio, u.location, u.age,
-                u.skills, u.hourly_rate, u.availability, u.rating,
+                u.skills, u.hourly_rate, u.monthly_rate, u.availability, u.rating, u.role,
                 u.is_test, u.is_preview_ambassador,
                 l.id as like_id,
                 m.id as match_id,
@@ -196,7 +199,7 @@ const getAmbassadors = async (req, res) => {
         [req.user.userId, limit, offset]
       );
 
-      // Add status to each ambassador
+      // Add status to each talent
       const ambassadors = result.rows.map(row => ({
         id: row.id,
         name: row.name,
@@ -206,8 +209,10 @@ const getAmbassadors = async (req, res) => {
         age: row.age,
         skills: row.skills,
         hourly_rate: row.hourly_rate,
+        monthly_rate: row.monthly_rate,
         availability: row.availability,
         rating: row.rating,
+        role: row.role,
         is_test: row.is_test || false,
         is_preview_ambassador: row.is_preview_ambassador || false,
         status: row.match_id ? 'matched' : (row.like_id ? 'pending' : (row.pass_id ? 'passed' : 'available'))
