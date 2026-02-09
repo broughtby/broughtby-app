@@ -367,7 +367,7 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
 
   const handlePreviewButtonClick = () => {
     const previewAmbassador = findPreviewAmbassador();
-    const previewName = previewAmbassador?.name || 'Kim Kardashian';
+    const previewName = previewAmbassador?.name || 'Test Ambassador';
 
     setShowPreviewToast(true);
 
@@ -636,14 +636,14 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
             <div className="preview-banner-content">
               <span className="preview-icon">🎬</span>
               <p className="preview-text">
-                <strong>Preview Mode</strong> — Browse real ambassadors, then book {findPreviewAmbassador()?.name || 'Kim Kardashian'} to try the full experience
+                <strong>Preview Mode</strong> — Browse real ambassadors, then book {findPreviewAmbassador()?.name || 'Test Ambassador'} to try the full experience
               </p>
               <div className="preview-banner-actions">
                 <button
                   className="preview-find-button"
                   onClick={scrollToPreviewAmbassador}
                 >
-                  Find {findPreviewAmbassador()?.name?.split(' ')[0] || 'Kim'}
+                  Find {findPreviewAmbassador()?.name?.split(' ')[0] || 'Test Ambassador'}
                 </button>
                 <button
                   className="preview-reset-button"
@@ -839,7 +839,7 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
           <div className="preview-toast">
             <div className="preview-toast-content">
               <p className="preview-toast-text">
-                <strong>This is a live preview</strong> — try booking {findPreviewAmbassador()?.name || 'Kim Kardashian'} to experience the full flow!
+                <strong>This is a live preview</strong> — try booking {findPreviewAmbassador()?.name || 'Test Ambassador'} to experience the full flow!
               </p>
               <button
                 className="preview-toast-button"
@@ -848,7 +848,7 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
                   setShowPreviewToast(false);
                 }}
               >
-                Find {findPreviewAmbassador()?.name?.split(' ')[0] || 'Kim'}
+                Find {findPreviewAmbassador()?.name?.split(' ')[0] || 'Test Ambassador'}
               </button>
               <button
                 className="preview-toast-close"
@@ -914,14 +914,14 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
           <div className="preview-banner-content">
             <span className="preview-icon">🎬</span>
             <p className="preview-text">
-              <strong>Preview Mode</strong> — Browse real ambassadors, then book {findPreviewAmbassador()?.name || 'Kim Kardashian'} to try the full experience
+              <strong>Preview Mode</strong> — Browse real ambassadors, then book {findPreviewAmbassador()?.name || 'Test Ambassador'} to try the full experience
             </p>
             <div className="preview-banner-actions">
               <button
                 className="preview-find-button"
                 onClick={scrollToPreviewAmbassador}
               >
-                Find {findPreviewAmbassador()?.name?.split(' ')[0] || 'Kim'}
+                Find {findPreviewAmbassador()?.name?.split(' ')[0] || 'Test Ambassador'}
               </button>
               <button
                 className="preview-reset-button"
@@ -1173,7 +1173,7 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
         <div className="preview-toast">
           <div className="preview-toast-content">
             <p className="preview-toast-text">
-              <strong>This is a live preview</strong> — try booking {findPreviewAmbassador()?.name || 'Kim Kardashian'} to experience the full flow!
+              <strong>This is a live preview</strong> — try booking {findPreviewAmbassador()?.name || 'Test Ambassador'} to experience the full flow!
             </p>
             <button
               className="preview-toast-button"
@@ -1182,7 +1182,7 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
                 setShowPreviewToast(false);
               }}
             >
-              Find {findPreviewAmbassador()?.name?.split(' ')[0] || 'Kim'}
+              Find {findPreviewAmbassador()?.name?.split(' ')[0] || 'Test Ambassador'}
             </button>
             <button
               className="preview-toast-close"

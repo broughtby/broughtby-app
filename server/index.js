@@ -278,12 +278,22 @@ io.on('connection', (socket) => {
             return { role, content: msg.content };
           });
 
+          // Get ambassador profile data to build dynamic system prompt
+          const ambassadorProfile = await db.query(
+            'SELECT name, bio, location, age, skills, hourly_rate FROM users WHERE id = $1',
+            [recipientId]
+          );
+
+          const profile = ambassadorProfile.rows[0];
+          const skills = profile.skills ? profile.skills.join(', ') : 'various skills';
+
+          // Build dynamic system prompt based on ambassador's actual profile
+          const systemPrompt = `You are ${profile.name}, a brand ambassador${profile.age ? ` who is ${profile.age} years old` : ''}${profile.location ? ` based in ${profile.location}` : ''}. ${profile.bio || 'You are enthusiastic about brand ambassador work and connecting with brands.'} Your expertise includes: ${skills}. You're friendly, professional, and excited to work with brands on activations and events. Keep your responses short and conversational (1-3 sentences). Don't be overly formal — you're chatting, not writing an email.`;
+
           // Call Anthropic API
           const anthropic = new Anthropic({
             apiKey: process.env.ANTHROPIC_API_KEY,
           });
-
-          const systemPrompt = `You are Allan Sokol, a Founder & Marketer with one past startup exit. You graduated from the University of Illinois with a degree in Communication. You have experience working in startups, small businesses, and corporations which speaks to your versatility. You also helped run a 3-day tech week event in Chicago bringing together entrepreneurs across the city. You're friendly, professional, enthusiastic about brand ambassador work, and excited to connect with brands on field marketing activations and events. Keep your responses short and conversational (1-3 sentences). Don't be overly formal — you're chatting, not writing an email.`;
 
           const response = await anthropic.messages.create({
             model: 'claude-sonnet-4-5-20250929',
