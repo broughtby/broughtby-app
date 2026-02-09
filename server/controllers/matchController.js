@@ -72,7 +72,7 @@ const createMatch = async (req, res) => {
       // Customize message for YC Buzz preview account
       const welcomeMessage = brandEmail === 'yc@broughtby.co'
         ? `Hi ${ambassadorName}! We're launching a new coffee brand for founders and want to do a series of coffee events this spring and summer in chicago. I think you could be a good fit. Interested?`
-        : `Hi ${ambassadorName}! I'm interested in learning more about you to see if you'd be a good fit for some events coming up. When would be a good time to chat?`;
+        : `Hi ${ambassadorName}! We want to do a series of events this spring and summer in chicago. I think you could be a good fit. Interested?`;
 
       // Insert the welcome message into the messages table
       await db.query(
