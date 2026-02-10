@@ -259,32 +259,40 @@ const MyTeam = () => {
 
       {error && <div className="error-banner">{error}</div>}
 
-      {engagements.length === 0 ? (
-        isBrand ? (
-          <div className="empty-sections">
-            {/* Account Managers Section */}
-            <div className="empty-state">
-              <div className="empty-icon">👔</div>
-              <h2>Account Managers</h2>
-              <p>No account managers hired yet</p>
-            </div>
-
-            {/* Your Crew Section */}
-            <div className="empty-state">
-              <div className="empty-icon">⭐</div>
-              <h2>Your Crew</h2>
-              <p>When you find brand ambassadors that you love and want to rebook, add them to Your Crew</p>
-            </div>
-          </div>
-        ) : (
-          <div className="empty-state">
-            <div className="empty-icon">👥</div>
-            <h2>No client engagements yet</h2>
-            <p>When brands hire you, your client engagements will appear here.</p>
-          </div>
-        )
+      {engagements.length === 0 && !isBrand ? (
+        // Account Manager with no engagements
+        <div className="empty-state">
+          <div className="empty-icon">👥</div>
+          <h2>No client engagements yet</h2>
+          <p>When brands hire you, your client engagements will appear here.</p>
+        </div>
       ) : (
         <>
+          {/* Show empty state for Account Managers if no engagements */}
+          {engagements.length === 0 && isBrand && (
+            <div className="empty-sections">
+              <div className="empty-state">
+                <div className="empty-icon">👔</div>
+                <h2>Account Managers</h2>
+                <p>No account managers hired yet</p>
+              </div>
+              <div className="empty-state">
+                <div className="empty-icon">⭐</div>
+                <h2>Your Crew</h2>
+                <p>When you find brand ambassadors that you love and want to rebook, add them to Your Crew (Coming Soon)</p>
+              </div>
+            </div>
+          )}
+
+          {/* Account Managers section (when there are engagements) */}
+          {engagements.length > 0 && isBrand && (
+            <div className="team-section">
+              <h2 className="section-title">
+                Account Managers
+              </h2>
+            </div>
+          )}
+
           {/* Pending Engagements */}
           {pending.length > 0 && (
             <div className="engagement-section">
@@ -334,6 +342,15 @@ const MyTeam = () => {
               <div className="engagement-list">
                 {ended.map(renderEngagementCard)}
               </div>
+            </div>
+          )}
+
+          {/* Always show Your Crew empty state for brands */}
+          {isBrand && engagements.length > 0 && (
+            <div className="empty-state" style={{ marginTop: '3rem' }}>
+              <div className="empty-icon">⭐</div>
+              <h2>Your Crew</h2>
+              <p>When you find brand ambassadors that you love and want to rebook, add them to Your Crew (Coming Soon)</p>
             </div>
           )}
         </>

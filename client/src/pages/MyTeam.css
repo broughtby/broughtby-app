@@ -75,6 +75,15 @@
   line-height: 1.6;
 }
 
+.team-section {
+  margin-bottom: 2rem;
+}
+
+.team-section .section-title {
+  margin: 0;
+  font-size: 1.75rem;
+}
+
 .engagement-section {
   margin-bottom: 3rem;
 }
