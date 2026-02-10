@@ -41,6 +41,14 @@ const register = async (req, res) => {
     // Hash password
     const passwordHash = await bcrypt.hash(password, 10);
 
+    // Set default rates for account managers
+    const finalHourlyRate = role === 'account_manager'
+      ? (hourly_rate || 20)
+      : (hourly_rate || null);
+    const finalMonthlyRate = role === 'account_manager'
+      ? (monthly_rate || 1200)
+      : (monthly_rate || null);
+
     // Create user with all profile fields
     const result = await db.query(
       `INSERT INTO users (
@@ -62,9 +70,9 @@ const register = async (req, res) => {
         location || null,
         age || null,
         skills || [],
-        hourly_rate || null,
+        finalHourlyRate,
         availability || null,
-        monthly_rate || null,
+        finalMonthlyRate,
         company_name || null,
         company_logo || null,
         company_website || null,

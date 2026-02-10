@@ -388,8 +388,9 @@
 .stat-value {
   display: block;
   font-size: 1.1rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--navy);
+  line-height: 1.4;
 }
 
 .action-buttons {

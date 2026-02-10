@@ -461,23 +461,20 @@ const Profile = () => {
                     <span>{user.age}</span>
                   </div>
                 )}
-                {user.monthly_rate && (
-                  <div className="detail">
-                    <span className="detail-label">Monthly Rate</span>
-                    <span>${parseFloat(user.monthly_rate).toLocaleString()}/month</span>
-                  </div>
-                )}
-                {user.hourly_rate && user.role !== 'account_manager' && (
-                  <div className="detail">
-                    <span className="detail-label">Rate</span>
-                    <span>${user.hourly_rate}/hr</span>
-                  </div>
-                )}
-                {user.hourly_rate && user.role === 'account_manager' && (
-                  <div className="detail">
-                    <span className="detail-label">Hourly Rate</span>
-                    <span>${user.hourly_rate}/hr (for on-the-ground work)</span>
-                  </div>
+                {user.role === 'account_manager' ? (
+                  user.monthly_rate && (
+                    <div className="detail">
+                      <span className="detail-label">Rate</span>
+                      <span>${parseFloat(user.monthly_rate).toLocaleString()}/month</span>
+                    </div>
+                  )
+                ) : (
+                  user.hourly_rate && (
+                    <div className="detail">
+                      <span className="detail-label">Rate</span>
+                      <span>${user.hourly_rate}/hr</span>
+                    </div>
+                  )
                 )}
                 {user.availability && (
                   <div className="detail">

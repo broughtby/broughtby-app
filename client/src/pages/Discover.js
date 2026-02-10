@@ -447,7 +447,12 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
                       alt={ambassador.name}
                     />
                     <div className="grid-card-overlay">
-                      <h3><DisplayName user={ambassador} demoMode={demoMode} /></h3>
+                      <h3>
+                        <DisplayName user={ambassador} demoMode={demoMode} />
+                        {ambassador.role === 'account_manager' && (
+                          <span className="role-badge">Account Manager</span>
+                        )}
+                      </h3>
                       {ambassador.location && <p>{ambassador.location}</p>}
                     </div>
                   </div>
@@ -744,7 +749,7 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
                         user={currentAmbassador}
                         rate={currentAmbassador.monthly_rate}
                         demoMode={demoMode}
-                        suffix="/mo"
+                        suffix="/month"
                       />
                     ) : (
                       <DisplayRate
@@ -1017,7 +1022,12 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
                 </div>
               )}
               <div className="grid-card-overlay">
-                <h3><DisplayName user={ambassador} demoMode={demoMode} /></h3>
+                <h3>
+                  <DisplayName user={ambassador} demoMode={demoMode} />
+                  {ambassador.role === 'account_manager' && (
+                    <span className="role-badge">Account Manager</span>
+                  )}
+                </h3>
                 {ambassador.location && <p>{ambassador.location}</p>}
               </div>
             </div>
@@ -1092,13 +1102,24 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
                 <div className="stat">
                   <span className="stat-label">Rate</span>
                   <span className="stat-value">
-                    <DisplayRate user={selectedAmbassador} rate={selectedAmbassador.hourly_rate} demoMode={demoMode} />
+                    {selectedAmbassador.role === 'account_manager' ? (
+                      <DisplayRate
+                        user={selectedAmbassador}
+                        rate={selectedAmbassador.monthly_rate}
+                        demoMode={demoMode}
+                        suffix="/month"
+                      />
+                    ) : (
+                      <DisplayRate user={selectedAmbassador} rate={selectedAmbassador.hourly_rate} demoMode={demoMode} />
+                    )}
                   </span>
                 </div>
-                <div className="stat">
-                  <span className="stat-label">Availability</span>
-                  <span className="stat-value">{selectedAmbassador.availability}</span>
-                </div>
+                {selectedAmbassador.role !== 'account_manager' && (
+                  <div className="stat">
+                    <span className="stat-label">Availability</span>
+                    <span className="stat-value">{selectedAmbassador.availability}</span>
+                  </div>
+                )}
                 <div className="stat">
                   <span className="stat-label">Rating</span>
                   <span className="stat-value">
