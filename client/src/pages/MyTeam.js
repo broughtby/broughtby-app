@@ -260,15 +260,29 @@ const MyTeam = () => {
       {error && <div className="error-banner">{error}</div>}
 
       {engagements.length === 0 ? (
-        <div className="empty-state">
-          <div className="empty-icon">👥</div>
-          <h2>No team members yet</h2>
-          <p>
-            {isBrand
-              ? 'Discover and hire account managers to help manage your brand activations.'
-              : 'When brands hire you, your client engagements will appear here.'}
-          </p>
-        </div>
+        isBrand ? (
+          <div className="empty-sections">
+            {/* Account Managers Section */}
+            <div className="empty-state">
+              <div className="empty-icon">👔</div>
+              <h2>Account Managers</h2>
+              <p>No account managers hired yet</p>
+            </div>
+
+            {/* Your Crew Section */}
+            <div className="empty-state">
+              <div className="empty-icon">⭐</div>
+              <h2>Your Crew</h2>
+              <p>When you find brand ambassadors that you love and want to rebook, add them to Your Crew</p>
+            </div>
+          </div>
+        ) : (
+          <div className="empty-state">
+            <div className="empty-icon">👥</div>
+            <h2>No client engagements yet</h2>
+            <p>When brands hire you, your client engagements will appear here.</p>
+          </div>
+        )
       ) : (
         <>
           {/* Pending Engagements */}

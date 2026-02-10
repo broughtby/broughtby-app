@@ -36,6 +36,17 @@
   margin-bottom: 2rem;
 }
 
+.empty-sections {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.empty-sections .empty-state {
+  margin-top: 0;
+}
+
 .empty-state {
   text-align: center;
   padding: 80px 20px;
@@ -368,6 +379,11 @@
 
   .page-header h1 {
     font-size: 2rem;
+  }
+
+  .empty-sections {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
   }
 
   .empty-state {
