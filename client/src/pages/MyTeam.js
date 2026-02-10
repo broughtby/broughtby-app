@@ -255,19 +255,16 @@ const MyTeam = () => {
     <div className="my-team-page">
       <div className="page-header">
         <h1>My Team</h1>
-        <p className="subtitle">
-          {isBrand ? 'Manage your account manager engagements' : 'Manage your brand clients'}
-        </p>
       </div>
 
       {error && <div className="error-banner">{error}</div>}
 
       {engagements.length === 0 ? (
         <div className="empty-state">
-          <h2>No engagements yet</h2>
+          <h2>You haven't added anyone to your team yet!</h2>
           <p>
             {isBrand
-              ? 'Match with account managers and hire them to manage your brand activations.'
+              ? 'Discover and hire account managers to help manage your brand activations.'
               : 'When brands hire you, your client engagements will appear here.'}
           </p>
         </div>
