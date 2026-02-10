@@ -293,6 +293,23 @@
   transform: translateY(-1px);
 }
 
+/* Medium screens - wrap buttons to prevent overflow */
+@media (max-width: 1024px) {
+  .match-card {
+    flex-wrap: wrap;
+  }
+
+  .match-actions {
+    width: 100%;
+    margin-top: 0.75rem;
+  }
+
+  .message-button,
+  .book-button-small {
+    flex: 1;
+  }
+}
+
 @media (max-width: 768px) {
   .empty-state {
     padding: 60px 20px;
@@ -316,7 +333,6 @@
 
   .match-card {
     padding: 1rem;
-    flex-wrap: wrap;
   }
 
   .match-photo {
@@ -329,13 +345,11 @@
   }
 
   .match-actions {
-    width: 100%;
     margin-top: 0.5rem;
   }
 
   .message-button,
   .book-button-small {
-    flex: 1;
     padding: 0.65rem 1rem;
     font-size: 0.9rem;
   }
