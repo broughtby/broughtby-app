@@ -7,10 +7,13 @@ import './ReviewModal.css';
 const ReviewModal = ({ booking, partnerInfo, onClose, onSubmit, isPreview }) => {
   const { user, demoMode } = useAuth();
 
+  // Determine if user is reviewing as the hirer (brand/AM who booked) or as the hired (ambassador/AM who was booked)
+  const isReviewingAsHirer = user.role === 'brand' || (user.role === 'account_manager' && booking.brand_id === user.id);
+
   // Pre-populate with positive review for preview users
   const getDefaultComment = () => {
     if (!isPreview) return '';
-    if (user.role === 'brand') {
+    if (isReviewingAsHirer) {
       return 'Allan was fantastic! He showed up on time, engaged with all the founders, and made sure everyone signed up for our newsletter. He represented our brand perfectly and got so much great product feedback on our coffee. Would definitely book again for future YCBuzz events!';
     }
     return '';
@@ -61,7 +64,9 @@ const ReviewModal = ({ booking, partnerInfo, onClose, onSubmit, isPreview }) => 
       newErrors.overallRating = 'Please select a rating';
     }
 
-    if (user.role === 'brand') {
+    // Brands and account managers (when booking) review with brand criteria
+    // Ambassadors and account managers (when booked) review with ambassador criteria
+    if (isReviewingAsHirer) {
       if (!formData.punctualityRating || formData.punctualityRating < 1) {
         newErrors.punctualityRating = 'Please select a rating';
       }
@@ -71,7 +76,7 @@ const ReviewModal = ({ booking, partnerInfo, onClose, onSubmit, isPreview }) => 
       if (!formData.engagementRating || formData.engagementRating < 1) {
         newErrors.engagementRating = 'Please select a rating';
       }
-    } else if (user.role === 'ambassador') {
+    } else {
       if (!formData.clearExpectationsRating || formData.clearExpectationsRating < 1) {
         newErrors.clearExpectationsRating = 'Please select a rating';
       }
@@ -93,13 +98,13 @@ const ReviewModal = ({ booking, partnerInfo, onClose, onSubmit, isPreview }) => 
     if (validateForm()) {
       const reviewData = {
         bookingId: booking.id,
-        revieweeId: user.role === 'brand' ? booking.ambassador_id : booking.brand_id,
+        revieweeId: isReviewingAsHirer ? booking.ambassador_id : booking.brand_id,
         overallRating: formData.overallRating,
         wouldWorkAgain: formData.wouldWorkAgain,
         comment: formData.comment,
       };
 
-      if (user.role === 'brand') {
+      if (isReviewingAsHirer) {
         reviewData.punctualityRating = formData.punctualityRating;
         reviewData.professionalismRating = formData.professionalismRating;
         reviewData.engagementRating = formData.engagementRating;
@@ -165,7 +170,7 @@ const ReviewModal = ({ booking, partnerInfo, onClose, onSubmit, isPreview }) => 
 
         <form onSubmit={handleSubmit} className="review-form">
           {/* Role-specific ratings */}
-          {user.role === 'brand' ? (
+          {isReviewingAsHirer ? (
             <>
               <div className="form-group">
                 <label htmlFor="punctualityRating">
@@ -243,7 +248,7 @@ const ReviewModal = ({ booking, partnerInfo, onClose, onSubmit, isPreview }) => 
                 checked={formData.wouldWorkAgain}
                 onChange={handleChange}
               />
-              I would work with this {user.role === 'brand' ? 'ambassador' : 'brand'} again
+              I would work with this {isReviewingAsHirer ? 'ambassador' : 'brand'} again
             </label>
           </div>
 

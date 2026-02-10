@@ -62,14 +62,16 @@ const createReview = async (req, res) => {
       return res.status(400).json({ error: 'You have already reviewed this booking' });
     }
 
-    // Validate role-specific ratings
-    if (req.user.role === 'brand') {
-      // Brand reviewing ambassador - need punctuality, professionalism, engagement
+    // Validate role-specific ratings based on who is being reviewed
+    // Brands and account managers (when booking) review ambassadors with brand criteria
+    // Ambassadors and account managers (when booked) review brands with ambassador criteria
+    if (isReviewingAmbassador) {
+      // Reviewing an ambassador - need punctuality, professionalism, engagement
       if (!punctualityRating || !professionalismRating || !engagementRating) {
         return res.status(400).json({ error: 'Missing required ratings for ambassador review' });
       }
-    } else if (req.user.role === 'ambassador') {
-      // Ambassador reviewing brand - need clear expectations, onsite support, respectful treatment
+    } else if (isReviewingBrand) {
+      // Reviewing a brand - need clear expectations, onsite support, respectful treatment
       if (!clearExpectationsRating || !onsiteSupportRating || !respectfulTreatmentRating) {
         return res.status(400).json({ error: 'Missing required ratings for brand review' });
       }
@@ -214,6 +216,34 @@ const getBookingsNeedingReview = async (req, res) => {
         FROM bookings b
         JOIN users u ON b.ambassador_id = u.id
         WHERE b.brand_id = $1
+        AND b.status = 'completed'
+        AND NOT EXISTS(
+          SELECT 1 FROM reviews r
+          WHERE r.booking_id = b.id AND r.reviewer_id = $1
+        )
+        ORDER BY b.event_date DESC
+      `;
+      params = [req.user.userId];
+    } else if (req.user.role === 'account_manager') {
+      // Account managers can be on either side - get both types of bookings
+      query = `
+        SELECT b.*,
+               CASE
+                 WHEN b.brand_id = $1 THEN u_amb.name
+                 ELSE u_brand.name
+               END as partner_name,
+               CASE
+                 WHEN b.brand_id = $1 THEN u_amb.profile_photo
+                 ELSE u_brand.profile_photo
+               END as partner_photo,
+               CASE
+                 WHEN b.brand_id = $1 THEN 'ambassador'
+                 ELSE 'brand'
+               END as partner_type
+        FROM bookings b
+        LEFT JOIN users u_amb ON b.ambassador_id = u_amb.id
+        LEFT JOIN users u_brand ON b.brand_id = u_brand.id
+        WHERE (b.brand_id = $1 OR b.ambassador_id = $1)
         AND b.status = 'completed'
         AND NOT EXISTS(
           SELECT 1 FROM reviews r

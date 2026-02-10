@@ -15,9 +15,9 @@ const createMatch = async (req, res) => {
   try {
     const { brandId } = req.body;
 
-    // Only ambassadors can create matches (by accepting likes)
-    if (req.user.role !== 'ambassador') {
-      return res.status(403).json({ error: 'Only ambassadors can create matches' });
+    // Only ambassadors and account managers can create matches (by accepting likes)
+    if (req.user.role !== 'ambassador' && req.user.role !== 'account_manager') {
+      return res.status(403).json({ error: 'Only ambassadors and account managers can create matches' });
     }
 
     // Verify a pending request exists from the brand to this ambassador

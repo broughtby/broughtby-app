@@ -134,9 +134,9 @@ const createLike = async (req, res) => {
 
 const getReceivedLikes = async (req, res) => {
   try {
-    // Only ambassadors can see who liked them
-    if (req.user.role !== 'ambassador') {
-      return res.status(403).json({ error: 'Only ambassadors can view received likes' });
+    // Only ambassadors and account managers can see who liked them
+    if (req.user.role !== 'ambassador' && req.user.role !== 'account_manager') {
+      return res.status(403).json({ error: 'Only ambassadors and account managers can view received likes' });
     }
 
     const result = await db.query(
@@ -161,9 +161,9 @@ const declineLike = async (req, res) => {
   try {
     const { brandId } = req.body;
 
-    // Only ambassadors can decline partnership requests
-    if (req.user.role !== 'ambassador') {
-      return res.status(403).json({ error: 'Only ambassadors can decline requests' });
+    // Only ambassadors and account managers can decline partnership requests
+    if (req.user.role !== 'ambassador' && req.user.role !== 'account_manager') {
+      return res.status(403).json({ error: 'Only ambassadors and account managers can decline requests' });
     }
 
     // Update the like status to declined

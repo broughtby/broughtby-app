@@ -17,9 +17,9 @@ const createBooking = async (req, res) => {
       notes,
     } = req.body;
 
-    // Only brands can create bookings
-    if (req.user.role !== 'brand') {
-      return res.status(403).json({ error: 'Only brands can create bookings' });
+    // Only brands and account managers can create bookings
+    if (req.user.role !== 'brand' && req.user.role !== 'account_manager') {
+      return res.status(403).json({ error: 'Only brands and account managers can create bookings' });
     }
 
     // Verify the match exists and the brand is part of it
@@ -41,8 +41,8 @@ const createBooking = async (req, res) => {
 
     // Check if ambassador has set their hourly rate and get preview status
     const ambassadorCheck = await db.query(
-      'SELECT hourly_rate, is_preview_ambassador FROM users WHERE id = $1 AND role = $2',
-      [ambassadorId, 'ambassador']
+      'SELECT hourly_rate, is_preview_ambassador FROM users WHERE id = $1 AND (role = $2 OR role = $3)',
+      [ambassadorId, 'ambassador', 'account_manager']
     );
 
     if (ambassadorCheck.rows.length === 0) {
@@ -327,9 +327,9 @@ const checkIn = async (req, res) => {
 
     const isPreviewBrand = userCheck.rows[0]?.role === 'brand' && userCheck.rows[0]?.is_preview;
 
-    // Only ambassadors can check in (or preview brands for demo)
-    if (req.user.role !== 'ambassador' && !isPreviewBrand) {
-      return res.status(403).json({ error: 'Only ambassadors can check in' });
+    // Only ambassadors and account managers can check in (or preview brands for demo)
+    if (req.user.role !== 'ambassador' && req.user.role !== 'account_manager' && !isPreviewBrand) {
+      return res.status(403).json({ error: 'Only ambassadors and account managers can check in' });
     }
 
     // Get the booking (allow preview brands to check in for their own bookings)
@@ -386,9 +386,9 @@ const checkOut = async (req, res) => {
 
     const isPreviewBrand = userCheck.rows[0]?.role === 'brand' && userCheck.rows[0]?.is_preview;
 
-    // Only ambassadors can check out (or preview brands for demo)
-    if (req.user.role !== 'ambassador' && !isPreviewBrand) {
-      return res.status(403).json({ error: 'Only ambassadors can check out' });
+    // Only ambassadors and account managers can check out (or preview brands for demo)
+    if (req.user.role !== 'ambassador' && req.user.role !== 'account_manager' && !isPreviewBrand) {
+      return res.status(403).json({ error: 'Only ambassadors and account managers can check out' });
     }
 
     // Get the booking (allow preview brands to check out for their own bookings)
