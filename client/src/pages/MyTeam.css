@@ -1,0 +1,383 @@
+.my-team-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.page-header {
+  margin-bottom: 3rem;
+}
+
+.page-header h1 {
+  margin: 0 0 0.5rem 0;
+  color: var(--navy);
+  font-size: 2.5rem;
+}
+
+.page-header .subtitle {
+  margin: 0;
+  color: var(--dark-gray);
+  font-size: 1.1rem;
+}
+
+.loading {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--dark-gray);
+  font-size: 1.1rem;
+}
+
+.error-banner {
+  background-color: #fee;
+  border: 1px solid #fcc;
+  color: #c33;
+  padding: 1rem;
+  border-radius: var(--border-radius);
+  margin-bottom: 2rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  background-color: var(--light-gray);
+  border-radius: var(--border-radius);
+}
+
+.empty-state h2 {
+  margin: 0 0 1rem 0;
+  color: var(--navy);
+}
+
+.empty-state p {
+  margin: 0;
+  color: var(--dark-gray);
+  font-size: 1.1rem;
+}
+
+.engagement-section {
+  margin-bottom: 3rem;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0 0 1.5rem 0;
+  color: var(--navy);
+  font-size: 1.5rem;
+}
+
+.section-title .count {
+  background-color: var(--gold);
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+}
+
+.engagement-list {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+}
+
+.engagement-card {
+  background: white;
+  border: 2px solid var(--medium-gray);
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  transition: all 0.2s;
+}
+
+.engagement-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.engagement-card.pending {
+  border-color: #fbbf24;
+  background-color: #fffbeb;
+}
+
+.engagement-card.active {
+  border-color: #34d399;
+  background-color: #f0fdf4;
+}
+
+.engagement-card.paused {
+  border-color: var(--medium-gray);
+  background-color: #fafafa;
+}
+
+.engagement-card.ended,
+.engagement-card.declined {
+  border-color: var(--medium-gray);
+  background-color: #f9fafb;
+  opacity: 0.8;
+}
+
+.engagement-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.engagement-header .partner-photo {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--gold);
+}
+
+.engagement-header .partner-info {
+  flex: 1;
+}
+
+.engagement-header .partner-info h3 {
+  margin: 0 0 0.25rem 0;
+  color: var(--navy);
+  font-size: 1.25rem;
+}
+
+.engagement-header .partner-info .location {
+  margin: 0;
+  color: var(--dark-gray);
+  font-size: 0.9rem;
+}
+
+.engagement-status-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 0.25rem 0.75rem;
+  background-color: var(--navy);
+  color: white;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.engagement-card.pending .engagement-status-badge {
+  background-color: #f59e0b;
+}
+
+.engagement-card.active .engagement-status-badge {
+  background-color: #10b981;
+}
+
+.engagement-card.paused .engagement-status-badge {
+  background-color: var(--dark-gray);
+}
+
+.engagement-card.ended .engagement-status-badge,
+.engagement-card.declined .engagement-status-badge {
+  background-color: var(--medium-gray);
+  color: var(--dark-gray);
+}
+
+.engagement-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.detail-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.detail-row.notes {
+  flex-direction: column;
+}
+
+.detail-row .label {
+  font-weight: 600;
+  color: var(--navy);
+  min-width: 120px;
+}
+
+.detail-row .value {
+  color: var(--dark-gray);
+}
+
+.detail-row.notes .value {
+  margin: 0;
+  padding: 0.75rem;
+  background-color: rgba(10, 37, 64, 0.05);
+  border-radius: var(--border-radius);
+  line-height: 1.5;
+}
+
+.engagement-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.engagement-actions button {
+  padding: 0.5rem 1rem;
+  border-radius: var(--border-radius);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.btn-accept {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+}
+
+.btn-accept:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.btn-decline {
+  background-color: white;
+  border: 2px solid #dc2626 !important;
+  color: #dc2626;
+}
+
+.btn-decline:hover {
+  background-color: #fee;
+}
+
+.btn-secondary {
+  background-color: white;
+  border: 2px solid var(--navy) !important;
+  color: var(--navy);
+}
+
+.btn-secondary:hover {
+  background-color: var(--light-gray);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--navy) 0%, #0D3350 100%);
+  color: white;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(10, 37, 64, 0.3);
+}
+
+.btn-end {
+  background-color: white;
+  border: 2px solid #dc2626 !important;
+  color: #dc2626;
+}
+
+.btn-end:hover {
+  background-color: #fee;
+}
+
+.pending-note,
+.ended-note {
+  margin: 0;
+  color: var(--dark-gray);
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+/* End Engagement Modal */
+.end-modal {
+  max-width: 500px;
+}
+
+.end-modal h2 {
+  margin: 0 0 0.5rem 0;
+  color: var(--navy);
+}
+
+.end-modal p {
+  margin: 0 0 1.5rem 0;
+  color: var(--dark-gray);
+}
+
+.end-modal .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.end-modal label {
+  font-weight: 600;
+  color: var(--navy);
+}
+
+.end-modal input {
+  padding: 0.75rem;
+  border: 1px solid var(--medium-gray);
+  border-radius: var(--border-radius);
+  font-size: 1rem;
+}
+
+.end-modal .helper-text {
+  color: var(--dark-gray);
+  font-size: 0.85rem;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.modal-actions button {
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--border-radius);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.modal-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .my-team-page {
+    padding: 1rem;
+  }
+
+  .page-header h1 {
+    font-size: 2rem;
+  }
+
+  .engagement-list {
+    grid-template-columns: 1fr;
+  }
+
+  .engagement-header {
+    flex-wrap: wrap;
+  }
+
+  .engagement-status-badge {
+    position: static;
+    margin-left: auto;
+  }
+
+  .engagement-actions {
+    flex-direction: column;
+  }
+
+  .engagement-actions button {
+    width: 100%;
+  }
+}

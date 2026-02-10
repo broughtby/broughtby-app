@@ -6,7 +6,7 @@ import BrandAvatar from './BrandAvatar';
 import './Navbar.css';
 
 const Navbar = () => {
-  const { logout, isAuthenticated, isAdmin, impersonateUser, user, demoMode, toggleDemoMode } = useAuth();
+  const { logout, isAuthenticated, isAdmin, impersonateUser, user, demoMode, toggleDemoMode, isBrand, isAccountManager } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
@@ -131,6 +131,11 @@ const Navbar = () => {
               <Link to="/calendar" className="nav-link" onClick={closeMobileMenu}>
                 Calendar
               </Link>
+              {(isBrand || isAccountManager) && (
+                <Link to="/my-team" className="nav-link" onClick={closeMobileMenu}>
+                  My Team
+                </Link>
+              )}
               <Link to="/messages" className="nav-link" onClick={closeMobileMenu}>
                 Messages
               </Link>

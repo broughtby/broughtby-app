@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { userAPI, likeAPI, reviewAPI, bookingAPI, messageAPI, matchAPI, previewAPI } from '../services/api';
+import { userAPI, likeAPI, reviewAPI, bookingAPI, messageAPI, matchAPI, previewAPI, engagementAPI } from '../services/api';
 import { getPhotoUrl } from '../services/upload';
 import DisplayName from '../components/DisplayName';
 import DisplayRate from '../components/DisplayRate';
 import ReviewsList from '../components/ReviewsList';
 import BrandAvatar from '../components/BrandAvatar';
 import BookingModal from '../components/BookingModal';
+import EngagementModal from '../components/EngagementModal';
 import './Discover.css';
 
 const Discover = () => {
@@ -33,6 +34,8 @@ const Discover = () => {
   const [bookingAmbassador, setBookingAmbassador] = useState(null);
   const [showBookingSuccess, setShowBookingSuccess] = useState(false);
   const [bookingAutoConfirmed, setBookingAutoConfirmed] = useState(false);
+  const [engagementAccountManager, setEngagementAccountManager] = useState(null);
+  const [showEngagementSuccess, setShowEngagementSuccess] = useState(false);
   const [showPreviewToast, setShowPreviewToast] = useState(false);
   const [showAutoMatchToast, setShowAutoMatchToast] = useState(false);
   const [autoMatchedAmbassador, setAutoMatchedAmbassador] = useState(null);
@@ -210,6 +213,50 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
     }
   };
 
+  const handleEngagementSubmit = async (engagementData) => {
+    try {
+      // Find the match for this account manager
+      const match = matches.find(m => m.user_id === engagementData.accountManagerId);
+
+      if (!match) {
+        alert('Error: Could not find match. Please try again.');
+        return;
+      }
+
+      // Create engagement in database
+      const engagementPayload = {
+        matchId: match.match_id,
+        accountManagerId: engagementData.accountManagerId,
+        monthlyRate: engagementData.monthlyRate,
+        startDate: engagementData.startDate,
+        endDate: engagementData.endDate,
+        notes: engagementData.notes,
+      };
+
+      await engagementAPI.createEngagement(engagementPayload);
+
+      // Send a message in the chat with engagement details
+      const engagementMessage = `💼 New Engagement Request
+
+Monthly Retainer: $${engagementData.monthlyRate.toLocaleString()}/month
+Start Date: ${new Date(engagementData.startDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}${engagementData.endDate ? `\nEnd Date: ${new Date(engagementData.endDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}` : ''}
+${engagementData.notes ? `\nScope of Work: ${engagementData.notes}` : ''}
+
+Status: Pending your acceptance`;
+
+      await messageAPI.createMessage(match.match_id, engagementMessage);
+
+      // Close modal and show success
+      setEngagementAccountManager(null);
+      setShowEngagementSuccess(true);
+    } catch (error) {
+      console.error('Failed to create engagement:', error);
+
+      const errorMessage = error.response?.data?.error || 'Failed to create engagement. Please try again.';
+      alert(errorMessage);
+    }
+  };
+
   // Helper function to get match for an ambassador
   const getMatchForAmbassador = (ambassadorId) => {
     return matches.find(m => m.user_id === ambassadorId);
@@ -274,6 +321,11 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
             a.id === currentAmbassador.id ? { ...a, status: 'matched' } : a
           );
           setAmbassadors(updatedAmbassadors);
+
+          // Fetch updated matches so Message button works
+          if (isBrand) {
+            fetchMatches();
+          }
 
           // Show auto-match toast
           setAutoMatchedAmbassador(currentAmbassador);
@@ -345,6 +397,26 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
   // Preview mode helpers
   const findPreviewAmbassador = () => {
     return filteredAmbassadors.find(a => a.is_preview_ambassador);
+  };
+
+  const getPreviewPersonLabel = () => {
+    const previewPerson = findPreviewAmbassador();
+    if (!previewPerson) {
+      return talentType === 'account_manager' ? 'Test Account Manager' : 'Test Ambassador';
+    }
+    return previewPerson.name;
+  };
+
+  const getPreviewActionVerb = () => {
+    return talentType === 'account_manager' ? 'hiring' : 'booking';
+  };
+
+  const getPreviewActionVerbBase = () => {
+    return talentType === 'account_manager' ? 'hire' : 'book';
+  };
+
+  const getPreviewTalentLabel = () => {
+    return talentType === 'account_manager' ? 'account managers' : 'ambassadors';
   };
 
   const scrollToPreviewAmbassador = () => {
@@ -656,14 +728,14 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
             <div className="preview-banner-content">
               <span className="preview-icon">🎬</span>
               <p className="preview-text">
-                <strong>Preview Mode</strong> — Browse real ambassadors, then book {findPreviewAmbassador()?.name || 'Test Ambassador'} to try the full experience
+                <strong>Preview Mode</strong> — Browse real {getPreviewTalentLabel()}, then {getPreviewActionVerbBase()} {getPreviewPersonLabel()} to try the full experience
               </p>
               <div className="preview-banner-actions">
                 <button
                   className="preview-find-button"
                   onClick={scrollToPreviewAmbassador}
                 >
-                  Find {findPreviewAmbassador()?.name?.split(' ')[0] || 'Test Ambassador'}
+                  Find {getPreviewPersonLabel().split(' ')[0]}
                 </button>
                 <button
                   className="preview-reset-button"
@@ -813,13 +885,25 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
                 <button
                   className="action-button request-button"
                   onClick={() => {
-                    setBookingAmbassador({
-                      id: currentAmbassador.id,
-                      name: currentAmbassador.name,
-                      hourly_rate: currentAmbassador.hourly_rate,
-                      profile_photo: currentAmbassador.profile_photo,
-                      is_test: currentAmbassador.is_test,
-                    });
+                    if (currentAmbassador.role === 'account_manager') {
+                      // For account managers, open EngagementModal
+                      setEngagementAccountManager({
+                        id: currentAmbassador.id,
+                        name: currentAmbassador.name,
+                        monthly_rate: currentAmbassador.monthly_rate,
+                        profile_photo: currentAmbassador.profile_photo,
+                        location: currentAmbassador.location,
+                      });
+                    } else {
+                      // For ambassadors, open BookingModal
+                      setBookingAmbassador({
+                        id: currentAmbassador.id,
+                        name: currentAmbassador.name,
+                        hourly_rate: currentAmbassador.hourly_rate,
+                        profile_photo: currentAmbassador.profile_photo,
+                        is_test: currentAmbassador.is_test,
+                      });
+                    }
                   }}
                 >
                   <span>Book Now</span>
@@ -891,7 +975,7 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
           <div className="preview-toast">
             <div className="preview-toast-content">
               <p className="preview-toast-text">
-                <strong>This is a live preview</strong> — try booking {findPreviewAmbassador()?.name || 'Test Ambassador'} to experience the full flow!
+                <strong>This is a live preview</strong> — try {getPreviewActionVerb()} {getPreviewPersonLabel()} to experience the full flow!
               </p>
               <button
                 className="preview-toast-button"
@@ -900,7 +984,7 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
                   setShowPreviewToast(false);
                 }}
               >
-                Find {findPreviewAmbassador()?.name?.split(' ')[0] || 'Test Ambassador'}
+                Find {getPreviewPersonLabel().split(' ')[0]}
               </button>
               <button
                 className="preview-toast-close"
@@ -966,14 +1050,14 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
           <div className="preview-banner-content">
             <span className="preview-icon">🎬</span>
             <p className="preview-text">
-              <strong>Preview Mode</strong> — Browse real ambassadors, then book {findPreviewAmbassador()?.name || 'Test Ambassador'} to try the full experience
+              <strong>Preview Mode</strong> — Browse real {getPreviewTalentLabel()}, then {getPreviewActionVerbBase()} {getPreviewPersonLabel()} to try the full experience
             </p>
             <div className="preview-banner-actions">
               <button
                 className="preview-find-button"
                 onClick={scrollToPreviewAmbassador}
               >
-                Find {findPreviewAmbassador()?.name?.split(' ')[0] || 'Test Ambassador'}
+                Find {getPreviewPersonLabel().split(' ')[0]}
               </button>
               <button
                 className="preview-reset-button"
@@ -1163,14 +1247,26 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
                       <button
                         className="action-button request-button"
                         onClick={() => {
-                          setBookingAmbassador({
-                            id: selectedAmbassador.id,
-                            name: selectedAmbassador.name,
-                            hourly_rate: selectedAmbassador.hourly_rate,
-                            profile_photo: selectedAmbassador.profile_photo,
-                            is_test: selectedAmbassador.is_test,
-                          });
                           setSelectedAmbassador(null);
+                          if (selectedAmbassador.role === 'account_manager') {
+                            // For account managers, open EngagementModal
+                            setEngagementAccountManager({
+                              id: selectedAmbassador.id,
+                              name: selectedAmbassador.name,
+                              monthly_rate: selectedAmbassador.monthly_rate,
+                              profile_photo: selectedAmbassador.profile_photo,
+                              location: selectedAmbassador.location,
+                            });
+                          } else {
+                            // For ambassadors, open BookingModal
+                            setBookingAmbassador({
+                              id: selectedAmbassador.id,
+                              name: selectedAmbassador.name,
+                              hourly_rate: selectedAmbassador.hourly_rate,
+                              profile_photo: selectedAmbassador.profile_photo,
+                              is_test: selectedAmbassador.is_test,
+                            });
+                          }
                         }}
                         style={{ flex: 1 }}
                       >
@@ -1207,6 +1303,11 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
                             a.id === selectedAmbassador.id ? { ...a, status: 'matched' } : a
                           );
                           setAmbassadors(updatedAmbassadors);
+
+                          // Fetch updated matches so Message button works
+                          if (isBrand) {
+                            fetchMatches();
+                          }
 
                           // Show auto-match toast
                           setAutoMatchedAmbassador(selectedAmbassador);
@@ -1247,12 +1348,21 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
         />
       )}
 
+      {/* Engagement Modal */}
+      {engagementAccountManager && (
+        <EngagementModal
+          accountManager={engagementAccountManager}
+          onClose={() => setEngagementAccountManager(null)}
+          onSubmit={handleEngagementSubmit}
+        />
+      )}
+
       {/* Preview Mode Toast */}
       {showPreviewToast && isPreview && (
         <div className="preview-toast">
           <div className="preview-toast-content">
             <p className="preview-toast-text">
-              <strong>This is a live preview</strong> — try booking {findPreviewAmbassador()?.name || 'Test Ambassador'} to experience the full flow!
+              <strong>This is a live preview</strong> — try {getPreviewActionVerb()} {getPreviewPersonLabel()} to experience the full flow!
             </p>
             <button
               className="preview-toast-button"
@@ -1261,7 +1371,7 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
                 setShowPreviewToast(false);
               }}
             >
-              Find {findPreviewAmbassador()?.name?.split(' ')[0] || 'Test Ambassador'}
+              Find {getPreviewPersonLabel().split(' ')[0]}
             </button>
             <button
               className="preview-toast-close"
@@ -1323,6 +1433,36 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
               <button
                 className="dismiss-button"
                 onClick={() => setShowBookingSuccess(false)}
+              >
+                Stay in Discover
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Engagement Success Modal */}
+      {showEngagementSuccess && (
+        <div className="booking-success-modal" onClick={() => setShowEngagementSuccess(false)}>
+          <div className="booking-success-content" onClick={(e) => e.stopPropagation()}>
+            <div className="booking-success-icon">💼</div>
+            <h2>Engagement Request Sent!</h2>
+            <p>
+              Your engagement request has been sent and is pending acceptance from the account manager. You can track the status in your My Team page.
+            </p>
+            <div className="booking-success-actions">
+              <button
+                className="view-calendar-button"
+                onClick={() => {
+                  setShowEngagementSuccess(false);
+                  navigate('/my-team');
+                }}
+              >
+                View My Team
+              </button>
+              <button
+                className="dismiss-button"
+                onClick={() => setShowEngagementSuccess(false)}
               >
                 Stay in Discover
               </button>

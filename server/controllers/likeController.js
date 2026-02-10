@@ -20,23 +20,24 @@ const createLike = async (req, res) => {
       return res.status(403).json({ error: 'Only brands can like ambassadors' });
     }
 
-    // Verify ambassador exists and is actually an ambassador
+    // Verify ambassador/account manager exists
     const ambassadorCheck = await db.query(
       'SELECT id, role, email, name, is_test, is_preview_ambassador FROM users WHERE id = $1',
       [ambassadorId]
     );
 
     if (ambassadorCheck.rows.length === 0) {
-      return res.status(404).json({ error: 'Ambassador not found' });
+      return res.status(404).json({ error: 'User not found' });
     }
 
-    if (ambassadorCheck.rows[0].role !== 'ambassador') {
-      return res.status(400).json({ error: 'User is not an ambassador' });
+    // Allow likes to both ambassadors and account managers
+    if (ambassadorCheck.rows[0].role !== 'ambassador' && ambassadorCheck.rows[0].role !== 'account_manager') {
+      return res.status(400).json({ error: 'User is not an ambassador or account manager' });
     }
 
     // Get brand information including preview status
     const brandCheck = await db.query(
-      'SELECT name, location, bio, is_preview, email FROM users WHERE id = $1',
+      'SELECT name, location, bio, is_preview, email, company_name FROM users WHERE id = $1',
       [req.user.userId]
     );
 
@@ -82,11 +83,21 @@ const createLike = async (req, res) => {
 
       const matchId = matchResult.rows[0].id;
 
-      // Create auto-welcome message from brand
-      // Customize message for YC Buzz preview account
-      const welcomeMessage = brand.email === 'yc@broughtby.co'
-        ? `Hi ${ambassador.name}! We're launching a new coffee brand for founders and want to do a series of coffee events this spring and summer in chicago. I think you could be a good fit. Interested?`
-        : `Hi ${ambassador.name}! We want to do a series of events this spring and summer in chicago. I think you could be a good fit. Interested?`;
+      // Create auto-welcome message from brand - customize based on role
+      let welcomeMessage;
+
+      // Get brand company name
+      const brandCompanyName = brand.company_name || brand.name;
+
+      if (ambassador.role === 'account_manager') {
+        // Account manager welcome message
+        welcomeMessage = `Hi ${ambassador.name}! We have some account management needs for ${brandCompanyName}. Interested?`;
+      } else {
+        // Regular ambassador welcome message - customize for YC Buzz preview account
+        welcomeMessage = brand.email === 'yc@broughtby.co'
+          ? `Hi ${ambassador.name}! We're launching a new coffee brand for founders and want to do a series of coffee events this spring and summer in chicago. I think you could be a good fit. Interested?`
+          : `Hi ${ambassador.name}! We want to do a series of events this spring and summer in chicago. I think you could be a good fit. Interested?`;
+      }
 
       await db.query(
         `INSERT INTO messages (match_id, sender_id, content)

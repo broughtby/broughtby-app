@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { messageAPI, matchAPI, bookingAPI } from '../services/api';
+import { messageAPI, matchAPI, bookingAPI, engagementAPI } from '../services/api';
 import socketService from '../services/socket';
 import DisplayName from '../components/DisplayName';
 import BookingModal from '../components/BookingModal';
+import EngagementModal from '../components/EngagementModal';
 import './Chat.css';
 
 const Chat = () => {
@@ -21,6 +22,8 @@ const Chat = () => {
   const [bookingAmbassador, setBookingAmbassador] = useState(null);
   const [showBookingSuccess, setShowBookingSuccess] = useState(false);
   const [bookingAutoConfirmed, setBookingAutoConfirmed] = useState(false);
+  const [engagementAccountManager, setEngagementAccountManager] = useState(null);
+  const [showEngagementSuccess, setShowEngagementSuccess] = useState(false);
 
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
@@ -232,6 +235,48 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
     }
   };
 
+  const handleEngagementSubmit = async (engagementData) => {
+    try {
+      if (!matchData) {
+        alert('Error: Could not find match. Please try again.');
+        return;
+      }
+
+      // Create engagement in database
+      const engagementPayload = {
+        matchId: parseInt(matchId),
+        accountManagerId: engagementData.accountManagerId,
+        monthlyRate: engagementData.monthlyRate,
+        startDate: engagementData.startDate,
+        endDate: engagementData.endDate,
+        notes: engagementData.notes,
+      };
+
+      await engagementAPI.createEngagement(engagementPayload);
+
+      // Send a message in the chat with engagement details
+      const engagementMessage = `💼 New Engagement Request
+
+Monthly Retainer: $${engagementData.monthlyRate.toLocaleString()}/month
+Start Date: ${new Date(engagementData.startDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}${engagementData.endDate ? `\nEnd Date: ${new Date(engagementData.endDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}` : ''}
+${engagementData.notes ? `\nScope of Work: ${engagementData.notes}` : ''}
+
+Status: Pending your acceptance`;
+
+      // Send via socket for real-time delivery
+      socketService.sendMessage(parseInt(matchId), engagementMessage);
+
+      // Close modal and show success
+      setEngagementAccountManager(null);
+      setShowEngagementSuccess(true);
+    } catch (error) {
+      console.error('Failed to create engagement:', error);
+
+      const errorMessage = error.response?.data?.error || 'Failed to create engagement. Please try again.';
+      alert(errorMessage);
+    }
+  };
+
   const formatTime = (timestamp) => {
     const date = new Date(timestamp);
     const now = new Date();
@@ -334,13 +379,23 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
           <button
             className="action-bar-button book-button"
             onClick={() => {
-              setBookingAmbassador({
-                id: matchData.user_id,
-                name: matchData.name,
-                hourly_rate: matchData.hourly_rate,
-                profile_photo: matchData.profile_photo,
-                is_test: matchData.is_test,
-              });
+              if (matchData.role === 'account_manager') {
+                setEngagementAccountManager({
+                  id: matchData.user_id,
+                  name: matchData.name,
+                  monthly_rate: matchData.monthly_rate,
+                  profile_photo: matchData.profile_photo,
+                  location: matchData.location,
+                });
+              } else {
+                setBookingAmbassador({
+                  id: matchData.user_id,
+                  name: matchData.name,
+                  hourly_rate: matchData.hourly_rate,
+                  profile_photo: matchData.profile_photo,
+                  is_test: matchData.is_test,
+                });
+              }
             }}
           >
             <span className="action-icon">📅</span>
@@ -376,6 +431,15 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
         />
       )}
 
+      {/* Engagement Modal */}
+      {engagementAccountManager && (
+        <EngagementModal
+          accountManager={engagementAccountManager}
+          onClose={() => setEngagementAccountManager(null)}
+          onSubmit={handleEngagementSubmit}
+        />
+      )}
+
       {/* Booking Success Modal */}
       {showBookingSuccess && (
         <div className="booking-success-modal" onClick={() => setShowBookingSuccess(false)}>
@@ -400,6 +464,36 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
               <button
                 className="dismiss-button"
                 onClick={() => setShowBookingSuccess(false)}
+              >
+                Stay in Chat
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Engagement Success Modal */}
+      {showEngagementSuccess && (
+        <div className="booking-success-modal" onClick={() => setShowEngagementSuccess(false)}>
+          <div className="booking-success-content" onClick={(e) => e.stopPropagation()}>
+            <div className="booking-success-icon">💼</div>
+            <h2>Engagement Request Sent!</h2>
+            <p>
+              Your engagement request has been sent and is pending acceptance from the account manager. You can track the status in your My Team page.
+            </p>
+            <div className="booking-success-actions">
+              <button
+                className="view-calendar-button"
+                onClick={() => {
+                  setShowEngagementSuccess(false);
+                  navigate('/my-team');
+                }}
+              >
+                View My Team
+              </button>
+              <button
+                className="dismiss-button"
+                onClick={() => setShowEngagementSuccess(false)}
               >
                 Stay in Chat
               </button>

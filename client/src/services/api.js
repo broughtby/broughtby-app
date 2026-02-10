@@ -90,4 +90,12 @@ export const previewAPI = {
   resetPreview: () => api.post('/preview/reset'),
 };
 
+// Engagement endpoints
+export const engagementAPI = {
+  createEngagement: (data) => api.post('/engagements', data),
+  getEngagements: () => api.get('/engagements'),
+  updateEngagementStatus: (id, status) => api.patch(`/engagements/${id}/status`, { status }),
+  endEngagement: (id, endDate) => api.patch(`/engagements/${id}/end`, { endDate }),
+};
+
 export default api;

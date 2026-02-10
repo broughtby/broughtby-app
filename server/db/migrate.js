@@ -433,7 +433,7 @@ const migrations = [
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       CHECK (brand_id != account_manager_id),
-      CHECK (status IN ('pending', 'active', 'paused', 'ended'))
+      CHECK (status IN ('pending', 'active', 'paused', 'ended', 'declined'))
     );
   `,
 

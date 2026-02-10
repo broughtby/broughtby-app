@@ -52,27 +52,38 @@ const createMatch = async (req, res) => {
     // Get the newly created match ID
     const matchId = result.rows[0].id;
 
-    // Get ambassador's name for personalized welcome message
+    // Get ambassador/account manager info for personalized welcome message
     const ambassadorQuery = await db.query(
-      'SELECT name FROM users WHERE id = $1',
+      'SELECT name, role FROM users WHERE id = $1',
       [req.user.userId]
     );
 
     if (ambassadorQuery.rows.length > 0) {
       const ambassadorName = ambassadorQuery.rows[0].name;
+      const ambassadorRole = ambassadorQuery.rows[0].role;
 
-      // Get brand email to customize message for YC Buzz
-      const brandEmailQuery = await db.query(
-        'SELECT email FROM users WHERE id = $1',
+      // Get brand info for customized message
+      const brandQuery = await db.query(
+        'SELECT email, name, company_name FROM users WHERE id = $1',
         [brandId]
       );
 
-      const brandEmail = brandEmailQuery.rows[0]?.email;
+      const brandEmail = brandQuery.rows[0]?.email;
+      const brandName = brandQuery.rows[0]?.name;
+      const companyName = brandQuery.rows[0]?.company_name || brandName;
 
-      // Customize message for YC Buzz preview account
-      const welcomeMessage = brandEmail === 'yc@broughtby.co'
-        ? `Hi ${ambassadorName}! We're launching a new coffee brand for founders and want to do a series of coffee events this spring and summer in chicago. I think you could be a good fit. Interested?`
-        : `Hi ${ambassadorName}! We want to do a series of events this spring and summer in chicago. I think you could be a good fit. Interested?`;
+      let welcomeMessage;
+
+      // Customize message based on role
+      if (ambassadorRole === 'account_manager') {
+        // Account manager welcome message
+        welcomeMessage = `Hi ${ambassadorName}! We have some account management needs for ${companyName}. Interested?`;
+      } else {
+        // Regular ambassador welcome message - customize for YC Buzz preview account
+        welcomeMessage = brandEmail === 'yc@broughtby.co'
+          ? `Hi ${ambassadorName}! We're launching a new coffee brand for founders and want to do a series of coffee events this spring and summer in chicago. I think you could be a good fit. Interested?`
+          : `Hi ${ambassadorName}! We want to do a series of events this spring and summer in chicago. I think you could be a good fit. Interested?`;
+      }
 
       // Insert the welcome message into the messages table
       await db.query(
@@ -135,6 +146,7 @@ const getMatches = async (req, res) => {
         SELECT m.id as match_id, m.created_at,
                u.id as user_id, u.name, u.profile_photo, u.bio, u.location,
                u.age, u.skills, u.hourly_rate, u.availability, u.rating, u.is_test,
+               u.role, u.monthly_rate,
                (SELECT content FROM messages WHERE match_id = m.id
                 ORDER BY created_at DESC LIMIT 1) as last_message,
                (SELECT created_at FROM messages WHERE match_id = m.id

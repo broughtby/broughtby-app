@@ -20,6 +20,7 @@ const bookingRoutes = require('./routes/bookings');
 const adminRoutes = require('./routes/admin');
 const reviewRoutes = require('./routes/reviews');
 const previewRoutes = require('./routes/previewRoutes');
+const engagementRoutes = require('./routes/engagements');
 
 const app = express();
 const server = http.createServer(app);
@@ -77,6 +78,7 @@ app.use('/api/bookings', bookingRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/preview', previewRoutes);
+app.use('/api/engagements', engagementRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

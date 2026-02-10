@@ -15,6 +15,7 @@ import Chat from './pages/Chat';
 import Profile from './pages/Profile';
 import Calendar from './pages/Calendar';
 import Messages from './pages/Messages';
+import MyTeam from './pages/MyTeam';
 
 function App() {
   return (
@@ -71,6 +72,15 @@ function App() {
               element={
                 <PrivateRoute>
                   <Messages />
+                </PrivateRoute>
+              }
+            />
+
+            <Route
+              path="/my-team"
+              element={
+                <PrivateRoute>
+                  <MyTeam />
                 </PrivateRoute>
               }
             />

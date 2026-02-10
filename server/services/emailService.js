@@ -1086,6 +1086,412 @@ const sendBookingConfirmedEmail = async ({ brandEmail, brandName, ambassadorName
   });
 };
 
+// Generate engagement request email HTML (to Account Manager when Brand creates engagement)
+const generateEngagementRequestEmail = ({ accountManagerName, brandName, monthlyRate, startDate, notes }) => {
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>New Engagement Request</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+          background-color: #F7F8FA;
+        }
+        .email-container {
+          max-width: 600px;
+          margin: 0 auto;
+          background-color: #ffffff;
+        }
+        .header {
+          background: linear-gradient(135deg, #0A2540 0%, #0D3350 100%);
+          padding: 40px 30px;
+          text-align: center;
+        }
+        .logo {
+          color: #D4AF37;
+          font-size: 32px;
+          font-weight: 700;
+          margin: 0;
+          letter-spacing: 1px;
+        }
+        .content {
+          padding: 40px 30px;
+        }
+        .greeting {
+          font-size: 24px;
+          color: #0A2540;
+          margin: 0 0 20px 0;
+          font-weight: 600;
+        }
+        .message {
+          font-size: 16px;
+          line-height: 1.6;
+          color: #4B5563;
+          margin-bottom: 30px;
+        }
+        .engagement-card {
+          background-color: #DBEAFE;
+          border-left: 4px solid #10B981;
+          padding: 20px;
+          margin: 30px 0;
+          border-radius: 4px;
+        }
+        .engagement-title {
+          font-size: 20px;
+          color: #0A2540;
+          font-weight: 600;
+          margin: 0 0 15px 0;
+        }
+        .engagement-detail {
+          font-size: 14px;
+          color: #374151;
+          margin: 8px 0;
+          display: flex;
+          align-items: flex-start;
+        }
+        .detail-label {
+          font-weight: 600;
+          min-width: 140px;
+        }
+        .cta-button {
+          display: inline-block;
+          background-color: #0A2540;
+          color: #ffffff;
+          text-decoration: none;
+          padding: 16px 40px;
+          border-radius: 8px;
+          font-size: 16px;
+          font-weight: 600;
+          margin: 20px 0;
+          text-align: center;
+        }
+        .footer {
+          background-color: #F7F8FA;
+          padding: 30px;
+          text-align: center;
+          font-size: 14px;
+          color: #6B7280;
+        }
+        .footer-link {
+          color: #0A2540;
+          text-decoration: none;
+        }
+        .divider {
+          height: 1px;
+          background-color: #E5E7EB;
+          margin: 30px 0;
+        }
+        @media only screen and (max-width: 600px) {
+          .content {
+            padding: 30px 20px;
+          }
+          .header {
+            padding: 30px 20px;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+          <h1 class="logo">BroughtBy</h1>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+          <h2 class="greeting">New engagement request from ${brandName} on BroughtBy</h2>
+
+          <p class="message">
+            Hi ${accountManagerName}! ${brandName} has sent you an engagement request to join their team as an account manager.
+          </p>
+
+          <!-- Engagement Details Card -->
+          <div class="engagement-card">
+            <h3 class="engagement-title">Account Management Engagement</h3>
+            <div class="engagement-detail">
+              <span class="detail-label">💰 Monthly Retainer:</span>
+              <span style="font-weight: 600; color: #0A2540;">$${monthlyRate.toLocaleString()}/month</span>
+            </div>
+            <div class="engagement-detail">
+              <span class="detail-label">📅 Start Date:</span>
+              <span>${formatDate(startDate)}</span>
+            </div>
+            ${notes ? `
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #BFDBFE;">
+              <div class="engagement-detail">
+                <span class="detail-label">📝 Scope of Work:</span>
+              </div>
+              <p style="margin: 5px 0 0 0; font-size: 14px; color: #6B7280;">${notes}</p>
+            </div>
+            ` : ''}
+          </div>
+
+          <p class="message">
+            Review the engagement details and confirm if you're interested in working with ${brandName}.
+          </p>
+
+          <div style="text-align: center;">
+            <a href="https://app.broughtby.co/my-team" class="cta-button">
+              Review Engagement
+            </a>
+          </div>
+
+          <div class="divider"></div>
+
+          <p class="message" style="font-size: 14px;">
+            You can accept or decline this engagement from your My Team page.
+          </p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+          <p style="margin: 0 0 10px 0;">
+            <strong>BroughtBy</strong> - Premium Brand Ambassador Marketplace
+          </p>
+          <p style="margin: 0;">
+            <a href="https://app.broughtby.co" class="footer-link">Visit BroughtBy</a> ·
+            <a href="https://app.broughtby.co/profile" class="footer-link">Manage Account</a>
+          </p>
+          <p style="margin-top: 20px; font-size: 12px; color: #9CA3AF;">
+            You're receiving this email because you have an account manager account on BroughtBy.
+          </p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+};
+
+// Generate engagement accepted email HTML (to Brand when Account Manager accepts)
+const generateEngagementAcceptedEmail = ({ brandName, accountManagerName, monthlyRate, startDate }) => {
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Engagement Accepted</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+          background-color: #F7F8FA;
+        }
+        .email-container {
+          max-width: 600px;
+          margin: 0 auto;
+          background-color: #ffffff;
+        }
+        .header {
+          background: linear-gradient(135deg, #0A2540 0%, #0D3350 100%);
+          padding: 40px 30px;
+          text-align: center;
+        }
+        .logo {
+          color: #D4AF37;
+          font-size: 32px;
+          font-weight: 700;
+          margin: 0;
+          letter-spacing: 1px;
+        }
+        .content {
+          padding: 40px 30px;
+        }
+        .confirmed-badge {
+          display: inline-block;
+          background-color: #10B981;
+          color: #ffffff;
+          padding: 8px 16px;
+          border-radius: 20px;
+          font-size: 14px;
+          font-weight: 600;
+          margin-bottom: 20px;
+        }
+        .greeting {
+          font-size: 24px;
+          color: #0A2540;
+          margin: 0 0 20px 0;
+          font-weight: 600;
+        }
+        .message {
+          font-size: 16px;
+          line-height: 1.6;
+          color: #4B5563;
+          margin-bottom: 30px;
+        }
+        .engagement-card {
+          background-color: #D1FAE5;
+          border-left: 4px solid #10B981;
+          padding: 20px;
+          margin: 30px 0;
+          border-radius: 4px;
+        }
+        .engagement-title {
+          font-size: 20px;
+          color: #0A2540;
+          font-weight: 600;
+          margin: 0 0 15px 0;
+        }
+        .engagement-detail {
+          font-size: 14px;
+          color: #374151;
+          margin: 8px 0;
+          display: flex;
+          align-items: flex-start;
+        }
+        .detail-label {
+          font-weight: 600;
+          min-width: 140px;
+        }
+        .cta-button {
+          display: inline-block;
+          background-color: #0A2540;
+          color: #ffffff;
+          text-decoration: none;
+          padding: 16px 40px;
+          border-radius: 8px;
+          font-size: 16px;
+          font-weight: 600;
+          margin: 20px 0;
+          text-align: center;
+        }
+        .footer {
+          background-color: #F7F8FA;
+          padding: 30px;
+          text-align: center;
+          font-size: 14px;
+          color: #6B7280;
+        }
+        .footer-link {
+          color: #0A2540;
+          text-decoration: none;
+        }
+        .divider {
+          height: 1px;
+          background-color: #E5E7EB;
+          margin: 30px 0;
+        }
+        @media only screen and (max-width: 600px) {
+          .content {
+            padding: 30px 20px;
+          }
+          .header {
+            padding: 30px 20px;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+          <h1 class="logo">BroughtBy</h1>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+          <span class="confirmed-badge">✓ ACCEPTED</span>
+          <h2 class="greeting">Engagement accepted: ${accountManagerName} has joined your team!</h2>
+
+          <p class="message">
+            Great news! ${accountManagerName} has accepted your engagement request and is ready to start working with ${brandName}.
+          </p>
+
+          <!-- Engagement Details Card -->
+          <div class="engagement-card">
+            <h3 class="engagement-title">Account Management Engagement</h3>
+            <div class="engagement-detail">
+              <span class="detail-label">👤 Account Manager:</span>
+              <span>${accountManagerName}</span>
+            </div>
+            <div class="engagement-detail">
+              <span class="detail-label">💰 Monthly Retainer:</span>
+              <span style="font-weight: 600; color: #0A2540;">$${monthlyRate.toLocaleString()}/month</span>
+            </div>
+            <div class="engagement-detail">
+              <span class="detail-label">📅 Start Date:</span>
+              <span>${formatDate(startDate)}</span>
+            </div>
+          </div>
+
+          <p class="message">
+            Your engagement is now active! You can view ${accountManagerName} and all your team members on your My Team page.
+          </p>
+
+          <div style="text-align: center;">
+            <a href="https://app.broughtby.co/my-team" class="cta-button">
+              View My Team
+            </a>
+          </div>
+
+          <div class="divider"></div>
+
+          <p class="message" style="font-size: 14px;">
+            If you need to make any changes or have questions, reach out to ${accountManagerName} through your matches page.
+          </p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+          <p style="margin: 0 0 10px 0;">
+            <strong>BroughtBy</strong> - Premium Brand Ambassador Marketplace
+          </p>
+          <p style="margin: 0;">
+            <a href="https://app.broughtby.co" class="footer-link">Visit BroughtBy</a> ·
+            <a href="https://app.broughtby.co/profile" class="footer-link">Manage Account</a>
+          </p>
+          <p style="margin-top: 20px; font-size: 12px; color: #9CA3AF;">
+            You're receiving this email because you have a brand account on BroughtBy.
+          </p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+};
+
+// Send engagement request email to account manager
+const sendEngagementRequestEmail = async ({ accountManagerEmail, accountManagerName, brandName, monthlyRate, startDate, notes }) => {
+  const subject = `New engagement request from ${brandName} on BroughtBy`;
+  const html = generateEngagementRequestEmail({
+    accountManagerName,
+    brandName,
+    monthlyRate,
+    startDate,
+    notes,
+  });
+
+  return await sendEmail({
+    to: accountManagerEmail,
+    subject,
+    html,
+  });
+};
+
+// Send engagement accepted email to brand
+const sendEngagementAcceptedEmail = async ({ brandEmail, brandName, accountManagerName, monthlyRate, startDate }) => {
+  const subject = `Engagement accepted: ${accountManagerName} has joined your team!`;
+  const html = generateEngagementAcceptedEmail({
+    brandName,
+    accountManagerName,
+    monthlyRate,
+    startDate,
+  });
+
+  return await sendEmail({
+    to: brandEmail,
+    subject,
+    html,
+  });
+};
+
 // Generate new message email HTML
 const generateNewMessageEmail = ({ recipientName, senderName, messagePreview, matchId }) => {
   // Truncate message preview to ~100 characters
@@ -1266,5 +1672,9 @@ module.exports = {
   generateBookingRequestEmail,
   sendBookingConfirmedEmail,
   generateBookingConfirmedEmail,
+  sendEngagementRequestEmail,
+  generateEngagementRequestEmail,
+  sendEngagementAcceptedEmail,
+  generateEngagementAcceptedEmail,
   generateNewMessageEmail,
 };
