@@ -194,6 +194,9 @@ Status: Pending your acceptance`;
       // Close modal and show success
       setEngagementAccountManager(null);
       setShowEngagementSuccess(true);
+
+      // Refresh data to show updated engagement status
+      await fetchData();
     } catch (error) {
       console.error('Failed to create engagement:', error);
 
@@ -202,6 +205,7 @@ Status: Pending your acceptance`;
       alert(errorMessage);
     }
   };
+
 
   if (loading) {
     return (
@@ -335,6 +339,8 @@ Status: Pending your acceptance`;
                     >
                       Message
                     </button>
+
+                    {/* Booking/Engagement Creation for Brands */}
                     {isBrand && (
                       <button
                         className="book-button-small"
@@ -429,17 +435,17 @@ Status: Pending your acceptance`;
             <div className="booking-success-icon">💼</div>
             <h2>Engagement Request Sent!</h2>
             <p>
-              Your engagement request has been sent and is pending acceptance from the account manager. You can track the status in your My Team page.
+              Your engagement request has been sent and is pending acceptance from the account manager. View in Calendar to track the status.
             </p>
             <div className="booking-success-actions">
               <button
                 className="view-calendar-button"
                 onClick={() => {
                   setShowEngagementSuccess(false);
-                  navigate('/my-team');
+                  navigate('/calendar');
                 }}
               >
-                View My Team
+                View in Calendar
               </button>
               <button
                 className="dismiss-button"

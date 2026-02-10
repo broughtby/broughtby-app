@@ -131,11 +131,6 @@ const Navbar = () => {
               <Link to="/calendar" className="nav-link" onClick={closeMobileMenu}>
                 Calendar
               </Link>
-              {(isBrand || isAccountManager) && (
-                <Link to="/my-team" className="nav-link" onClick={closeMobileMenu}>
-                  My Team
-                </Link>
-              )}
               <Link to="/profile" className="nav-link" onClick={closeMobileMenu}>
                 Profile
               </Link>

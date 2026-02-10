@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { bookingAPI, messageAPI, reviewAPI } from '../services/api';
+import { bookingAPI, messageAPI, reviewAPI, engagementAPI } from '../services/api';
 import ReactCalendar from 'react-calendar';
 import { format, isSameDay } from 'date-fns';
 import TimeTracking from '../components/TimeTracking';
@@ -10,8 +10,9 @@ import 'react-calendar/dist/Calendar.css';
 import './Calendar.css';
 
 const Calendar = () => {
-  const { user, isBrand, isAmbassador, demoMode } = useAuth();
+  const { user, isBrand, isAmbassador, isAccountManager, demoMode } = useAuth();
   const [bookings, setBookings] = useState([]);
+  const [engagements, setEngagements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [viewMode, setViewMode] = useState('list'); // 'calendar' or 'list'
@@ -21,6 +22,11 @@ const Calendar = () => {
   const [bookingReviews, setBookingReviews] = useState({}); // Map of booking ID to review status
   const [showReviewPrompt, setShowReviewPrompt] = useState(false);
   const [promptBooking, setPromptBooking] = useState(null);
+  const [selectedEngagement, setSelectedEngagement] = useState(null);
+  const [showEndModal, setShowEndModal] = useState(false);
+  const [endDate, setEndDate] = useState('');
+  const [talentType, setTalentType] = useState('ambassador'); // 'ambassador' or 'account_manager'
+  const [hasAccountManagers, setHasAccountManagers] = useState(false);
 
   useEffect(() => {
     fetchBookings();
@@ -31,6 +37,21 @@ const Calendar = () => {
       const response = await bookingAPI.getBookings();
       const bookingsData = response.data.bookings;
       setBookings(bookingsData);
+
+      // Fetch engagements
+      try {
+        const engagementsResponse = await engagementAPI.getEngagements();
+        const engagementsData = engagementsResponse.data.engagements || [];
+        setEngagements(engagementsData);
+
+        // Check if user has any account manager engagements
+        if (isBrand && engagementsData.length > 0) {
+          setHasAccountManagers(true);
+        }
+      } catch (error) {
+        console.error('Failed to fetch engagements:', error);
+        setEngagements([]);
+      }
 
       // Fetch review status for completed bookings
       const completedBookings = bookingsData.filter(b => b.status === 'completed');
@@ -314,10 +335,101 @@ Status: Cancelled`;
     setPromptBooking(null);
   };
 
-  // Group bookings by status
-  const pendingBookings = bookings.filter(b => b.status === 'pending');
-  const confirmedBookings = bookings.filter(b => b.status === 'confirmed');
-  const pastBookings = bookings.filter(b => b.status === 'completed' || b.status === 'cancelled');
+  // Engagement action handlers
+  const handleAcceptEngagement = async (engagementId) => {
+    try {
+      await engagementAPI.updateEngagementStatus(engagementId, 'active');
+      await fetchBookings();
+    } catch (error) {
+      console.error('Failed to accept engagement:', error);
+      alert(error.response?.data?.error || 'Failed to accept engagement');
+    }
+  };
+
+  const handleDeclineEngagement = async (engagementId) => {
+    try {
+      await engagementAPI.updateEngagementStatus(engagementId, 'declined');
+      await fetchBookings();
+    } catch (error) {
+      console.error('Failed to decline engagement:', error);
+      alert(error.response?.data?.error || 'Failed to decline engagement');
+    }
+  };
+
+  const handlePauseEngagement = async (engagementId) => {
+    try {
+      await engagementAPI.updateEngagementStatus(engagementId, 'paused');
+      await fetchBookings();
+    } catch (error) {
+      console.error('Failed to pause engagement:', error);
+      alert(error.response?.data?.error || 'Failed to pause engagement');
+    }
+  };
+
+  const handleResumeEngagement = async (engagementId) => {
+    try {
+      await engagementAPI.updateEngagementStatus(engagementId, 'active');
+      await fetchBookings();
+    } catch (error) {
+      console.error('Failed to resume engagement:', error);
+      alert(error.response?.data?.error || 'Failed to resume engagement');
+    }
+  };
+
+  const openEndModal = (engagement) => {
+    setSelectedEngagement(engagement);
+    setShowEndModal(true);
+    setEndDate(new Date().toISOString().split('T')[0]);
+  };
+
+  const closeEndModal = () => {
+    setShowEndModal(false);
+    setSelectedEngagement(null);
+    setEndDate('');
+  };
+
+  const handleEndEngagement = async () => {
+    if (!selectedEngagement || !endDate) return;
+
+    try {
+      await engagementAPI.endEngagement(selectedEngagement.id, endDate);
+      closeEndModal();
+      await fetchBookings();
+    } catch (error) {
+      console.error('Failed to end engagement:', error);
+      alert(error.response?.data?.error || 'Failed to end engagement');
+    }
+  };
+
+  // Get items based on current talent type
+  const getUnifiedItems = () => {
+    const items = [];
+
+    if (talentType === 'ambassador') {
+      // Show only bookings (brand ambassadors)
+      bookings.forEach(booking => {
+        items.push({
+          ...booking,
+          itemType: 'booking',
+          sortDate: booking.event_date
+        });
+      });
+    } else {
+      // Show only engagements (account managers)
+      engagements.forEach(engagement => {
+        items.push({
+          ...engagement,
+          itemType: 'engagement',
+          sortDate: engagement.start_date
+        });
+      });
+    }
+
+    // Sort by date (most recent first)
+    return items.sort((a, b) => new Date(b.sortDate) - new Date(a.sortDate));
+  };
+
+  const filteredItems = getUnifiedItems();
 
   if (loading) {
     return (
@@ -356,12 +468,20 @@ Status: Cancelled`;
         </div>
       </div>
 
-      {bookings.length === 0 ? (
+      {(talentType === 'ambassador' ? bookings.length === 0 : engagements.length === 0) ? (
         <div className="empty-state">
           <div className="empty-icon">📅</div>
-          <h2>No bookings yet</h2>
+          <h2>
+            {talentType === 'ambassador' ? 'No bookings yet' : 'No engagements yet'}
+          </h2>
           <p>
-            {isBrand ? 'Create a booking from the Matches page!' : 'Brands will send you booking requests.'}
+            {isBrand
+              ? talentType === 'ambassador'
+                ? 'Create a booking from the Matches page!'
+                : 'Create an engagement from the Matches page!'
+              : talentType === 'ambassador'
+              ? 'Brands will send you booking requests.'
+              : 'Brands will send you engagement requests.'}
           </p>
         </div>
       ) : (
@@ -376,6 +496,17 @@ Status: Cancelled`;
                 >
                   Today
                 </button>
+
+                {/* Talent Type Toggle */}
+                {hasAccountManagers && isBrand && (
+                  <p className="talent-type-toggle">
+                    {talentType === 'ambassador' ? (
+                      <>Looking for Account Managers? <button onClick={() => setTalentType('account_manager')} className="toggle-link">Click here</button></>
+                    ) : (
+                      <>Viewing Account Managers • <button onClick={() => setTalentType('ambassador')} className="toggle-link">Back to Brand Ambassadors</button></>
+                    )}
+                  </p>
+                )}
               </div>
 
               <div className="calendar-grid-container">
@@ -521,241 +652,208 @@ Status: Cancelled`;
           {/* List View */}
           {viewMode === 'list' && (
             <>
-              {/* Pending Bookings */}
-              {pendingBookings.length > 0 && (
-            <div className="bookings-section">
-              <h2 className="section-title">
-                ⏳ Pending Requests ({pendingBookings.length})
-              </h2>
-              <div className="bookings-grid">
-                {pendingBookings.map((booking) => (
-                  <div key={booking.id} className="booking-card pending">
-                    <div className="booking-header">
-                      <span className={`status-badge ${getStatusBadgeClass(booking.status)}`}>
-                        {getStatusText(booking.status)}
-                      </span>
-                      <span className="booking-date">
-                        {parseLocalDate(booking.event_date).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric'
-                        })}
-                      </span>
-                    </div>
+              {/* Talent Type Toggle */}
+              {hasAccountManagers && isBrand && (
+                <p className="talent-type-toggle">
+                  {talentType === 'ambassador' ? (
+                    <>Looking for Account Managers? <button onClick={() => setTalentType('account_manager')} className="toggle-link">Click here</button></>
+                  ) : (
+                    <>Viewing Account Managers • <button onClick={() => setTalentType('ambassador')} className="toggle-link">Back to Brand Ambassadors</button></>
+                  )}
+                </p>
+              )}
 
-                    <div className="booking-body">
-                      <h3 className="booking-title">{booking.event_name}</h3>
-                      <div className="booking-details">
-                        <div className="booking-detail">
-                          <span className="detail-icon">👤</span>
-                          <span><DisplayName user={getBookingPartner(booking)} demoMode={demoMode} /></span>
-                        </div>
-                        <div className="booking-detail">
-                          <span className="detail-icon">🕐</span>
-                          <span>{formatTime(booking.start_time)} - {formatTime(booking.end_time)} CST</span>
-                        </div>
-                        <div className="booking-detail">
-                          <span className="detail-icon">📍</span>
-                          <span>{booking.event_location}</span>
-                        </div>
-                        {booking.notes && (
-                          <div className="booking-detail">
-                            <span className="detail-icon">📝</span>
-                            <span>{booking.notes}</span>
-                          </div>
-                        )}
-                        <div className="booking-detail">
-                          <span className="detail-label">Total Cost:</span>
-                          <span>${parseFloat(booking.total_cost).toFixed(2)}</span>
-                        </div>
-                      </div>
-                    </div>
+              {/* Items List */}
+              {filteredItems.length === 0 ? (
+                <div className="empty-state">
+                  <div className="empty-icon">📅</div>
+                  <h2>
+                    {talentType === 'ambassador' ? 'No bookings yet' : 'No engagements yet'}
+                  </h2>
+                  <p>
+                    {talentType === 'ambassador'
+                      ? 'Your bookings with brand ambassadors will appear here'
+                      : 'Your engagements with account managers will appear here'}
+                  </p>
+                </div>
+              ) : (
+                <div className="bookings-grid">
+                  {filteredItems.map((item) => {
+                    const isBooking = item.itemType === 'booking';
+                    const isEngagement = item.itemType === 'engagement';
 
-                    <div className="booking-actions">
-                      {isAmbassador && (
-                        <>
-                          <button
-                            className="action-btn decline-btn"
-                            onClick={() => handleDecline(booking)}
-                          >
-                            Decline
-                          </button>
-                          <button
-                            className="action-btn confirm-btn"
-                            onClick={() => handleConfirm(booking)}
-                          >
-                            Confirm
-                          </button>
-                        </>
-                      )}
-                      {isBrand && (
-                        <button
-                          className="action-btn cancel-btn"
-                          onClick={() => handleCancel(booking)}
-                        >
-                          Cancel Request
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Confirmed Bookings */}
-          {confirmedBookings.length > 0 && (
-            <div className="bookings-section">
-              <h2 className="section-title">
-                ✅ Confirmed Bookings ({confirmedBookings.length})
-              </h2>
-              <div className="bookings-grid">
-                {confirmedBookings.map((booking) => (
-                  <div key={booking.id} className="booking-card confirmed">
-                    <div className="booking-header">
-                      <span className={`status-badge ${getStatusBadgeClass(booking.status)}`}>
-                        {getStatusText(booking.status)}
-                      </span>
-                      <span className="booking-date">
-                        {parseLocalDate(booking.event_date).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric'
-                        })}
-                      </span>
-                    </div>
-
-                    <div className="booking-body">
-                      <h3 className="booking-title">{booking.event_name}</h3>
-                      <div className="booking-details">
-                        <div className="booking-detail">
-                          <span className="detail-icon">👤</span>
-                          <span><DisplayName user={getBookingPartner(booking)} demoMode={demoMode} /></span>
-                        </div>
-                        <div className="booking-detail">
-                          <span className="detail-icon">🕐</span>
-                          <span>{formatTime(booking.start_time)} - {formatTime(booking.end_time)} CST</span>
-                        </div>
-                        <div className="booking-detail">
-                          <span className="detail-icon">📍</span>
-                          <span>{booking.event_location}</span>
-                        </div>
-                        {booking.notes && (
-                          <div className="booking-detail">
-                            <span className="detail-icon">📝</span>
-                            <span>{booking.notes}</span>
-                          </div>
-                        )}
-                        <div className="booking-detail">
-                          <span className="detail-label">Total Cost:</span>
-                          <span>${parseFloat(booking.total_cost).toFixed(2)}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="booking-actions">
-                      <button
-                        className="action-btn cancel-btn"
-                        onClick={() => handleCancel(booking)}
+                    return (
+                      <div
+                        key={`${item.itemType}-${item.id}`}
+                        className={`booking-card ${item.status}`}
                       >
-                        Cancel Booking
-                      </button>
-                    </div>
-
-                    {/* Time Tracking */}
-                    <TimeTracking
-                      bookingId={booking.id}
-                      bookingStatus={booking.status}
-                      onUpdate={fetchBookings}
-                      isPreview={user?.isPreview}
-                      onCheckoutComplete={() => handleCheckoutComplete(booking)}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Past Bookings */}
-          {pastBookings.length > 0 && (
-            <div className="bookings-section">
-              <h2 className="section-title">
-                📋 Past Bookings ({pastBookings.length})
-              </h2>
-              <div className="bookings-grid">
-                {pastBookings.map((booking) => (
-                  <div key={booking.id} className="booking-card past">
-                    <div className="booking-header">
-                      <span className={`status-badge ${getStatusBadgeClass(booking.status)}`}>
-                        {getStatusText(booking.status)}
-                      </span>
-                      <span className="booking-date">
-                        {parseLocalDate(booking.event_date).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric'
-                        })}
-                      </span>
-                    </div>
-
-                    <div className="booking-body">
-                      <h3 className="booking-title">{booking.event_name}</h3>
-                      <div className="booking-details">
-                        <div className="booking-detail">
-                          <span className="detail-icon">👤</span>
-                          <span><DisplayName user={getBookingPartner(booking)} demoMode={demoMode} /></span>
+                        <div className="booking-header">
+                          <span className={`status-badge ${getStatusBadgeClass(item.status)}`}>
+                            {getStatusText(item.status)}
+                          </span>
+                          <span className="booking-date">
+                            {parseLocalDate(item.sortDate).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric'
+                            })}
+                          </span>
                         </div>
-                        <div className="booking-detail">
-                          <span className="detail-icon">🕐</span>
-                          <span>{formatTime(booking.start_time)} - {formatTime(booking.end_time)} CST</span>
-                        </div>
-                        <div className="booking-detail">
-                          <span className="detail-icon">📍</span>
-                          <span>{booking.event_location}</span>
-                        </div>
-                        {booking.notes && (
-                          <div className="booking-detail">
-                            <span className="detail-icon">📝</span>
-                            <span>{booking.notes}</span>
+
+                        <div className="booking-body">
+                          <h3 className="booking-title">
+                            {isBooking ? item.event_name : `${isBrand ? item.account_manager_name : item.brand_name}`}
+                          </h3>
+                          <div className="booking-details">
+                            <div className="booking-detail">
+                              <span className="detail-icon">👤</span>
+                              <span>
+                                {isBooking ? (
+                                  <DisplayName user={getBookingPartner(item)} demoMode={demoMode} />
+                                ) : (
+                                  <DisplayName
+                                    user={{
+                                      id: isBrand ? item.account_manager_id : item.brand_id,
+                                      name: isBrand ? item.account_manager_name : item.brand_name,
+                                      is_test: false
+                                    }}
+                                    demoMode={demoMode}
+                                  />
+                                )}
+                              </span>
+                            </div>
+                            {isBooking ? (
+                              <>
+                                <div className="booking-detail">
+                                  <span className="detail-icon">🕐</span>
+                                  <span>{formatTime(item.start_time)} - {formatTime(item.end_time)} CST</span>
+                                </div>
+                                <div className="booking-detail">
+                                  <span className="detail-icon">📍</span>
+                                  <span>{item.event_location}</span>
+                                </div>
+                                {item.notes && (
+                                  <div className="booking-detail">
+                                    <span className="detail-icon">📝</span>
+                                    <span>{item.notes}</span>
+                                  </div>
+                                )}
+                                <div className="booking-detail">
+                                  <span className="detail-label">Total Cost:</span>
+                                  <span>${parseFloat(item.total_cost).toFixed(2)}</span>
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                <div className="booking-detail">
+                                  <span className="detail-icon">💰</span>
+                                  <span>${parseFloat(item.monthly_rate).toLocaleString()}/month</span>
+                                </div>
+                                <div className="booking-detail">
+                                  <span className="detail-icon">📅</span>
+                                  <span>
+                                    Started: {new Date(item.start_date).toLocaleDateString()}
+                                    {item.end_date && ` • Ended: ${new Date(item.end_date).toLocaleDateString()}`}
+                                  </span>
+                                </div>
+                                {item.notes && (
+                                  <div className="booking-detail">
+                                    <span className="detail-icon">📝</span>
+                                    <span>{item.notes}</span>
+                                  </div>
+                                )}
+                              </>
+                            )}
                           </div>
-                        )}
-                        <div className="booking-detail">
-                          <span className="detail-label">Total Cost:</span>
-                          <span>${parseFloat(booking.total_cost).toFixed(2)}</span>
                         </div>
-                      </div>
-                    </div>
 
-                    {booking.status === 'completed' && !bookingReviews[booking.id] && (
-                      <div className="booking-actions">
-                        <button
-                          className="action-btn review-btn"
-                          onClick={() => handleOpenReview(booking)}
-                        >
-                          Leave Review
-                        </button>
-                      </div>
-                    )}
+                        {/* Actions */}
+                        <div className="booking-actions">
+                          {isBooking ? (
+                            <>
+                              {item.status === 'pending' && isAmbassador && (
+                                <>
+                                  <button className="action-btn decline-btn" onClick={() => handleDecline(item)}>
+                                    Decline
+                                  </button>
+                                  <button className="action-btn confirm-btn" onClick={() => handleConfirm(item)}>
+                                    Confirm
+                                  </button>
+                                </>
+                              )}
+                              {item.status === 'pending' && isBrand && (
+                                <button className="action-btn cancel-btn" onClick={() => handleCancel(item)}>
+                                  Cancel Request
+                                </button>
+                              )}
+                              {item.status === 'confirmed' && (
+                                <button className="action-btn cancel-btn" onClick={() => handleCancel(item)}>
+                                  Cancel Booking
+                                </button>
+                              )}
+                              {item.status === 'completed' && !bookingReviews[item.id] && (
+                                <button className="action-btn review-btn" onClick={() => handleOpenReview(item)}>
+                                  Leave Review
+                                </button>
+                              )}
+                              {item.status === 'completed' && bookingReviews[item.id] && (
+                                <span className="reviewed-badge">✓ Reviewed</span>
+                              )}
+                            </>
+                          ) : (
+                            <>
+                              {item.status === 'pending' && isAccountManager && (
+                                <>
+                                  <button className="action-btn decline-btn" onClick={() => handleDeclineEngagement(item.id)}>
+                                    Decline
+                                  </button>
+                                  <button className="action-btn confirm-btn" onClick={() => handleAcceptEngagement(item.id)}>
+                                    Accept
+                                  </button>
+                                </>
+                              )}
+                              {item.status === 'pending' && !isAccountManager && (
+                                <span className="pending-text">Awaiting acceptance</span>
+                              )}
+                              {item.status === 'active' && (
+                                <>
+                                  <button className="action-btn secondary-btn" onClick={() => handlePauseEngagement(item.id)}>
+                                    Pause
+                                  </button>
+                                  <button className="action-btn cancel-btn" onClick={() => openEndModal(item)}>
+                                    End
+                                  </button>
+                                </>
+                              )}
+                              {item.status === 'paused' && (
+                                <>
+                                  <button className="action-btn confirm-btn" onClick={() => handleResumeEngagement(item.id)}>
+                                    Resume
+                                  </button>
+                                  <button className="action-btn cancel-btn" onClick={() => openEndModal(item)}>
+                                    End
+                                  </button>
+                                </>
+                              )}
+                            </>
+                          )}
+                        </div>
 
-                    {booking.status === 'completed' && bookingReviews[booking.id] && (
-                      <div className="booking-actions">
-                        <span className="reviewed-badge">✓ Reviewed</span>
+                        {/* Time Tracking for bookings */}
+                        {isBooking && (
+                          <TimeTracking
+                            bookingId={item.id}
+                            bookingStatus={item.status}
+                            onUpdate={fetchBookings}
+                            isPreview={user?.isPreview}
+                            onCheckoutComplete={() => handleCheckoutComplete(item)}
+                          />
+                        )}
                       </div>
-                    )}
-
-                    {/* Time Tracking */}
-                    <TimeTracking
-                      bookingId={booking.id}
-                      bookingStatus={booking.status}
-                      onUpdate={fetchBookings}
-                      isPreview={user?.isPreview}
-                      onCheckoutComplete={() => handleCheckoutComplete(booking)}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+                    );
+                  })}
+                </div>
+              )}
             </>
           )}
         </>
