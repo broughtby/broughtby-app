@@ -188,7 +188,19 @@ const getAmbassadors = async (req, res) => {
                 u.is_test, u.is_preview_ambassador,
                 l.id as like_id,
                 m.id as match_id,
-                p.id as pass_id
+                p.id as pass_id,
+                EXISTS(
+                  SELECT 1 FROM reviews r
+                  WHERE r.reviewee_id = u.id
+                  AND (
+                    r.punctuality_rating IS NOT NULL
+                    OR r.professionalism_rating IS NOT NULL
+                    OR r.engagement_rating IS NOT NULL
+                    OR r.clear_expectations_rating IS NOT NULL
+                    OR r.onsite_support_rating IS NOT NULL
+                    OR r.respectful_treatment_rating IS NOT NULL
+                  )
+                ) as has_detailed_reviews
          FROM users u
          LEFT JOIN likes l ON l.ambassador_id = u.id AND l.brand_id = $1
          LEFT JOIN matches m ON (m.ambassador_id = u.id AND m.brand_id = $1)
@@ -215,6 +227,7 @@ const getAmbassadors = async (req, res) => {
         role: row.role,
         is_test: row.is_test || false,
         is_preview_ambassador: row.is_preview_ambassador || false,
+        has_detailed_reviews: row.has_detailed_reviews || false,
         status: row.match_id ? 'matched' : (row.like_id ? 'pending' : (row.pass_id ? 'passed' : 'available'))
       }));
 

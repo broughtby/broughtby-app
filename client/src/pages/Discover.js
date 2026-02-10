@@ -839,18 +839,22 @@ Status: Pending your acceptance`;
                   </div>
                 )}
                 <div
-                  className="stat stat-clickable"
-                  onClick={() => handleOpenMobileReviews(currentAmbassador)}
-                  title="Tap to view reviews"
+                  className={currentAmbassador.has_detailed_reviews ? "stat stat-clickable" : "stat"}
+                  onClick={currentAmbassador.has_detailed_reviews ? () => handleOpenMobileReviews(currentAmbassador) : undefined}
+                  title={currentAmbassador.has_detailed_reviews ? "Tap to view reviews" : undefined}
                 >
                   <span className="stat-label">Rating</span>
                   <span className="stat-value">
                     {currentAmbassador.rating && parseFloat(currentAmbassador.rating) > 0
                       ? `${currentAmbassador.rating} ⭐`
                       : 'No reviews yet'}
-                    <span className="tap-indicator">›</span>
+                    {currentAmbassador.has_detailed_reviews && (
+                      <span className="tap-indicator">›</span>
+                    )}
                   </span>
-                  <span className="tap-hint">Tap to view</span>
+                  {currentAmbassador.has_detailed_reviews && (
+                    <span className="tap-hint">Tap to view</span>
+                  )}
                 </div>
               </div>
             </div>
