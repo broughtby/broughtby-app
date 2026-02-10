@@ -125,8 +125,8 @@ const Navbar = () => {
               <Link to="/discover" className="nav-link" onClick={closeMobileMenu}>
                 Discover
               </Link>
-              <Link to="/matches" className="nav-link" onClick={closeMobileMenu}>
-                Matches
+              <Link to="/connections" className="nav-link" onClick={closeMobileMenu}>
+                Connections
               </Link>
               <Link to="/calendar" className="nav-link" onClick={closeMobileMenu}>
                 Calendar
@@ -136,9 +136,6 @@ const Navbar = () => {
                   My Team
                 </Link>
               )}
-              <Link to="/messages" className="nav-link" onClick={closeMobileMenu}>
-                Messages
-              </Link>
               <Link to="/profile" className="nav-link" onClick={closeMobileMenu}>
                 Profile
               </Link>

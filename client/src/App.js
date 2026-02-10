@@ -10,11 +10,10 @@ import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Discover from './pages/Discover';
-import Matches from './pages/Matches';
+import Connections from './pages/Connections';
 import Chat from './pages/Chat';
 import Profile from './pages/Profile';
 import Calendar from './pages/Calendar';
-import Messages from './pages/Messages';
 import MyTeam from './pages/MyTeam';
 
 function App() {
@@ -41,13 +40,35 @@ function App() {
             />
 
             <Route
-              path="/matches"
+              path="/connections"
               element={
                 <PrivateRoute>
-                  <Matches />
+                  <Connections />
                 </PrivateRoute>
               }
             />
+
+            <Route
+              path="/connections/matches"
+              element={
+                <PrivateRoute>
+                  <Connections />
+                </PrivateRoute>
+              }
+            />
+
+            <Route
+              path="/connections/messages"
+              element={
+                <PrivateRoute>
+                  <Connections />
+                </PrivateRoute>
+              }
+            />
+
+            {/* Redirect old routes to new Connections page */}
+            <Route path="/matches" element={<Navigate to="/connections/matches" replace />} />
+            <Route path="/messages" element={<Navigate to="/connections/messages" replace />} />
 
             <Route
               path="/chat/:matchId"
@@ -63,15 +84,6 @@ function App() {
               element={
                 <PrivateRoute>
                   <Calendar />
-                </PrivateRoute>
-              }
-            />
-
-            <Route
-              path="/messages"
-              element={
-                <PrivateRoute>
-                  <Messages />
                 </PrivateRoute>
               }
             />

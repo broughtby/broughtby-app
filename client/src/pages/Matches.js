@@ -239,7 +239,9 @@ Status: Pending your acceptance`;
         <div className="likes-section">
           {likes.length === 0 ? (
             <div className="empty-state">
-              <p>No partnership requests yet. Brands will discover you soon!</p>
+              <div className="empty-icon">👋</div>
+              <h2>No partnership requests yet</h2>
+              <p>Brands will discover you soon!</p>
             </div>
           ) : (
             <div className="likes-grid">
@@ -292,10 +294,12 @@ Status: Pending your acceptance`;
         <div className="matches-section">
           {matches.length === 0 ? (
             <div className="empty-state">
+              <div className="empty-icon">🤝</div>
+              <h2>No matches yet</h2>
               <p>
                 {isAmbassador
-                  ? 'No matches yet. Accept requests from brands to start messaging!'
-                  : 'No matches yet. Request to work with ambassadors to get started!'}
+                  ? 'Accept requests from brands to start messaging!'
+                  : 'Request to work with ambassadors to get started!'}
               </p>
             </div>
           ) : (

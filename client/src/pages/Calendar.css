@@ -65,9 +65,29 @@
 
 .empty-state {
   text-align: center;
-  padding: 4rem 2rem;
+  padding: 80px 20px;
+  background: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+}
+
+.empty-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+}
+
+.empty-state h2 {
+  font-size: 24px;
+  color: var(--navy);
+  margin-bottom: 12px;
+}
+
+.empty-state p {
+  font-size: 16px;
   color: var(--dark-gray);
-  font-size: 1.1rem;
+  max-width: 400px;
+  margin: 0 auto;
+  line-height: 1.6;
 }
 
 /* Calendar View */
@@ -533,6 +553,22 @@
     flex: 1;
     padding: 0.75rem 1rem;
     font-size: 0.9rem;
+  }
+
+  .empty-state {
+    padding: 60px 20px;
+  }
+
+  .empty-icon {
+    font-size: 48px;
+  }
+
+  .empty-state h2 {
+    font-size: 20px;
+  }
+
+  .empty-state p {
+    font-size: 14px;
   }
 
   /* Calendar View Mobile */

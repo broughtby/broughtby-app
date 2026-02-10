@@ -35,7 +35,7 @@ const Chat = () => {
     } catch (error) {
       console.error('Failed to fetch messages:', error);
       if (error.response?.status === 403) {
-        navigate('/matches');
+        navigate('/connections/matches');
       }
     } finally {
       setLoading(false);
@@ -308,7 +308,7 @@ Status: Pending your acceptance`;
   return (
     <div className="chat-container">
       <div className="chat-header">
-        <button className="back-button" onClick={() => navigate('/matches')}>
+        <button className="back-button" onClick={() => navigate('/connections/matches')}>
           ← Back
         </button>
         <h2>Chat</h2>

@@ -1,4 +1,6 @@
 .matches-container {
+  max-width: 800px;
+  margin: 0 auto;
   padding: 2rem 1rem;
   min-height: calc(100vh - 80px);
 }
@@ -39,9 +41,29 @@
 
 .empty-state {
   text-align: center;
-  padding: 4rem 2rem;
+  padding: 80px 20px;
+  background: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+}
+
+.empty-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+}
+
+.empty-state h2 {
+  font-size: 24px;
+  color: var(--navy);
+  margin-bottom: 12px;
+}
+
+.empty-state p {
+  font-size: 16px;
   color: var(--dark-gray);
-  font-size: 1.1rem;
+  max-width: 400px;
+  margin: 0 auto;
+  line-height: 1.6;
 }
 
 /* Matches Grid */
@@ -272,6 +294,22 @@
 }
 
 @media (max-width: 768px) {
+  .empty-state {
+    padding: 60px 20px;
+  }
+
+  .empty-icon {
+    font-size: 48px;
+  }
+
+  .empty-state h2 {
+    font-size: 20px;
+  }
+
+  .empty-state p {
+    font-size: 14px;
+  }
+
   .likes-grid {
     grid-template-columns: 1fr;
   }

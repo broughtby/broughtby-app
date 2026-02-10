@@ -261,7 +261,8 @@ const MyTeam = () => {
 
       {engagements.length === 0 ? (
         <div className="empty-state">
-          <h2>You haven't added anyone to your team yet!</h2>
+          <div className="empty-icon">👥</div>
+          <h2>No team members yet</h2>
           <p>
             {isBrand
               ? 'Discover and hire account managers to help manage your brand activations.'

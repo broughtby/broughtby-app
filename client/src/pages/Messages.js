@@ -59,7 +59,7 @@ const Messages = () => {
           <div className="empty-icon">💬</div>
           <h2>No conversations yet</h2>
           <p>
-            Start connecting with people to begin messaging. Visit the Matches page to
+            Start connecting with people to begin messaging. Check out your matches to
             see your connections.
           </p>
         </div>

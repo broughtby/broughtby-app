@@ -1010,7 +1010,7 @@ Status: Pending your acceptance`;
               <button
                 className="preview-toast-button"
                 onClick={() => {
-                  navigate('/matches');
+                  navigate('/connections/matches');
                   setShowAutoMatchToast(false);
                 }}
               >
@@ -1397,7 +1397,7 @@ Status: Pending your acceptance`;
             <button
               className="preview-toast-button"
               onClick={() => {
-                navigate('/matches');
+                navigate('/connections/matches');
                 setShowAutoMatchToast(false);
               }}
             >

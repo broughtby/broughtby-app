@@ -358,7 +358,11 @@ Status: Cancelled`;
 
       {bookings.length === 0 ? (
         <div className="empty-state">
-          <p>No bookings yet. {isBrand ? 'Create a booking from the Matches page!' : 'Brands will send you booking requests.'}</p>
+          <div className="empty-icon">📅</div>
+          <h2>No bookings yet</h2>
+          <p>
+            {isBrand ? 'Create a booking from the Matches page!' : 'Brands will send you booking requests.'}
+          </p>
         </div>
       ) : (
         <>
