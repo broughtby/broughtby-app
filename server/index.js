@@ -216,13 +216,21 @@ io.on('connection', (socket) => {
             matchId: matchId,
           });
 
-          // Get the welcome message for context
-          const welcomeMessageResult = await db.query(
-            'SELECT content FROM messages WHERE match_id = $1 ORDER BY created_at ASC LIMIT 1',
+          // Fetch ALL messages for context (not just the first one)
+          const allMessages = await db.query(
+            `SELECT m.sender_id, m.content, u.name
+             FROM messages m
+             JOIN users u ON m.sender_id = u.id
+             WHERE m.match_id = $1
+             ORDER BY m.created_at ASC`,
             [matchId]
           );
 
-          const welcomeMessage = welcomeMessageResult.rows[0]?.content || '';
+          // Build conversation history
+          const conversationHistory = allMessages.rows.map(msg => {
+            const role = msg.sender_id === ambassador_id ? 'assistant' : 'user';
+            return { role, content: msg.content };
+          });
 
           // Get ambassador profile data for dynamic system prompt
           const profile = ambassadorCheck.rows[0];
@@ -241,12 +249,7 @@ io.on('connection', (socket) => {
             model: 'claude-sonnet-4-5-20250929',
             max_tokens: 1024,
             system: systemPrompt,
-            messages: [
-              {
-                role: 'user',
-                content: welcomeMessage
-              }
-            ],
+            messages: conversationHistory,
           });
 
           const aiReply = response.content[0].text;
