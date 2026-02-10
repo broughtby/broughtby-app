@@ -1,5 +1,5 @@
 .matches-container {
-  max-width: 800px;
+  max-width: 900px;
   margin: 0 auto;
   padding: 2rem 1rem;
   min-height: calc(100vh - 80px);
@@ -142,6 +142,8 @@
   transition: all 0.3s;
   border: none;
   cursor: pointer;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .message-button:hover {
@@ -159,6 +161,8 @@
   transition: all 0.3s;
   border: none;
   cursor: pointer;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .book-button-small:hover {
@@ -294,7 +298,7 @@
 }
 
 /* Medium screens - wrap buttons to prevent overflow */
-@media (max-width: 1024px) {
+@media (max-width: 900px) {
   .match-card {
     flex-wrap: wrap;
   }
@@ -302,11 +306,13 @@
   .match-actions {
     width: 100%;
     margin-top: 0.75rem;
+    flex-shrink: 1;
   }
 
   .message-button,
   .book-button-small {
     flex: 1;
+    min-width: 100px;
   }
 }
 
