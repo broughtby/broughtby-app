@@ -468,20 +468,16 @@ Status: Cancelled`;
         </div>
       </div>
 
-      {(talentType === 'ambassador' ? bookings.length === 0 : engagements.length === 0) ? (
+      {(bookings.length === 0 && engagements.length === 0) ? (
         <div className="empty-state">
           <div className="empty-icon">📅</div>
-          <h2>
-            {talentType === 'ambassador' ? 'No bookings yet' : 'No engagements yet'}
-          </h2>
+          <h2>No bookings or engagements yet</h2>
           <p>
             {isBrand
-              ? talentType === 'ambassador'
-                ? 'Create a booking from the Matches page!'
-                : 'Create an engagement from the Matches page!'
-              : talentType === 'ambassador'
-              ? 'Brands will send you booking requests.'
-              : 'Brands will send you engagement requests.'}
+              ? 'Create bookings and engagements from the Matches page!'
+              : isAccountManager
+              ? 'Brand engagements will appear here when assigned.'
+              : 'Brands will send you booking requests.'}
           </p>
         </div>
       ) : (
@@ -652,6 +648,157 @@ Status: Cancelled`;
           {/* List View */}
           {viewMode === 'list' && (
             <>
+              {/* Account Manager Section - Show at top for brands */}
+              {isBrand && engagements.length > 0 && (
+                <div className="account-manager-section">
+                  <h2 className="section-title">Your Account Manager{engagements.length > 1 ? 's' : ''}</h2>
+                  {engagements.map((engagement) => (
+                    <div key={engagement.id} className={`account-manager-card ${engagement.status}`}>
+                      <img
+                        src={engagement.account_manager_photo || 'https://via.placeholder.com/80'}
+                        alt={engagement.account_manager_name}
+                        className="am-photo"
+                      />
+                      <div className="am-info">
+                        <h3>
+                          {engagement.account_manager_name}
+                          {engagement.status === 'pending' && (
+                            <span className="pending-badge"> (Pending Acceptance)</span>
+                          )}
+                        </h3>
+                        <div className="engagement-details">
+                          <div className="engagement-detail">
+                            <span className="detail-icon">💰</span>
+                            <span>${engagement.monthly_rate.toLocaleString()}/month</span>
+                          </div>
+                          <div className="engagement-detail">
+                            <span className="detail-icon">📅</span>
+                            <span>
+                              {engagement.status === 'active' && `Active since ${new Date(engagement.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`}
+                              {engagement.status === 'pending' && `Starts ${new Date(engagement.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`}
+                              {engagement.status === 'paused' && `Paused (started ${new Date(engagement.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })})`}
+                              {engagement.status === 'ended' && `Started ${new Date(engagement.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`}
+                            </span>
+                          </div>
+                          {engagement.end_date && (
+                            <div className="engagement-detail">
+                              <span className="detail-icon">🏁</span>
+                              <span>Ends {new Date(engagement.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                            </div>
+                          )}
+                          {engagement.notes && (
+                            <div className="engagement-detail scope-of-work">
+                              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
+                                <span className="detail-icon">📝</span>
+                                <span className="scope-label">Scope of Work:</span>
+                              </div>
+                              <span className="scope-text">{engagement.notes}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Brand Assignments Section - Show at top for account managers */}
+              {isAccountManager && engagements.length > 0 && (
+                <div className="account-manager-section">
+                  <h2 className="section-title">Account Management: Brands</h2>
+                  {engagements.map((engagement) => (
+                    <div key={engagement.id} className={`account-manager-card ${engagement.status}`}>
+                      <img
+                        src={engagement.company_logo || engagement.brand_photo || 'https://via.placeholder.com/80'}
+                        alt={engagement.company_name || engagement.brand_name}
+                        className="am-photo"
+                      />
+                      <div className="am-info">
+                        <h3>{engagement.company_name || engagement.brand_name}</h3>
+                        <div className="engagement-details">
+                          <div className="engagement-detail">
+                            <span className="detail-icon">💰</span>
+                            <span>${engagement.monthly_rate.toLocaleString()}/month</span>
+                          </div>
+                          <div className="engagement-detail">
+                            <span className="detail-icon">📅</span>
+                            <span>
+                              {engagement.status === 'active' && `Active since ${new Date(engagement.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`}
+                              {engagement.status === 'pending' && `Starts ${new Date(engagement.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`}
+                              {engagement.status === 'paused' && `Paused (started ${new Date(engagement.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })})`}
+                              {engagement.status === 'ended' && `Started ${new Date(engagement.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`}
+                            </span>
+                          </div>
+                          {engagement.end_date && (
+                            <div className="engagement-detail">
+                              <span className="detail-icon">🏁</span>
+                              <span>Ends {new Date(engagement.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                            </div>
+                          )}
+                          {engagement.notes && (
+                            <div className="engagement-detail scope-of-work">
+                              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
+                                <span className="detail-icon">📝</span>
+                                <span className="scope-label">Scope of Work:</span>
+                              </div>
+                              <span className="scope-text">{engagement.notes}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      {engagement.status === 'pending' && (
+                        <div className="engagement-actions">
+                          <button
+                            className="action-btn decline-btn"
+                            onClick={() => handleDeclineEngagement(engagement.id)}
+                          >
+                            Decline
+                          </button>
+                          <button
+                            className="action-btn confirm-btn"
+                            onClick={() => handleAcceptEngagement(engagement.id)}
+                          >
+                            Accept
+                          </button>
+                        </div>
+                      )}
+                      {engagement.status === 'active' && (
+                        <div className="engagement-actions">
+                          <button
+                            className="action-btn secondary-btn"
+                            onClick={() => handlePauseEngagement(engagement.id)}
+                          >
+                            Pause
+                          </button>
+                          <button
+                            className="action-btn cancel-btn"
+                            onClick={() => openEndModal(engagement)}
+                          >
+                            End
+                          </button>
+                        </div>
+                      )}
+                      {engagement.status === 'paused' && (
+                        <div className="engagement-actions">
+                          <button
+                            className="action-btn confirm-btn"
+                            onClick={() => handleResumeEngagement(engagement.id)}
+                          >
+                            Resume
+                          </button>
+                          <button
+                            className="action-btn cancel-btn"
+                            onClick={() => openEndModal(engagement)}
+                          >
+                            End
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
               {/* Talent Type Toggle */}
               {hasAccountManagers && isBrand && (
                 <p className="talent-type-toggle">

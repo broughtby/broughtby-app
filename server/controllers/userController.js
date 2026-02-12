@@ -156,8 +156,12 @@ const getAmbassadors = async (req, res) => {
   try {
     const { limit = 50, offset = 0, talentType = 'ambassador' } = req.query;
 
-    if (req.user.role === 'brand') {
-      // Check if user is admin or preview account
+    // Support acting-as mode for account managers
+    const effectiveBrandId = req.effectiveBrandId || req.user.userId;
+    const isActingAsBrand = req.user.role === 'account_manager' && req.effectiveBrandId;
+
+    if (req.user.role === 'brand' || isActingAsBrand) {
+      // Check if user is admin or preview account (check the actual user, not the brand they're acting as)
       const userCheck = await db.query(
         'SELECT is_admin, is_preview FROM users WHERE id = $1',
         [req.user.userId]
@@ -208,7 +212,7 @@ const getAmbassadors = async (req, res) => {
          ${whereClause}
          ORDER BY u.rating DESC, u.created_at DESC
          LIMIT $2 OFFSET $3`,
-        [req.user.userId, limit, offset]
+        [effectiveBrandId, limit, offset]
       );
 
       // Add status to each talent

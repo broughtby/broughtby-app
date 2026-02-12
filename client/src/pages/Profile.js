@@ -29,7 +29,6 @@ const Profile = () => {
     contact_title: '',
   });
   const [message, setMessage] = useState('');
-  const [isResetting, setIsResetting] = useState(false);
   const [reviews, setReviews] = useState([]);
   const [reviewCount, setReviewCount] = useState(0);
   const [averageRating, setAverageRating] = useState(0);
@@ -112,48 +111,6 @@ const Profile = () => {
     }
   };
 
-  const handleResetDemoData = async () => {
-    // Show confirmation dialog
-    const confirmed = window.confirm(
-      'Are you sure you want to reset demo data?\n\n' +
-      'This will clear all test account bookings, messages, and interactions.\n\n' +
-      'Your profile will be preserved, but the following will be deleted:\n' +
-      '• All messages\n' +
-      '• All bookings\n' +
-      '• All matches\n' +
-      '• All likes\n' +
-      '• All passes\n\n' +
-      'This action CANNOT be undone.'
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
-    setIsResetting(true);
-    setMessage('');
-
-    try {
-      const response = await adminAPI.resetDemoData(user.id);
-
-      if (response.data.success) {
-        const { deleted } = response.data;
-        setMessage(
-          `Demo data reset successfully! Deleted: ${deleted.messages} messages, ` +
-          `${deleted.bookings} bookings, ${deleted.matches} matches, ` +
-          `${deleted.likes} likes, ${deleted.passes} passes.`
-        );
-      }
-    } catch (error) {
-      console.error('Reset demo data error:', error);
-      setMessage(
-        error.response?.data?.error ||
-        'Failed to reset demo data. Please try again or contact support.'
-      );
-    } finally {
-      setIsResetting(false);
-    }
-  };
 
   if (!user) {
     return <div className="loading">Loading...</div>;
@@ -500,27 +457,6 @@ const Profile = () => {
               )}
             </div>
 
-            {user.isAdmin && (
-              <div className="profile-section admin-section">
-                <h3>Admin Tools</h3>
-                <div className="admin-tools">
-                  <p className="admin-warning">
-                    Admin-only actions. Use with caution.
-                  </p>
-                  <button
-                    onClick={handleResetDemoData}
-                    disabled={isResetting}
-                    className="reset-demo-data-button"
-                  >
-                    {isResetting ? 'Resetting...' : 'Reset Demo Data'}
-                  </button>
-                  <p className="reset-description">
-                    Clear all messages, bookings, matches, likes, and passes for demo purposes.
-                    Your profile will be preserved.
-                  </p>
-                </div>
-              </div>
-            )}
           </div>
         )}
       </div>

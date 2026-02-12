@@ -1660,6 +1660,235 @@ const generateNewMessageEmail = ({ recipientName, senderName, messagePreview, ma
   `;
 };
 
+// Send engagement created email (admin-initiated) - sends to both brand and AM
+const sendEngagementCreatedEmail = async ({ brandEmail, brandName, amEmail, amName, monthlyRate, startDate }) => {
+  // Email to brand
+  const brandSubject = `${amName} is now your Account Manager on BroughtBy`;
+  const brandHtml = `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Account Manager Assigned</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+          background-color: #F7F8FA;
+        }
+        .email-container {
+          max-width: 600px;
+          margin: 0 auto;
+          background-color: #ffffff;
+        }
+        .header {
+          background: linear-gradient(135deg, #0A2540 0%, #0D3350 100%);
+          padding: 40px 30px;
+          text-align: center;
+        }
+        .logo {
+          color: #D4AF37;
+          font-size: 32px;
+          font-weight: 700;
+          margin: 0;
+          letter-spacing: 1px;
+        }
+        .content {
+          padding: 40px 30px;
+        }
+        .greeting {
+          font-size: 24px;
+          color: #0A2540;
+          margin: 0 0 20px 0;
+          font-weight: 600;
+        }
+        .message {
+          font-size: 16px;
+          line-height: 1.6;
+          color: #4B5563;
+          margin-bottom: 30px;
+        }
+        .engagement-card {
+          background-color: #D1FAE5;
+          border-left: 4px solid #10B981;
+          padding: 20px;
+          margin: 30px 0;
+          border-radius: 4px;
+        }
+        .cta-button {
+          display: inline-block;
+          background-color: #0A2540;
+          color: #ffffff;
+          text-decoration: none;
+          padding: 16px 40px;
+          border-radius: 8px;
+          font-size: 16px;
+          font-weight: 600;
+          margin: 20px 0;
+          text-align: center;
+        }
+        .footer {
+          background-color: #F7F8FA;
+          padding: 30px;
+          text-align: center;
+          font-size: 14px;
+          color: #6B7280;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-container">
+        <div class="header">
+          <h1 class="logo">BroughtBy</h1>
+        </div>
+        <div class="content">
+          <h2 class="greeting">Welcome your new Account Manager!</h2>
+          <p class="message">
+            Great news! ${amName} has been assigned as your dedicated Account Manager on BroughtBy.
+          </p>
+          <div class="engagement-card">
+            <p style="margin: 0 0 10px 0; font-size: 18px; font-weight: 600; color: #0A2540;">Account Manager: ${amName}</p>
+            <p style="margin: 5px 0; font-size: 14px; color: #374151;">💰 Monthly Retainer: $${monthlyRate.toLocaleString()}/month</p>
+            <p style="margin: 5px 0; font-size: 14px; color: #374151;">📅 Start Date: ${formatDate(startDate)}</p>
+          </div>
+          <p class="message">
+            ${amName} will help you discover and book brand ambassadors for your events. You can now message them directly to get started!
+          </p>
+          <div style="text-align: center;">
+            <a href="https://app.broughtby.co/matches" class="cta-button">
+              Message ${amName}
+            </a>
+          </div>
+        </div>
+        <div class="footer">
+          <p style="margin: 0 0 10px 0;">
+            <strong>BroughtBy</strong> - Premium Brand Ambassador Marketplace
+          </p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  // Email to account manager
+  const amSubject = `New Client: ${brandName} on BroughtBy`;
+  const amHtml = `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>New Client Assigned</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+          background-color: #F7F8FA;
+        }
+        .email-container {
+          max-width: 600px;
+          margin: 0 auto;
+          background-color: #ffffff;
+        }
+        .header {
+          background: linear-gradient(135deg, #0A2540 0%, #0D3350 100%);
+          padding: 40px 30px;
+          text-align: center;
+        }
+        .logo {
+          color: #D4AF37;
+          font-size: 32px;
+          font-weight: 700;
+          margin: 0;
+          letter-spacing: 1px;
+        }
+        .content {
+          padding: 40px 30px;
+        }
+        .greeting {
+          font-size: 24px;
+          color: #0A2540;
+          margin: 0 0 20px 0;
+          font-weight: 600;
+        }
+        .message {
+          font-size: 16px;
+          line-height: 1.6;
+          color: #4B5563;
+          margin-bottom: 30px;
+        }
+        .engagement-card {
+          background-color: #DBEAFE;
+          border-left: 4px solid #0A2540;
+          padding: 20px;
+          margin: 30px 0;
+          border-radius: 4px;
+        }
+        .cta-button {
+          display: inline-block;
+          background-color: #0A2540;
+          color: #ffffff;
+          text-decoration: none;
+          padding: 16px 40px;
+          border-radius: 8px;
+          font-size: 16px;
+          font-weight: 600;
+          margin: 20px 0;
+          text-align: center;
+        }
+        .footer {
+          background-color: #F7F8FA;
+          padding: 30px;
+          text-align: center;
+          font-size: 14px;
+          color: #6B7280;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-container">
+        <div class="header">
+          <h1 class="logo">BroughtBy</h1>
+        </div>
+        <div class="content">
+          <h2 class="greeting">New client: ${brandName}</h2>
+          <p class="message">
+            You've been assigned as the Account Manager for ${brandName} on BroughtBy!
+          </p>
+          <div class="engagement-card">
+            <p style="margin: 0 0 10px 0; font-size: 18px; font-weight: 600; color: #0A2540;">Client: ${brandName}</p>
+            <p style="margin: 5px 0; font-size: 14px; color: #374151;">💰 Monthly Retainer: $${monthlyRate.toLocaleString()}/month</p>
+            <p style="margin: 5px 0; font-size: 14px; color: #374151;">📅 Start Date: ${formatDate(startDate)}</p>
+          </div>
+          <p class="message">
+            Reach out to ${brandName} to introduce yourself and start helping them find the perfect brand ambassadors for their events.
+          </p>
+          <div style="text-align: center;">
+            <a href="https://app.broughtby.co/matches" class="cta-button">
+              Message ${brandName}
+            </a>
+          </div>
+        </div>
+        <div class="footer">
+          <p style="margin: 0 0 10px 0;">
+            <strong>BroughtBy</strong> - Premium Brand Ambassador Marketplace
+          </p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  // Send both emails in parallel
+  return await Promise.all([
+    sendEmail({ to: brandEmail, subject: brandSubject, html: brandHtml }),
+    sendEmail({ to: amEmail, subject: amSubject, html: amHtml })
+  ]);
+};
+
 module.exports = {
   sendEmail,
   sendPartnershipRequestEmail,
@@ -1676,5 +1905,6 @@ module.exports = {
   generateEngagementRequestEmail,
   sendEngagementAcceptedEmail,
   generateEngagementAcceptedEmail,
+  sendEngagementCreatedEmail,
   generateNewMessageEmail,
 };

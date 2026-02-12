@@ -10,9 +10,10 @@ import BrandAvatar from '../components/BrandAvatar';
 import './Matches.css';
 
 const Matches = () => {
-  const { isAmbassador, isBrand, demoMode } = useAuth();
+  const { isAmbassador, isBrand, isAccountManager, demoMode } = useAuth();
   const [matches, setMatches] = useState([]);
   const [likes, setLikes] = useState([]);
+  const [engagements, setEngagements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('matches');
   const [bookingAmbassador, setBookingAmbassador] = useState(null);
@@ -31,12 +32,27 @@ const Matches = () => {
         const likesResponse = await likeAPI.getReceivedLikes();
         setLikes(likesResponse.data.likes);
       }
+
+      // Fetch engagements for brands and account managers
+      if (isBrand || isAccountManager) {
+        try {
+          const engagementsResponse = await engagementAPI.getEngagements();
+          // Filter for active engagements only
+          const activeEngagements = engagementsResponse.data.engagements.filter(
+            engagement => engagement.status === 'active'
+          );
+          setEngagements(activeEngagements);
+        } catch (error) {
+          console.error('Failed to fetch engagements:', error);
+          // Don't fail the whole page if engagements fail to load
+        }
+      }
     } catch (error) {
       console.error('Failed to fetch data:', error);
     } finally {
       setLoading(false);
     }
-  }, [isAmbassador]);
+  }, [isAmbassador, isBrand, isAccountManager]);
 
   useEffect(() => {
     fetchData();
@@ -296,6 +312,93 @@ Status: Pending your acceptance`;
       {/* Matches Tab */}
       {activeTab === 'matches' && (
         <div className="matches-section">
+          {/* Show Engagements Section for Brands */}
+          {isBrand && engagements.length > 0 && (
+            <div className="engagements-section">
+              <h2 className="section-title">Your Account Manager</h2>
+              <div className="engagements-grid">
+                {engagements.map((engagement) => (
+                  <div key={engagement.id} className="engagement-card">
+                    <img
+                      src={engagement.account_manager_photo ? getPhotoUrl(engagement.account_manager_photo) : 'https://via.placeholder.com/200'}
+                      alt={engagement.account_manager_name}
+                      className="engagement-photo"
+                    />
+                    <div className="engagement-info">
+                      <h3>{engagement.account_manager_name}</h3>
+                      <p className="engagement-meta">Active since {new Date(engagement.start_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</p>
+                      <p className="engagement-rate">${engagement.monthly_rate.toLocaleString()}/month</p>
+                    </div>
+                    <div className="engagement-actions">
+                      <button
+                        className="message-button"
+                        onClick={() => {
+                          // Find the match for this engagement
+                          const match = matches.find(m => m.user_id === engagement.account_manager_id);
+                          if (match) {
+                            handleChatClick(match.match_id);
+                          } else if (engagement.match_id) {
+                            handleChatClick(engagement.match_id);
+                          }
+                        }}
+                      >
+                        Message
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Show Engagements Section for Account Managers */}
+          {isAccountManager && engagements.length > 0 && (
+            <div className="engagements-section">
+              <h2 className="section-title">Your Brands</h2>
+              <div className="engagements-grid">
+                {engagements.map((engagement) => (
+                  <div key={engagement.id} className="engagement-card">
+                    <BrandAvatar
+                      companyLogo={engagement.company_logo}
+                      personPhoto={engagement.brand_photo}
+                      companyName={engagement.company_name || engagement.brand_name}
+                      personName={engagement.brand_name}
+                      size="large"
+                    />
+                    <div className="engagement-info">
+                      <h3>{engagement.company_name || engagement.brand_name}</h3>
+                      <p className="engagement-meta">Active since {new Date(engagement.start_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</p>
+                    </div>
+                    <div className="engagement-actions">
+                      <button
+                        className="message-button"
+                        onClick={() => {
+                          // Find the match for this engagement
+                          const match = matches.find(m => m.user_id === engagement.brand_id);
+                          if (match) {
+                            handleChatClick(match.match_id);
+                          } else if (engagement.match_id) {
+                            handleChatClick(engagement.match_id);
+                          }
+                        }}
+                      >
+                        Message
+                      </button>
+                      {/* TODO: Add "Book Ambassadors" button for acting-as mode in Phase 3 */}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Separator if there are engagements */}
+          {(isBrand || isAccountManager) && engagements.length > 0 && matches.length > 0 && (
+            <div className="section-divider">
+              <h2 className="section-title">Your Matches</h2>
+            </div>
+          )}
+
           {matches.length === 0 ? (
             <div className="empty-state">
               <div className="empty-icon">🤝</div>

@@ -36,6 +36,22 @@
   color: var(--gold);
 }
 
+.nav-link.admin-link {
+  color: var(--gold);
+  font-weight: 600;
+  position: relative;
+}
+
+.nav-link.admin-link::after {
+  content: '⚙';
+  margin-left: 0.25rem;
+  font-size: 0.85em;
+}
+
+.nav-link.admin-link:hover {
+  color: #C19D2F;
+}
+
 .nav-button-link {
   display: inline-block;
 }

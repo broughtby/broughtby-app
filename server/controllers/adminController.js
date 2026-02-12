@@ -7,26 +7,39 @@ const searchUsers = async (req, res) => {
   try {
     const { q } = req.query;
 
+    let result;
+
+    // If no search query, return all users (for admin dropdowns)
     if (!q || q.trim().length === 0) {
-      return res.json({ users: [] });
+      result = await db.query(
+        `SELECT id, email, role, name, profile_photo, is_admin, company_name
+         FROM users
+         WHERE is_active = TRUE
+         ORDER BY role ASC, name ASC
+         LIMIT 100`,
+        []
+      );
+    } else {
+      // Search by email or name
+      const searchTerm = `%${q.trim().toLowerCase()}%`;
+
+      result = await db.query(
+        `SELECT id, email, role, name, profile_photo, is_admin, company_name
+         FROM users
+         WHERE (LOWER(email) LIKE $1 OR LOWER(name) LIKE $1)
+         AND is_active = TRUE
+         ORDER BY name ASC
+         LIMIT 20`,
+        [searchTerm]
+      );
     }
-
-    const searchTerm = `%${q.trim().toLowerCase()}%`;
-
-    const result = await db.query(
-      `SELECT id, email, role, name, profile_photo, is_admin
-       FROM users
-       WHERE LOWER(email) LIKE $1 OR LOWER(name) LIKE $1
-       ORDER BY name ASC
-       LIMIT 20`,
-      [searchTerm]
-    );
 
     const users = result.rows.map(user => ({
       id: user.id,
       email: user.email,
       role: user.role,
       name: user.name,
+      company_name: user.company_name,
       profile_photo: user.profile_photo,
       isAdmin: user.is_admin || false
     }));
@@ -220,9 +233,209 @@ const resetDemoData = async (req, res) => {
   }
 };
 
+// Admin-only: Create engagement (auto-assigns AM to brand)
+const createEngagement = async (req, res) => {
+  try {
+    const { brandId, accountManagerId, monthlyRate, startDate, endDate, notes } = req.body;
+
+    // Validate required fields
+    if (!brandId || !accountManagerId || !monthlyRate || !startDate) {
+      return res.status(400).json({ error: 'Brand ID, Account Manager ID, monthly rate, and start date are required' });
+    }
+
+    // Verify brand exists and is actually a brand
+    const brandCheck = await db.query(
+      'SELECT id, role FROM users WHERE id = $1 AND role = $2',
+      [brandId, 'brand']
+    );
+
+    if (brandCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'Brand not found' });
+    }
+
+    // Verify account manager exists and is actually an account manager
+    const amCheck = await db.query(
+      'SELECT id, role FROM users WHERE id = $1 AND role = $2',
+      [accountManagerId, 'account_manager']
+    );
+
+    if (amCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'Account manager not found' });
+    }
+
+    // Check if an active engagement already exists
+    const existingEngagement = await db.query(
+      `SELECT id FROM engagements
+       WHERE brand_id = $1 AND account_manager_id = $2
+       AND status = 'active'`,
+      [brandId, accountManagerId]
+    );
+
+    if (existingEngagement.rows.length > 0) {
+      return res.status(400).json({ error: 'An active engagement already exists between this brand and account manager' });
+    }
+
+    // First, check if a match already exists
+    let matchId;
+    const matchCheck = await db.query(
+      `SELECT id FROM matches
+       WHERE brand_id = $1 AND ambassador_id = $2`,
+      [brandId, accountManagerId]
+    );
+
+    if (matchCheck.rows.length > 0) {
+      matchId = matchCheck.rows[0].id;
+    } else {
+      // Auto-create match to enable messaging
+      const matchResult = await db.query(
+        `INSERT INTO matches (brand_id, ambassador_id)
+         VALUES ($1, $2)
+         RETURNING id`,
+        [brandId, accountManagerId]
+      );
+      matchId = matchResult.rows[0].id;
+    }
+
+    // Create engagement with status = 'active' (no pending state)
+    const result = await db.query(
+      `INSERT INTO engagements (
+        match_id, brand_id, account_manager_id, monthly_rate, start_date, end_date, notes, status
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, 'active')
+      RETURNING *`,
+      [matchId, brandId, accountManagerId, monthlyRate, startDate, endDate || null, notes || null]
+    );
+
+    const engagement = result.rows[0];
+
+    // Send notification emails (non-blocking)
+    const { sendEngagementCreatedEmail } = require('../services/emailService');
+
+    Promise.all([
+      db.query('SELECT name, email FROM users WHERE id = $1', [brandId]),
+      db.query('SELECT name, email FROM users WHERE id = $1', [accountManagerId])
+    ]).then(([brandQuery, amQuery]) => {
+      if (brandQuery.rows.length > 0 && amQuery.rows.length > 0) {
+        const brand = brandQuery.rows[0];
+        const am = amQuery.rows[0];
+
+        sendEngagementCreatedEmail({
+          brandEmail: brand.email,
+          brandName: brand.name,
+          amEmail: am.email,
+          amName: am.name,
+          monthlyRate,
+          startDate
+        }).catch(error => console.error('Failed to send engagement created emails:', error));
+      }
+    }).catch(error => console.error('Failed to query user info for emails:', error));
+
+    res.status(201).json({
+      message: 'Engagement created successfully',
+      engagement,
+    });
+  } catch (error) {
+    console.error('Create engagement error:', error);
+    res.status(500).json({ error: 'Failed to create engagement' });
+  }
+};
+
+// Admin-only: Get all engagements
+const getAllEngagements = async (req, res) => {
+  try {
+    const result = await db.query(
+      `SELECT e.*,
+              b.name as brand_name,
+              b.company_name as brand_company_name,
+              b.email as brand_email,
+              b.profile_photo as brand_photo,
+              am.name as account_manager_name,
+              am.email as account_manager_email,
+              am.profile_photo as account_manager_photo
+       FROM engagements e
+       JOIN users b ON e.brand_id = b.id
+       JOIN users am ON e.account_manager_id = am.id
+       ORDER BY e.created_at DESC`
+    );
+
+    res.json({ engagements: result.rows });
+  } catch (error) {
+    console.error('Get all engagements error:', error);
+    res.status(500).json({ error: 'Failed to fetch engagements' });
+  }
+};
+
+// Admin-only: Update engagement
+const updateEngagement = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, endDate, monthlyRate, notes } = req.body;
+
+    // Build update query dynamically based on provided fields
+    const updates = [];
+    const values = [];
+    let paramCount = 1;
+
+    if (status && ['active', 'paused', 'ended'].includes(status)) {
+      updates.push(`status = $${paramCount}`);
+      values.push(status);
+      paramCount++;
+    }
+
+    if (endDate !== undefined) {
+      updates.push(`end_date = $${paramCount}`);
+      values.push(endDate);
+      paramCount++;
+    }
+
+    if (monthlyRate !== undefined) {
+      updates.push(`monthly_rate = $${paramCount}`);
+      values.push(monthlyRate);
+      paramCount++;
+    }
+
+    if (notes !== undefined) {
+      updates.push(`notes = $${paramCount}`);
+      values.push(notes);
+      paramCount++;
+    }
+
+    if (updates.length === 0) {
+      return res.status(400).json({ error: 'No valid fields to update' });
+    }
+
+    updates.push(`updated_at = CURRENT_TIMESTAMP`);
+    values.push(id);
+
+    const query = `
+      UPDATE engagements
+      SET ${updates.join(', ')}
+      WHERE id = $${paramCount}
+      RETURNING *
+    `;
+
+    const result = await db.query(query, values);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Engagement not found' });
+    }
+
+    res.json({
+      message: 'Engagement updated successfully',
+      engagement: result.rows[0],
+    });
+  } catch (error) {
+    console.error('Update engagement error:', error);
+    res.status(500).json({ error: 'Failed to update engagement' });
+  }
+};
+
 module.exports = {
   searchUsers,
   impersonateUser,
   stopImpersonation,
-  resetDemoData
+  resetDemoData,
+  createEngagement,
+  getAllEngagements,
+  updateEngagement
 };

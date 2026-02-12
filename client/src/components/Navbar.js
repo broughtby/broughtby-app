@@ -135,6 +135,13 @@ const Navbar = () => {
                 Profile
               </Link>
 
+              {/* Admin Page Link - Only visible to admins */}
+              {isAdmin && (
+                <Link to="/admin" className="nav-link admin-link" onClick={closeMobileMenu}>
+                  Admin
+                </Link>
+              )}
+
               {/* Admin User Switcher - Only visible to admins */}
               {isAdmin && (
                 <div className="admin-switcher" ref={dropdownRef}>

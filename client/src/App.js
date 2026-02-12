@@ -14,6 +14,7 @@ import Connections from './pages/Connections';
 import Chat from './pages/Chat';
 import Profile from './pages/Profile';
 import Calendar from './pages/Calendar';
+import Admin from './pages/Admin';
 
 function App() {
   return (
@@ -92,6 +93,15 @@ function App() {
               element={
                 <PrivateRoute>
                   <Profile />
+                </PrivateRoute>
+              }
+            />
+
+            <Route
+              path="/admin"
+              element={
+                <PrivateRoute>
+                  <Admin />
                 </PrivateRoute>
               }
             />

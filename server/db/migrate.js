@@ -422,7 +422,7 @@ const migrations = [
   `
     CREATE TABLE IF NOT EXISTS engagements (
       id SERIAL PRIMARY KEY,
-      match_id INTEGER NOT NULL REFERENCES matches(id) ON DELETE CASCADE,
+      match_id INTEGER REFERENCES matches(id) ON DELETE SET NULL,
       brand_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
       account_manager_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
       monthly_rate NUMERIC(10,2) NOT NULL,
@@ -433,7 +433,7 @@ const migrations = [
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       CHECK (brand_id != account_manager_id),
-      CHECK (status IN ('pending', 'active', 'paused', 'ended', 'declined'))
+      CHECK (status IN ('active', 'paused', 'ended'))
     );
   `,
 
@@ -446,6 +446,31 @@ const migrations = [
   `,
   `
     CREATE INDEX IF NOT EXISTS idx_engagements_status ON engagements(status);
+  `,
+  `
+    CREATE INDEX IF NOT EXISTS idx_engagements_match ON engagements(match_id);
+  `,
+
+  // Add audit trail columns to likes table
+  `
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                     WHERE table_name = 'likes' AND column_name = 'created_by_am_id') THEN
+        ALTER TABLE likes ADD COLUMN created_by_am_id INTEGER REFERENCES users(id);
+      END IF;
+    END $$;
+  `,
+
+  // Add audit trail columns to bookings table
+  `
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                     WHERE table_name = 'bookings' AND column_name = 'created_by_am_id') THEN
+        ALTER TABLE bookings ADD COLUMN created_by_am_id INTEGER REFERENCES users(id);
+      END IF;
+    END $$;
   `,
 ];
 

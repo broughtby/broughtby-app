@@ -75,6 +75,9 @@ export const adminAPI = {
   impersonateUser: (userId) => api.post('/admin/impersonate', { userId }),
   stopImpersonation: () => api.post('/admin/stop-impersonation'),
   resetDemoData: (targetUserId) => api.post('/admin/reset-demo-data', { targetUserId }),
+  createEngagement: (data) => api.post('/admin/engagements', data),
+  getAllEngagements: () => api.get('/admin/engagements'),
+  updateEngagement: (id, data) => api.patch(`/admin/engagements/${id}`, data),
 };
 
 // Review endpoints

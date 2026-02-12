@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const { auth } = require('../middleware/auth');
+const actingAs = require('../middleware/actingAs');
 const bookingController = require('../controllers/bookingController');
 
 // Create a new booking
-router.post('/', auth, bookingController.createBooking);
+router.post('/', auth, actingAs, bookingController.createBooking);
 
 // Get all bookings for the authenticated user
 router.get('/', auth, bookingController.getBookings);

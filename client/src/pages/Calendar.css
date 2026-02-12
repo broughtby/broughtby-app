@@ -325,6 +325,121 @@
   font-weight: 600;
 }
 
+/* Account Manager Section */
+.account-manager-section {
+  margin-bottom: 2.5rem;
+  padding-bottom: 2rem;
+  border-bottom: 2px solid var(--medium-gray);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.account-manager-section .section-title {
+  margin-bottom: 0;
+}
+
+.account-manager-card {
+  background-color: var(--white);
+  padding: 1.5rem;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: flex-start; /* Changed from center to flex-start */
+  gap: 1.5rem;
+  border-left: 4px solid #10B981; /* Green for active by default */
+}
+
+.account-manager-card.pending {
+  border-left-color: #F59E0B; /* Orange for pending */
+}
+
+.account-manager-card.paused {
+  border-left-color: #6B7280; /* Gray for paused */
+}
+
+.account-manager-card.ended {
+  border-left-color: #D1D5DB; /* Light gray for ended */
+}
+
+.am-photo {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.am-info {
+  flex: 1;
+}
+
+.am-info h3 {
+  font-size: 1.25rem;
+  color: var(--navy);
+  margin-bottom: 0.75rem;
+}
+
+.am-meta {
+  color: var(--dark-gray);
+  font-size: 0.95rem;
+}
+
+.pending-badge {
+  color: #F59E0B;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.engagement-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.engagement-detail {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  color: var(--dark-gray);
+  font-size: 0.95rem;
+}
+
+.engagement-detail .detail-icon {
+  flex-shrink: 0;
+  width: 20px;
+}
+
+.engagement-detail.scope-of-work {
+  flex-direction: column;
+  align-items: flex-start;
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--medium-gray);
+}
+
+.engagement-detail.scope-of-work .detail-icon {
+  align-self: flex-start;
+}
+
+.scope-label {
+  font-weight: 600;
+  color: var(--navy);
+}
+
+.scope-text {
+  line-height: 1.5;
+  color: var(--dark-gray);
+  margin-left: 28px;
+}
+
+.engagement-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-left: auto;
+  align-items: center;
+}
+
 .bookings-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
@@ -904,6 +1019,15 @@
 
   .section-title {
     font-size: 1.25rem;
+  }
+
+  .account-manager-card {
+    padding: 1rem;
+  }
+
+  .am-photo {
+    width: 60px;
+    height: 60px;
   }
 }
 

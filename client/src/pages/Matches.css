@@ -722,3 +722,105 @@
   transform: translateY(-1px);
   box-shadow: 0 2px 8px rgba(10, 37, 64, 0.3);
 }
+
+/* Engagements Section */
+.engagements-section {
+  margin-bottom: 2.5rem;
+}
+
+.section-title {
+  font-size: 1.5rem;
+  color: var(--navy);
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.section-divider {
+  margin: 2rem 0 1.5rem 0;
+  padding-top: 2rem;
+  border-top: 2px solid var(--medium-gray);
+}
+
+.engagements-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.engagement-card {
+  background-color: var(--white);
+  padding: 1.5rem;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  transition: all 0.3s;
+  border-left: 4px solid var(--gold);
+}
+
+.engagement-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.engagement-photo {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.engagement-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.engagement-info h3 {
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+  color: var(--navy);
+}
+
+.engagement-meta {
+  color: var(--dark-gray);
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+}
+
+.engagement-rate {
+  color: var(--navy);
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.engagement-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .engagement-card {
+    flex-wrap: wrap;
+    padding: 1rem;
+  }
+
+  .engagement-photo {
+    width: 60px;
+    height: 60px;
+  }
+
+  .engagement-actions {
+    width: 100%;
+    margin-top: 0.75rem;
+  }
+
+  .engagement-actions button {
+    flex: 1;
+  }
+
+  .section-title {
+    font-size: 1.25rem;
+  }
+}
