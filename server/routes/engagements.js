@@ -6,6 +6,7 @@ const {
   getEngagements,
   updateEngagementStatus,
   endEngagement,
+  getAvailableBrands,
 } = require('../controllers/engagementController');
 
 // All routes require authentication
@@ -16,6 +17,9 @@ router.post('/', createEngagement);
 
 // Get all engagements for the authenticated user
 router.get('/', getEngagements);
+
+// Get available brands for account managers
+router.get('/available-brands', getAvailableBrands);
 
 // Update engagement status (pending -> active, active -> paused, etc.)
 router.patch('/:id/status', updateEngagementStatus);

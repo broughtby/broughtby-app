@@ -10,12 +10,11 @@ import BrandAvatar from '../components/BrandAvatar';
 import './Matches.css';
 
 const Matches = () => {
-  const { isAmbassador, isBrand, isAccountManager, demoMode } = useAuth();
+  const { isAmbassador, isBrand, isAccountManager, demoMode, user } = useAuth();
   const [matches, setMatches] = useState([]);
   const [likes, setLikes] = useState([]);
   const [engagements, setEngagements] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('matches');
   const [bookingAmbassador, setBookingAmbassador] = useState(null);
   const [engagementAccountManager, setEngagementAccountManager] = useState(null);
   const [showBookingSuccess, setShowBookingSuccess] = useState(false);
@@ -96,7 +95,6 @@ const Matches = () => {
       await matchAPI.createMatch(brandId);
       // Refresh data
       await fetchData();
-      setActiveTab('matches');
     } catch (error) {
       console.error('Failed to accept request:', error);
     }
@@ -139,6 +137,7 @@ const Matches = () => {
         hourlyRate: bookingData.hourlyRate,
         totalCost: bookingData.estimatedCost,
         notes: bookingData.notes,
+        brandId: bookingData.brandId, // Include brandId for account managers
       };
 
       const response = await bookingAPI.createBooking(bookingPayload);
@@ -232,61 +231,188 @@ Status: Pending your acceptance`;
   }
 
   return (
-    <div className="matches-container container">
-      <div className="matches-header">
-        <h1>Matches</h1>
+    <>
+      <div className="matches-container container">
+        <div className="matches-header">
+          <h1>Matches</h1>
+          {isAmbassador && (
+            <p className="matches-subtitle">
+              {likes.length > 0 && `${likes.length} pending • `}
+              {matches.length} active
+            </p>
+          )}
+        </div>
 
-        {isAmbassador && (
-          <div className="tabs">
-            <button
-              className={`tab ${activeTab === 'matches' ? 'active' : ''}`}
-              onClick={() => setActiveTab('matches')}
-            >
-              Partnerships ({matches.length})
-            </button>
-            <button
-              className={`tab ${activeTab === 'likes' ? 'active' : ''}`}
-              onClick={() => setActiveTab('likes')}
-            >
-              Requests ({likes.length})
-            </button>
-          </div>
+        <div className="matches-section">
+        {/* For Account Managers: Only show Talent Pool (ambassadors they can book) */}
+        {isAccountManager ? (
+          <>
+            {(() => {
+              const talentMatches = matches.filter(m => m.role === 'ambassador' || m.role === 'account_manager');
+
+              return talentMatches.length > 0 ? (
+                <>
+                  <div className="section-header">
+                    <h2 className="section-title">Brand Ambassadors</h2>
+                    <span className="section-count">{talentMatches.length}</span>
+                  </div>
+                  <div className="matches-grid">
+                    {talentMatches.map((match) => (
+                      <div key={match.match_id} className="match-card">
+                        <img
+                          src={getPhotoUrl(match.profile_photo)}
+                          alt={match.name}
+                          className="match-photo"
+                        />
+                        <div className="match-info">
+                          <div style={{ display: 'flex', alignItems: 'center' }}>
+                            <h3><DisplayName user={match} demoMode={demoMode} /></h3>
+                            <span className="active-badge">ACTIVE</span>
+                          </div>
+                          {match.location && <p className="match-location">{match.location}</p>}
+                        </div>
+                        <div className="match-actions">
+                          <button
+                            className="message-button"
+                            onClick={() => handleChatClick(match.match_id)}
+                          >
+                            Message
+                          </button>
+                          <button
+                            className="book-button-small"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setBookingAmbassador({
+                                id: match.user_id,
+                                name: match.name,
+                                hourly_rate: match.hourly_rate,
+                                profile_photo: match.profile_photo,
+                                is_test: match.is_test,
+                              });
+                            }}
+                          >
+                            Book Now
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <p className="no-matches">No ambassadors matched yet. Browse and match with ambassadors in the Discover section.</p>
+              );
+            })()}
+          </>
+        ) : (
+          <>
+            {/* Active Partnerships Section for Ambassadors */}
+            {isAmbassador && likes.length > 0 && matches.length > 0 && (
+              <div className="section-header">
+                <h2 className="section-title">Active</h2>
+                <span className="section-count">{matches.length}</span>
+              </div>
+            )}
+
+            {/* Regular matches for Brands and Ambassadors */}
+            {matches.length > 0 && (
+              <div className="matches-grid">
+                {matches.map((match) => (
+                  <div key={match.match_id} className="match-card">
+                    <img
+                      src={match.am_name ? getPhotoUrl(match.am_profile_photo) : getPhotoUrl(match.profile_photo)}
+                      alt={match.am_name ? match.am_name : match.name}
+                      className="match-photo"
+                    />
+                    <div className="match-info">
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        {match.am_name ? (
+                          <h3>{match.am_name}: {match.company_name || match.name}</h3>
+                        ) : (
+                          <h3><DisplayName user={match} demoMode={demoMode} /></h3>
+                        )}
+                        {match.matched_by_am_name && Number(match.matched_by_am_id) !== Number(user?.id) ? (
+                          <span className="matched-by-am-badge">{match.matched_by_am_name} Matched</span>
+                        ) : match.matched_by_am_name && Number(match.matched_by_am_id) === Number(user?.id) ? (
+                          <span className="matched-by-am-badge">Matched</span>
+                        ) : (
+                          <span className="active-badge">ACTIVE</span>
+                        )}
+                      </div>
+                      {match.location && <p className="match-location">{match.location}</p>}
+                    </div>
+                    <div className="match-actions">
+                      <button
+                        className="message-button"
+                        onClick={() => handleChatClick(match.match_id)}
+                      >
+                        Message
+                      </button>
+
+                      {/* Booking/Engagement Creation for Brands */}
+                      {isBrand && (
+                        <button
+                          className="book-button-small"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (match.role === 'account_manager') {
+                              // Transform match object for EngagementModal
+                              setEngagementAccountManager({
+                                id: match.user_id,
+                                name: match.name,
+                                monthly_rate: match.monthly_rate,
+                                profile_photo: match.profile_photo,
+                                location: match.location,
+                              });
+                            } else {
+                              // Transform match object to ambassador format for BookingModal
+                              setBookingAmbassador({
+                                id: match.user_id,
+                                name: match.name,
+                                hourly_rate: match.hourly_rate,
+                                profile_photo: match.profile_photo,
+                                is_test: match.is_test,
+                              });
+                            }
+                          }}
+                        >
+                          Book Now
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
         )}
-      </div>
 
-      {/* Requests Tab (Ambassadors only) */}
-      {isAmbassador && activeTab === 'likes' && (
-        <div className="likes-section">
-          {likes.length === 0 ? (
-            <div className="empty-state">
-              <div className="empty-icon">👋</div>
-              <h2>No partnership requests yet</h2>
-              <p>Brands will discover you soon!</p>
+        {/* Pending Requests Section (Ambassadors only) */}
+        {isAmbassador && likes.length > 0 && (
+          <>
+            <div className="section-header">
+              <h2 className="section-title">Pending</h2>
+              <span className="section-count">{likes.length}</span>
             </div>
-          ) : (
             <div className="likes-grid">
               {likes.map((like) => (
                 <div key={like.id} className="like-card">
-                  <BrandAvatar
-                    companyLogo={like.company_logo}
-                    personPhoto={like.profile_photo}
-                    companyName={like.company_name}
-                    personName={like.name}
-                    size="large"
+                  <img
+                    src={like.created_by_am_id ? getPhotoUrl(like.am_profile_photo) : getPhotoUrl(like.profile_photo)}
+                    alt={like.created_by_am_id ? like.am_name : like.name}
+                    className="like-photo"
                   />
                   <div className="like-info">
-                    <h3><DisplayName user={like} demoMode={demoMode} /></h3>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      {like.created_by_am_id ? (
+                        <h3>{like.am_name}: {like.company_name || like.name}</h3>
+                      ) : like.company_name ? (
+                        <h3>{like.name}: {like.company_name}</h3>
+                      ) : (
+                        <h3><DisplayName user={like} demoMode={demoMode} /></h3>
+                      )}
+                      <span className="pending-badge">PENDING</span>
+                    </div>
                     {like.location && <p className="like-location">{like.location}</p>}
-                    {like.bio && <p className="like-bio">{like.bio}</p>}
-                    {like.skills && like.skills.length > 0 && (
-                      <div className="like-skills">
-                        {like.skills.slice(0, 3).map((skill, index) => (
-                          <span key={index} className="skill-tag-small">
-                            {skill}
-                          </span>
-                        ))}
-                      </div>
-                    )}
                   </div>
                   <div className="request-actions">
                     <button
@@ -305,13 +431,8 @@ Status: Pending your acceptance`;
                 </div>
               ))}
             </div>
-          )}
-        </div>
-      )}
-
-      {/* Matches Tab */}
-      {activeTab === 'matches' && (
-        <div className="matches-section">
+          </>
+        )}
           {/* Show Engagements Section for Brands */}
           {isBrand && engagements.length > 0 && (
             <div className="engagements-section">
@@ -354,7 +475,7 @@ Status: Pending your acceptance`;
           {/* Show Engagements Section for Account Managers */}
           {isAccountManager && engagements.length > 0 && (
             <div className="engagements-section">
-              <h2 className="section-title">Your Brands</h2>
+              <h2 className="section-title">Brand Clients</h2>
               <div className="engagements-grid">
                 {engagements.map((engagement) => (
                   <div key={engagement.id} className="engagement-card">
@@ -384,7 +505,6 @@ Status: Pending your acceptance`;
                       >
                         Message
                       </button>
-                      {/* TODO: Add "Book Ambassadors" button for acting-as mode in Phase 3 */}
                     </div>
                   </div>
                 ))}
@@ -392,14 +512,14 @@ Status: Pending your acceptance`;
             </div>
           )}
 
-          {/* Separator if there are engagements */}
-          {(isBrand || isAccountManager) && engagements.length > 0 && matches.length > 0 && (
+          {/* Separator if there are engagements (brands only, not account managers) */}
+          {isBrand && engagements.length > 0 && matches.length > 0 && (
             <div className="section-divider">
               <h2 className="section-title">Your Matches</h2>
             </div>
           )}
 
-          {matches.length === 0 ? (
+          {matches.length === 0 && likes.length === 0 && (
             <div className="empty-state">
               <div className="empty-icon">🤝</div>
               <h2>No matches yet</h2>
@@ -409,77 +529,9 @@ Status: Pending your acceptance`;
                   : 'Request to work with ambassadors to get started!'}
               </p>
             </div>
-          ) : (
-            <div className="matches-grid">
-              {matches.map((match) => (
-                <div key={match.match_id} className="match-card">
-                  {isAmbassador ? (
-                    <BrandAvatar
-                      companyLogo={match.company_logo}
-                      personPhoto={match.profile_photo}
-                      companyName={match.company_name}
-                      personName={match.name}
-                      size="large"
-                    />
-                  ) : (
-                    <img
-                      src={match.profile_photo ? getPhotoUrl(match.profile_photo) : 'https://via.placeholder.com/200'}
-                      alt={match.name}
-                      className="match-photo"
-                    />
-                  )}
-                  <div className="match-info">
-                    <h3><DisplayName user={match} demoMode={demoMode} /></h3>
-                    {match.location && <p className="match-location">{match.location}</p>}
-                    {match.last_message && (
-                      <p className="last-message">{match.last_message}</p>
-                    )}
-                  </div>
-                  <div className="match-actions">
-                    <button
-                      className="message-button"
-                      onClick={() => handleChatClick(match.match_id)}
-                    >
-                      Message
-                    </button>
-
-                    {/* Booking/Engagement Creation for Brands */}
-                    {isBrand && (
-                      <button
-                        className="book-button-small"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (match.role === 'account_manager') {
-                            // Transform match object for EngagementModal
-                            setEngagementAccountManager({
-                              id: match.user_id,
-                              name: match.name,
-                              monthly_rate: match.monthly_rate,
-                              profile_photo: match.profile_photo,
-                              location: match.location,
-                            });
-                          } else {
-                            // Transform match object to ambassador format for BookingModal
-                            setBookingAmbassador({
-                              id: match.user_id,
-                              name: match.name,
-                              hourly_rate: match.hourly_rate,
-                              profile_photo: match.profile_photo,
-                              is_test: match.is_test,
-                            });
-                          }
-                        }}
-                      >
-                        Book Now
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
           )}
         </div>
-      )}
+      </div>
 
       {/* Booking Modal */}
       {bookingAmbassador && (
@@ -560,7 +612,7 @@ Status: Pending your acceptance`;
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
 

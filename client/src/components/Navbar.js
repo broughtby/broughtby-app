@@ -6,7 +6,7 @@ import BrandAvatar from './BrandAvatar';
 import './Navbar.css';
 
 const Navbar = () => {
-  const { logout, isAuthenticated, isAdmin, impersonateUser, user, demoMode, toggleDemoMode, isBrand, isAccountManager } = useAuth();
+  const { logout, isAuthenticated, isAdmin, impersonateUser, user, demoMode, toggleDemoMode } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchQuery, setSearchQuery] = useState('');

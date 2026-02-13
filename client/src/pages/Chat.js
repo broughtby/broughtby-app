@@ -322,7 +322,9 @@ Status: Pending your acceptance`;
         ) : (
           <>
             {messages.map((message, index) => {
-              const isMine = message.sender_id === user.id;
+              // Check if message is from current user OR if AM sent it while acting as brand
+              const isMine = message.sender_id === user.id ||
+                            (message.created_by_am_id && message.created_by_am_id === user.id);
               const isFirstMessage = index === 0;
 
               return (
@@ -330,20 +332,26 @@ Status: Pending your acceptance`;
                   key={message.id}
                   className={`message ${isMine ? 'mine' : 'theirs'}`}
                 >
-                  {!isMine && message.sender_photo && (
+                  {!isMine && (message.am_profile_photo || message.sender_photo) && (
                     <img
-                      src={message.sender_photo}
-                      alt={message.sender_name}
+                      src={message.am_profile_photo || message.sender_photo}
+                      alt={message.am_name || message.sender_name}
                       className="message-avatar"
                     />
                   )}
                   <div className="message-content">
                     {!isMine && message.sender_name && (
                       <p className="message-sender">
-                        <DisplayName
-                          user={{ id: message.sender_id, name: message.sender_name, is_test: message.is_test }}
-                          demoMode={demoMode}
-                        />
+                        {message.am_name ? (
+                          // Message sent by AM acting as brand - show "AM Name: Company"
+                          `${message.am_name}: ${message.company_name || message.sender_name}`
+                        ) : (
+                          // Regular message - use DisplayName component
+                          <DisplayName
+                            user={{ id: message.sender_id, name: message.sender_name, is_test: message.is_test }}
+                            demoMode={demoMode}
+                          />
+                        )}
                       </p>
                     )}
                     <div className="message-bubble">

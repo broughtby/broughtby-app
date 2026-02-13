@@ -11,7 +11,80 @@
 
 .matches-header h1 {
   font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.matches-subtitle {
+  font-size: 0.95rem;
+  color: var(--dark-gray);
+  margin: 0;
+  font-weight: 500;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 2rem;
   margin-bottom: 1.5rem;
+}
+
+.section-header:first-child {
+  margin-top: 0;
+}
+
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--navy);
+  margin: 0;
+}
+
+.section-count {
+  background: var(--light-gray);
+  color: var(--dark-gray);
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.pending-badge {
+  background: #f59e0b !important;
+  color: white !important;
+  padding: 0.25rem 0.625rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-left: 0.5rem;
+  flex-shrink: 0;
+}
+
+.active-badge {
+  background: #10b981;
+  color: white;
+  padding: 0.25rem 0.625rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-left: 0.5rem;
+  flex-shrink: 0;
+}
+
+.matched-by-am-badge {
+  background: #10b981;
+  color: white;
+  padding: 0.25rem 0.625rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin-left: 0.5rem;
+  flex-shrink: 0;
 }
 
 .tabs {
@@ -66,31 +139,41 @@
   line-height: 1.6;
 }
 
-/* Matches Grid */
+/* Matches List */
 .matches-grid {
-  display: grid;
-  gap: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
 }
 
 .match-card {
   background-color: var(--white);
-  padding: 1.5rem;
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow);
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--medium-gray);
   display: flex;
   align-items: center;
-  gap: 1.5rem;
-  transition: all 0.3s;
+  gap: 1rem;
+  transition: background-color 0.2s;
+}
+
+.match-card:first-child {
+  border-top-left-radius: var(--border-radius);
+  border-top-right-radius: var(--border-radius);
+}
+
+.match-card:last-child {
+  border-bottom-left-radius: var(--border-radius);
+  border-bottom-right-radius: var(--border-radius);
+  border-bottom: none;
 }
 
 .match-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
+  background-color: var(--light-gray);
 }
 
 .match-photo {
-  width: 80px;
-  height: 80px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
@@ -98,6 +181,7 @@
 
 .match-info {
   flex: 1;
+  min-width: 0;
 }
 
 .match-header-row {
@@ -108,8 +192,10 @@
 }
 
 .match-info h3 {
-  font-size: 1.25rem;
-  margin-bottom: 0.25rem;
+  font-size: 1rem;
+  margin: 0 0 0.25rem 0;
+  color: var(--navy);
+  font-weight: 600;
 }
 
 .engagement-badge {
@@ -143,25 +229,17 @@
 }
 
 .engagement-rate {
-  color: var(--dark-gray);
-  font-size: 0.95rem;
-  font-weight: 600;
-  margin: 0.25rem 0;
+  display: none;
 }
 
 .match-location {
   color: var(--dark-gray);
-  font-size: 0.9rem;
-  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  margin: 0;
 }
 
 .last-message {
-  color: var(--dark-gray);
-  font-size: 0.95rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 400px;
+  display: none;
 }
 
 .match-arrow {
@@ -172,46 +250,43 @@
 
 .match-actions {
   display: flex;
-  gap: 0.75rem;
+  gap: 0.5rem;
+  margin-left: auto;
   flex-shrink: 0;
 }
 
 .message-button {
   background-color: var(--navy);
   color: var(--white);
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
   font-weight: 600;
-  font-size: 0.95rem;
-  transition: all 0.3s;
+  font-size: 0.875rem;
+  transition: all 0.2s;
   border: none;
   cursor: pointer;
   white-space: nowrap;
-  min-width: 0;
 }
 
 .message-button:hover {
   background-color: #0D3350;
-  transform: translateY(-1px);
 }
 
 .book-button-small {
   background-color: var(--gold);
   color: var(--navy);
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
   font-weight: 600;
-  font-size: 0.95rem;
-  transition: all 0.3s;
+  font-size: 0.875rem;
+  transition: all 0.2s;
   border: none;
   cursor: pointer;
   white-space: nowrap;
-  min-width: 0;
 }
 
 .book-button-small:hover {
   background-color: #C4A036;
-  transform: translateY(-1px);
 }
 
 .hire-button-small {
@@ -335,65 +410,75 @@
   padding: 0.5rem 0;
 }
 
-/* Likes Grid */
+/* Likes List */
 .likes-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
 }
 
 .like-card {
   background-color: var(--white);
-  padding: 1.5rem;
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow);
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--medium-gray);
   display: flex;
-  flex-direction: column;
   align-items: center;
-  text-align: center;
+  gap: 1rem;
+  position: relative;
+  transition: background-color 0.2s;
+}
+
+.like-card:first-child {
+  border-top-left-radius: var(--border-radius);
+  border-top-right-radius: var(--border-radius);
+}
+
+.like-card:last-child {
+  border-bottom-left-radius: var(--border-radius);
+  border-bottom-right-radius: var(--border-radius);
+  border-bottom: none;
+}
+
+.like-card:hover {
+  background-color: var(--light-gray);
 }
 
 .like-photo {
-  width: 120px;
-  height: 120px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   object-fit: cover;
-  margin-bottom: 1rem;
+  flex-shrink: 0;
 }
 
 .like-info {
   flex: 1;
-  width: 100%;
-  margin-bottom: 1rem;
+  min-width: 0;
 }
 
 .like-info h3 {
-  font-size: 1.25rem;
-  margin-bottom: 0.5rem;
+  font-size: 1rem;
+  margin: 0 0 0.25rem 0;
+  color: var(--navy);
+  font-weight: 600;
+}
+
+.sent-by-am {
+  display: none;
 }
 
 .like-location {
   color: var(--dark-gray);
-  font-size: 0.9rem;
-  margin-bottom: 0.75rem;
+  font-size: 0.875rem;
+  margin: 0;
 }
 
 .like-bio {
-  color: var(--dark-gray);
-  font-size: 0.9rem;
-  line-height: 1.5;
-  margin-bottom: 1rem;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  display: none;
 }
 
 .like-skills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  justify-content: center;
+  display: none;
 }
 
 .skill-tag-small {
@@ -407,34 +492,34 @@
 
 .request-actions {
   display: flex;
-  gap: 0.75rem;
-  width: 100%;
+  gap: 0.5rem;
+  margin-left: auto;
+  flex-shrink: 0;
 }
 
 .accept-button {
   background-color: var(--navy);
   color: var(--white);
-  padding: 0.9rem 2rem;
-  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
   font-weight: 600;
-  flex: 1;
-  transition: all 0.3s;
-  border: 2px solid var(--navy);
+  font-size: 0.875rem;
+  transition: all 0.2s;
+  border: none;
 }
 
 .accept-button:hover {
   background-color: #0D3350;
-  transform: translateY(-1px);
 }
 
 .decline-button {
-  background-color: var(--white);
-  color: var(--error);
-  padding: 0.9rem 2rem;
-  border-radius: 8px;
+  background-color: transparent;
+  color: var(--dark-gray);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
   font-weight: 600;
-  flex: 1;
-  transition: all 0.3s;
+  font-size: 0.875rem;
+  transition: all 0.2s;
   border: 2px solid var(--error);
 }
 

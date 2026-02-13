@@ -72,21 +72,27 @@ const Messages = () => {
               onClick={() => handleConversationClick(conversation.match_id)}
             >
               <div className="conversation-photo">
-                {conversation.profile_photo ? (
+                {(conversation.am_profile_photo || conversation.profile_photo) ? (
                   <img
-                    src={getPhotoUrl(conversation.profile_photo)}
-                    alt={conversation.name}
+                    src={getPhotoUrl(conversation.am_profile_photo || conversation.profile_photo)}
+                    alt={conversation.am_name || conversation.name}
                   />
                 ) : (
                   <div className="photo-placeholder">
-                    {conversation.name.charAt(0).toUpperCase()}
+                    {(conversation.am_name || conversation.name).charAt(0).toUpperCase()}
                   </div>
                 )}
               </div>
 
               <div className="conversation-details">
                 <div className="conversation-header">
-                  <h3 className="conversation-name"><DisplayName user={conversation} demoMode={demoMode} /></h3>
+                  <h3 className="conversation-name">
+                    {conversation.am_name ? (
+                      <>{conversation.am_name}: {conversation.company_name || conversation.name}</>
+                    ) : (
+                      <DisplayName user={conversation} demoMode={demoMode} />
+                    )}
+                  </h3>
                   {conversation.location && (
                     <span className="conversation-location">
                       {conversation.location}

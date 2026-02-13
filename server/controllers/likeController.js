@@ -15,9 +15,9 @@ const createLike = async (req, res) => {
   try {
     const { ambassadorId } = req.body;
 
-    // Only brands can like ambassadors
-    if (req.user.role !== 'brand') {
-      return res.status(403).json({ error: 'Only brands can like ambassadors' });
+    // Only brands and account managers can like ambassadors
+    if (req.user.role !== 'brand' && req.user.role !== 'account_manager') {
+      return res.status(403).json({ error: 'Only brands and account managers can like ambassadors' });
     }
 
     // Verify ambassador/account manager exists
@@ -35,7 +35,7 @@ const createLike = async (req, res) => {
       return res.status(400).json({ error: 'User is not an ambassador or account manager' });
     }
 
-    // Get brand information including preview status
+    // Get brand/AM information including preview status
     const brandCheck = await db.query(
       'SELECT name, location, bio, is_preview, email, company_name FROM users WHERE id = $1',
       [req.user.userId]
@@ -43,11 +43,11 @@ const createLike = async (req, res) => {
 
     // Create request (like with pending status)
     const result = await db.query(
-      `INSERT INTO likes (brand_id, ambassador_id, status)
-       VALUES ($1, $2, 'pending')
+      `INSERT INTO likes (brand_id, ambassador_id, status, created_by_am_id)
+       VALUES ($1, $2, 'pending', $3)
        ON CONFLICT (brand_id, ambassador_id) DO NOTHING
        RETURNING id, created_at`,
-      [req.user.userId, ambassadorId]
+      [req.user.userId, ambassadorId, null]
     );
 
     if (result.rows.length === 0) {
@@ -100,9 +100,9 @@ const createLike = async (req, res) => {
       }
 
       await db.query(
-        `INSERT INTO messages (match_id, sender_id, content)
-         VALUES ($1, $2, $3)`,
-        [matchId, req.user.userId, welcomeMessage]
+        `INSERT INTO messages (match_id, sender_id, content, created_by_am_id)
+         VALUES ($1, $2, $3, $4)`,
+        [matchId, req.user.userId, welcomeMessage, null]
       );
 
       // Note: AI auto-reply will be triggered when brand user opens the chat
@@ -151,10 +151,13 @@ const getReceivedLikes = async (req, res) => {
     }
 
     const result = await db.query(
-      `SELECT l.id, l.created_at, l.status,
-              u.id as brand_id, u.name, u.profile_photo, u.bio, u.location, u.skills, u.is_test
+      `SELECT l.id, l.created_at, l.status, l.created_by_am_id,
+              u.id as brand_id, u.name, u.profile_photo, u.bio, u.location, u.skills, u.is_test,
+              u.company_name, u.company_logo,
+              am.name as am_name, am.profile_photo as am_profile_photo
        FROM likes l
        JOIN users u ON l.brand_id = u.id
+       LEFT JOIN users am ON l.created_by_am_id = am.id
        WHERE l.ambassador_id = $1
        AND l.status = 'pending'
        ORDER BY l.created_at DESC`,
@@ -203,9 +206,9 @@ const createPass = async (req, res) => {
   try {
     const { ambassadorId } = req.body;
 
-    // Only brands can pass on ambassadors
-    if (req.user.role !== 'brand') {
-      return res.status(403).json({ error: 'Only brands can pass on ambassadors' });
+    // Only brands and account managers can pass on ambassadors
+    if (req.user.role !== 'brand' && req.user.role !== 'account_manager') {
+      return res.status(403).json({ error: 'Only brands and account managers can pass on ambassadors' });
     }
 
     // Verify ambassador exists and is actually an ambassador
@@ -249,9 +252,9 @@ const demoAcceptLike = async (req, res) => {
   try {
     const { ambassadorId } = req.body;
 
-    // Only brands can demo accept
-    if (req.user.role !== 'brand') {
-      return res.status(403).json({ error: 'Only brands can demo accept' });
+    // Only brands and account managers can demo accept
+    if (req.user.role !== 'brand' && req.user.role !== 'account_manager') {
+      return res.status(403).json({ error: 'Only brands and account managers can demo accept' });
     }
 
     // Verify pending like exists and ambassador is a test account
@@ -310,9 +313,9 @@ const demoAcceptLike = async (req, res) => {
       : `Hi ${ambassador.name}! We want to do a series of events this spring and summer in chicago. I think you could be a good fit. Interested?`;
 
     await db.query(
-      `INSERT INTO messages (match_id, sender_id, content)
-       VALUES ($1, $2, $3)`,
-      [matchId, req.user.userId, welcomeMessage]
+      `INSERT INTO messages (match_id, sender_id, content, created_by_am_id)
+       VALUES ($1, $2, $3, $4)`,
+      [matchId, req.user.userId, welcomeMessage, null]
     );
 
     // Note: AI auto-reply will be triggered when brand user opens the chat

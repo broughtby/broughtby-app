@@ -16,6 +16,7 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
     return config;
   },
   (error) => Promise.reject(error)
@@ -99,6 +100,7 @@ export const engagementAPI = {
   getEngagements: () => api.get('/engagements'),
   updateEngagementStatus: (id, status) => api.patch(`/engagements/${id}/status`, { status }),
   endEngagement: (id, endDate) => api.patch(`/engagements/${id}/end`, { endDate }),
+  getAvailableBrands: () => api.get('/engagements/available-brands'), // AM's brand clients
 };
 
 export default api;

@@ -156,11 +156,7 @@ const getAmbassadors = async (req, res) => {
   try {
     const { limit = 50, offset = 0, talentType = 'ambassador' } = req.query;
 
-    // Support acting-as mode for account managers
-    const effectiveBrandId = req.effectiveBrandId || req.user.userId;
-    const isActingAsBrand = req.user.role === 'account_manager' && req.effectiveBrandId;
-
-    if (req.user.role === 'brand' || isActingAsBrand) {
+    if (req.user.role === 'brand' || req.user.role === 'account_manager') {
       // Check if user is admin or preview account (check the actual user, not the brand they're acting as)
       const userCheck = await db.query(
         'SELECT is_admin, is_preview FROM users WHERE id = $1',
@@ -185,7 +181,11 @@ const getAmbassadors = async (req, res) => {
         whereClause = `WHERE u.role = '${targetRole}' AND u.is_active = TRUE AND (u.is_test = FALSE OR u.is_test IS NULL)`;
       }
 
-      // Brands browse all talent with status indicators
+      // Brands and account managers browse all talent with status indicators
+      // For account managers: only show direct matches (where AM is the brand)
+      // Matches they facilitated appear in the brand's match list, not discovery
+      const matchCondition = `(m.ambassador_id = u.id AND m.brand_id = $1)`;
+
       const result = await db.query(
         `SELECT u.id, u.name, u.profile_photo, u.bio, u.location, u.age,
                 u.skills, u.hourly_rate, u.monthly_rate, u.availability, u.rating, u.role,
@@ -207,12 +207,12 @@ const getAmbassadors = async (req, res) => {
                 ) as has_detailed_reviews
          FROM users u
          LEFT JOIN likes l ON l.ambassador_id = u.id AND l.brand_id = $1
-         LEFT JOIN matches m ON (m.ambassador_id = u.id AND m.brand_id = $1)
+         LEFT JOIN matches m ON ${matchCondition}
          LEFT JOIN passes p ON p.ambassador_id = u.id AND p.brand_id = $1
          ${whereClause}
          ORDER BY u.rating DESC, u.created_at DESC
          LIMIT $2 OFFSET $3`,
-        [effectiveBrandId, limit, offset]
+        [req.user.userId, limit, offset]
       );
 
       // Add status to each talent

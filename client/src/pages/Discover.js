@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { userAPI, likeAPI, reviewAPI, bookingAPI, messageAPI, matchAPI, previewAPI, engagementAPI } from '../services/api';
@@ -42,15 +42,18 @@ const Discover = () => {
   const [highlightedAmbassadorId, setHighlightedAmbassadorId] = useState(null);
   const [hasAccountManagers, setHasAccountManagers] = useState(false);
 
+  // Brands and account managers can browse and match with ambassadors
+  const canMatch = isBrand || isAccountManager;
+
   useEffect(() => {
     if (isBrand || isAmbassador || isAccountManager) {
       fetchAmbassadors();
-      if (isBrand) {
+      if (canMatch) {
         fetchMatches();
         checkAccountManagersExist();
       }
     }
-  }, [isBrand, isAmbassador, isAccountManager, talentType]);
+  }, [isBrand, isAmbassador, isAccountManager, talentType, canMatch]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -323,7 +326,7 @@ Status: Pending your acceptance`;
           setAmbassadors(updatedAmbassadors);
 
           // Fetch updated matches so Message button works
-          if (isBrand) {
+          if (canMatch) {
             fetchMatches();
           }
 
@@ -487,8 +490,8 @@ Status: Pending your acceptance`;
     );
   }
 
-  // For ambassadors and account managers, show gallery view
-  if (isAmbassador || isAccountManager) {
+  // For ambassadors only, show gallery/community view (view-only)
+  if (isAmbassador) {
     return (
       <div className="discover-container community-view">
         <div className="discover-header">
@@ -706,7 +709,7 @@ Status: Pending your acceptance`;
 
     return (
       <div className="discover-container">
-        {isBrand && user && (
+        {canMatch && user && (
           <div className="welcome-banner" onClick={() => navigate('/profile')}>
             <BrandAvatar
               companyLogo={user.company_logo}
@@ -723,7 +726,7 @@ Status: Pending your acceptance`;
         )}
 
         {/* Preview Mode Banner */}
-        {isPreview && isBrand && (
+        {isPreview && canMatch && (
           <div className="preview-banner">
             <div className="preview-banner-content">
               <span className="preview-icon">🎬</span>
@@ -757,7 +760,7 @@ Status: Pending your acceptance`;
             {displayIndex} / {filteredAmbassadors.length}
           </p>
 
-          {hasAccountManagers && (
+          {hasAccountManagers && !isAccountManager && (
             <p className="talent-type-toggle">
               {talentType === 'ambassador' ? (
                 <>Looking for an Account Manager? <button onClick={() => { setTalentType('account_manager'); setCurrentIndex(0); }} className="toggle-link">Click here</button></>
@@ -799,7 +802,16 @@ Status: Pending your acceptance`;
                 </div>
                 {currentAmbassador.status && currentAmbassador.status !== 'available' && (
                   <div className={`status-badge status-${currentAmbassador.status}`}>
-                    {currentAmbassador.status === 'matched' ? '✓ Matched' : currentAmbassador.status === 'pending' ? 'Request Pending' : 'Passed'}
+                    {currentAmbassador.status === 'matched' ? (
+                      (() => {
+                        const match = getMatchForAmbassador(currentAmbassador.id);
+                        // Don't show AM's name if they're viewing their own match
+                        if (match?.matched_by_am_name && Number(match?.matched_by_am_id) !== Number(user?.id)) {
+                          return `${match.matched_by_am_name} Matched`;
+                        }
+                        return '✓ Matched';
+                      })()
+                    ) : currentAmbassador.status === 'pending' ? 'Request Pending' : 'Passed'}
                   </div>
                 )}
               </div>
@@ -872,7 +884,7 @@ Status: Pending your acceptance`;
 
         {currentAmbassador.status === 'matched' || currentAmbassador.status === 'pending' || currentAmbassador.status === 'passed' ? (
           <div className="action-buttons">
-            {currentAmbassador.status === 'matched' && isBrand ? (
+            {currentAmbassador.status === 'matched' && canMatch ? (
               <>
                 <button
                   className="action-button message-button"
@@ -1032,7 +1044,7 @@ Status: Pending your acceptance`;
   // DESKTOP/TABLET VIEW: Gallery grid
   return (
     <div className="discover-container brand-grid-view">
-      {isBrand && user && (
+      {canMatch && user && (
         <div className="welcome-banner" onClick={() => navigate('/profile')}>
           <BrandAvatar
             companyLogo={user.company_logo}
@@ -1049,7 +1061,7 @@ Status: Pending your acceptance`;
       )}
 
       {/* Preview Mode Banner */}
-      {isPreview && isBrand && (
+      {isPreview && canMatch && (
         <div className="preview-banner">
           <div className="preview-banner-content">
             <span className="preview-icon">🎬</span>
@@ -1081,7 +1093,7 @@ Status: Pending your acceptance`;
 
         <LocationFilter />
 
-        {hasAccountManagers && (
+        {hasAccountManagers && !isAccountManager && (
           <p className="talent-type-toggle">
             {talentType === 'ambassador' ? (
               <>Looking for an Account Manager? <button onClick={() => setTalentType('account_manager')} className="toggle-link">Click here</button></>
@@ -1106,7 +1118,16 @@ Status: Pending your acceptance`;
               />
               {ambassador.status && ambassador.status !== 'available' && (
                 <div className={`status-badge status-${ambassador.status}`}>
-                  {ambassador.status === 'matched' ? '✓ Matched' : ambassador.status === 'pending' ? 'Request Pending' : 'Passed'}
+                  {ambassador.status === 'matched' ? (
+                    (() => {
+                      const match = getMatchForAmbassador(ambassador.id);
+                      // Don't show AM's name if they're viewing their own match
+                      if (match?.matched_by_am_name && Number(match?.matched_by_am_id) !== Number(user?.id)) {
+                        return `${match.matched_by_am_name} Matched`;
+                      }
+                      return '✓ Matched';
+                    })()
+                  ) : ambassador.status === 'pending' ? 'Request Pending' : 'Passed'}
                 </div>
               )}
               <div className="grid-card-overlay">
@@ -1165,7 +1186,16 @@ Status: Pending your acceptance`;
               />
               {selectedAmbassador.status && selectedAmbassador.status !== 'available' && (
                 <div className={`status-badge status-${selectedAmbassador.status}`}>
-                  {selectedAmbassador.status === 'matched' ? '✓ Matched' : selectedAmbassador.status === 'pending' ? 'Request Pending' : 'Passed'}
+                  {selectedAmbassador.status === 'matched' ? (
+                    (() => {
+                      const match = getMatchForAmbassador(selectedAmbassador.id);
+                      // Don't show AM's name if they're viewing their own match
+                      if (match?.matched_by_am_name && Number(match?.matched_by_am_id) !== Number(user?.id)) {
+                        return `${match.matched_by_am_name} Matched`;
+                      }
+                      return '✓ Matched';
+                    })()
+                  ) : selectedAmbassador.status === 'pending' ? 'Request Pending' : 'Passed'}
                 </div>
               )}
             </div>
@@ -1234,7 +1264,7 @@ Status: Pending your acceptance`;
 
               {selectedAmbassador.status === 'matched' || selectedAmbassador.status === 'pending' || selectedAmbassador.status === 'passed' ? (
                 <div style={{ marginTop: '1.5rem' }}>
-                  {selectedAmbassador.status === 'matched' && isBrand ? (
+                  {selectedAmbassador.status === 'matched' && canMatch ? (
                     <div className="action-buttons" style={{ display: 'flex', gap: '1rem' }}>
                       <button
                         className="action-button message-button"
@@ -1309,7 +1339,7 @@ Status: Pending your acceptance`;
                           setAmbassadors(updatedAmbassadors);
 
                           // Fetch updated matches so Message button works
-                          if (isBrand) {
+                          if (canMatch) {
                             fetchMatches();
                           }
 

@@ -1,10 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const { auth } = require('../middleware/auth');
-const actingAs = require('../middleware/actingAs');
 const { getMessages, createMessage } = require('../controllers/messageController');
 
 router.get('/:matchId', auth, getMessages);
-router.post('/', auth, actingAs, createMessage);
+router.post('/', auth, createMessage);
 
 module.exports = router;

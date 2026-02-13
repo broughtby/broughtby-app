@@ -15,6 +15,7 @@ const createBooking = async (req, res) => {
       hourlyRate,
       totalCost,
       notes,
+      brandId,
     } = req.body;
 
     // Only brands and account managers can create bookings
@@ -22,10 +23,38 @@ const createBooking = async (req, res) => {
       return res.status(403).json({ error: 'Only brands and account managers can create bookings' });
     }
 
-    // Verify the match exists and the brand is part of it
+    // Determine effective brand ID
+    // Account managers must provide brandId, brands use their own userId
+    let effectiveBrandId;
+    if (req.user.role === 'account_manager') {
+      if (!brandId) {
+        return res.status(400).json({ error: 'Account managers must specify a brand client' });
+      }
+
+      // Verify AM has an active engagement with this brand
+      const engagementCheck = await db.query(
+        `SELECT id FROM engagements
+         WHERE brand_id = $1 AND account_manager_id = $2 AND status = 'active'`,
+        [brandId, req.user.userId]
+      );
+
+      if (engagementCheck.rows.length === 0) {
+        return res.status(403).json({ error: 'You do not have an active engagement with this brand' });
+      }
+
+      effectiveBrandId = brandId;
+    } else {
+      effectiveBrandId = req.user.userId;
+    }
+
+    // Verify the match exists and the user has access to it
+    // For account managers: they must be the brand in the match (AM matched with ambassador)
+    // For brands: they must be the brand in the match (brand matched with ambassador)
+    const matchCheckBrandId = req.user.role === 'account_manager' ? req.user.userId : effectiveBrandId;
+
     const matchCheck = await db.query(
       'SELECT id, brand_id, ambassador_id FROM matches WHERE id = $1 AND brand_id = $2',
-      [matchId, req.user.userId]
+      [matchId, matchCheckBrandId]
     );
 
     if (matchCheck.rows.length === 0) {
@@ -56,7 +85,7 @@ const createBooking = async (req, res) => {
     // Check if brand is a preview account
     const brandCheck = await db.query(
       'SELECT is_preview FROM users WHERE id = $1',
-      [req.user.userId]
+      [effectiveBrandId]
     );
 
     const isPreviewBooking = brandCheck.rows[0]?.is_preview && ambassadorCheck.rows[0]?.is_preview_ambassador;
@@ -72,16 +101,18 @@ const createBooking = async (req, res) => {
 
     // Create booking (auto-confirm for preview mode)
     const bookingStatus = isPreviewBooking ? 'confirmed' : 'pending';
+    const createdByAmId = req.user.role === 'account_manager' ? req.user.userId : null;
+
     const result = await db.query(
       `INSERT INTO bookings (
         match_id, brand_id, ambassador_id, event_name, event_date, start_time, end_time,
-        duration, event_location, hourly_rate, total_cost, notes, status
+        duration, event_location, hourly_rate, total_cost, notes, status, created_by_am_id
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
       RETURNING *`,
       [
         matchId,
-        req.user.userId,
+        effectiveBrandId,
         ambassadorId,
         eventName,
         eventDate,
@@ -93,6 +124,7 @@ const createBooking = async (req, res) => {
         totalCost,
         notes,
         bookingStatus,
+        createdByAmId,
       ]
     );
 
@@ -104,7 +136,7 @@ const createBooking = async (req, res) => {
       if (ambassadorQuery.rows.length > 0) {
         db.query(
           'SELECT name FROM users WHERE id = $1',
-          [req.user.userId]
+          [effectiveBrandId]
         ).then(brandQuery => {
           if (brandQuery.rows.length > 0) {
             const ambassador = ambassadorQuery.rows[0];
@@ -151,10 +183,39 @@ const getBookings = async (req, res) => {
                u.name as ambassador_name,
                u.profile_photo as ambassador_photo,
                u.email as ambassador_email,
-               u.is_test as ambassador_is_test
+               u.is_test as ambassador_is_test,
+               brand.company_name,
+               am.name as booked_by_am_name,
+               am.profile_photo as booked_by_am_photo
         FROM bookings b
         JOIN users u ON b.ambassador_id = u.id
+        JOIN users brand ON b.brand_id = brand.id
+        LEFT JOIN users am ON b.created_by_am_id = am.id
         WHERE b.brand_id = $1
+        ORDER BY b.event_date DESC, b.created_at DESC
+      `;
+      params = [req.user.userId];
+    } else if (req.user.role === 'account_manager') {
+      // Get bookings for brands the AM has active engagements with
+      query = `
+        SELECT b.*,
+               u.name as ambassador_name,
+               u.profile_photo as ambassador_photo,
+               u.email as ambassador_email,
+               u.is_test as ambassador_is_test,
+               brand.name as brand_name,
+               brand.company_name as brand_company_name,
+               brand.company_logo as brand_company_logo,
+               am.name as booked_by_am_name,
+               am.profile_photo as booked_by_am_photo
+        FROM bookings b
+        JOIN users u ON b.ambassador_id = u.id
+        JOIN users brand ON b.brand_id = brand.id
+        LEFT JOIN users am ON b.created_by_am_id = am.id
+        WHERE b.brand_id IN (
+          SELECT brand_id FROM engagements
+          WHERE account_manager_id = $1 AND status = 'active'
+        )
         ORDER BY b.event_date DESC, b.created_at DESC
       `;
       params = [req.user.userId];
@@ -165,9 +226,17 @@ const getBookings = async (req, res) => {
                u.name as brand_name,
                u.profile_photo as brand_photo,
                u.email as brand_email,
-               u.is_test as brand_is_test
+               u.is_test as brand_is_test,
+               u.company_name,
+               ambassador.name as ambassador_name,
+               ambassador.profile_photo as ambassador_photo,
+               ambassador.is_test as ambassador_is_test,
+               am.name as booked_by_am_name,
+               am.profile_photo as booked_by_am_photo
         FROM bookings b
         JOIN users u ON b.brand_id = u.id
+        JOIN users ambassador ON b.ambassador_id = ambassador.id
+        LEFT JOIN users am ON b.created_by_am_id = am.id
         WHERE b.ambassador_id = $1
         ORDER BY b.event_date DESC, b.created_at DESC
       `;
@@ -293,9 +362,9 @@ const deleteBooking = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Only brands can delete bookings
-    if (req.user.role !== 'brand') {
-      return res.status(403).json({ error: 'Only brands can delete bookings' });
+    // Only brands and account managers can delete bookings
+    if (req.user.role !== 'brand' && req.user.role !== 'account_manager') {
+      return res.status(403).json({ error: 'Only brands and account managers can delete bookings' });
     }
 
     // Check booking exists and belongs to the brand

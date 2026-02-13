@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { bookingAPI } from '../services/api';
 import './TimeTracking.css';
 
-const TimeTracking = ({ bookingId, bookingStatus, onUpdate, isPreview, onCheckoutComplete }) => {
+const TimeTracking = ({ bookingId, bookingStatus, onUpdate, isPreview, onCheckoutComplete, ambassadorName }) => {
   const { isAmbassador, isBrand } = useAuth();
   const [timeStatus, setTimeStatus] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -177,14 +177,14 @@ const TimeTracking = ({ bookingId, bookingStatus, onUpdate, isPreview, onCheckou
                 {isPreview ? (
                   <div className="time-action-section">
                     <p className="preview-hint">
-                      💡 Demo Mode: Click below to simulate Allan checking in. The system automatically tracks hours worked.
+                      💡 Demo Mode: Click below to simulate {ambassadorName ? ambassadorName.split(' ')[0] : 'ambassador'} checking in. The system automatically tracks hours worked.
                     </p>
                     <button
                       className="time-btn check-in-btn"
                       onClick={handleCheckIn}
                       disabled={processing}
                     >
-                      {processing ? 'Checking In...' : '✓ Check In (as Allan)'}
+                      {processing ? 'Checking In...' : `✓ Check In${ambassadorName ? ` (as ${ambassadorName.split(' ')[0]})` : ''}`}
                     </button>
                   </div>
                 ) : (
@@ -202,18 +202,18 @@ const TimeTracking = ({ bookingId, bookingStatus, onUpdate, isPreview, onCheckou
                   <div className="time-action-section">
                     <div className="time-status-active">
                       <span className="status-dot"></span>
-                      <span>Allan is Currently Checked In</span>
+                      <span>{ambassadorName ? ambassadorName.split(' ')[0] : 'Ambassador'} is Currently Checked In</span>
                     </div>
                     <p className="time-detail">Checked in at: {formatDateTime(timeStatus.checkedInAt)}</p>
                     <p className="preview-hint">
-                      💡 Demo Mode: Click below to simulate Allan checking out. Hours worked will be calculated automatically.
+                      💡 Demo Mode: Click below to simulate {ambassadorName ? ambassadorName.split(' ')[0] : 'ambassador'} checking out. Hours worked will be calculated automatically.
                     </p>
                     <button
                       className="time-btn check-out-btn"
                       onClick={handleCheckOut}
                       disabled={processing}
                     >
-                      {processing ? 'Checking Out...' : '✓ Check Out (as Allan)'}
+                      {processing ? 'Checking Out...' : `✓ Check Out${ambassadorName ? ` (as ${ambassadorName.split(' ')[0]})` : ''}`}
                     </button>
                   </div>
                 ) : (

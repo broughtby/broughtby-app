@@ -14,12 +14,15 @@ const getMessages = async (req, res) => {
       return res.status(403).json({ error: 'Access denied to this match' });
     }
 
-    // Get messages
+    // Get messages with AM info if applicable
     const result = await db.query(
-      `SELECT m.id, m.content, m.sender_id, m.read, m.created_at,
-              u.name as sender_name, u.profile_photo as sender_photo, u.is_test
+      `SELECT m.id, m.content, m.sender_id, m.read, m.created_at, m.created_by_am_id,
+              u.name as sender_name, u.profile_photo as sender_photo, u.is_test,
+              u.company_name,
+              am.name as am_name, am.profile_photo as am_profile_photo
        FROM messages m
        JOIN users u ON m.sender_id = u.id
+       LEFT JOIN users am ON m.created_by_am_id = am.id
        WHERE m.match_id = $1
        ORDER BY m.created_at ASC`,
       [matchId]
@@ -54,10 +57,10 @@ const createMessage = async (req, res) => {
 
     // Create message
     const result = await db.query(
-      `INSERT INTO messages (match_id, sender_id, content)
-       VALUES ($1, $2, $3)
+      `INSERT INTO messages (match_id, sender_id, content, created_by_am_id)
+       VALUES ($1, $2, $3, $4)
        RETURNING id, match_id, sender_id, content, read, created_at`,
-      [matchId, req.user.userId, content]
+      [matchId, req.user.userId, content, null]
     );
 
     res.status(201).json({

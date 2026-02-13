@@ -99,12 +99,13 @@ const Calendar = () => {
         is_test: booking.ambassador_is_test
       };
     } else {
-      // Ambassador sees brand
+      // Ambassador sees brand (AM info shown separately as "Booked by")
       return {
         id: booking.brand_id,
         name: booking.brand_name,
         profile_photo: booking.brand_photo,
-        is_test: booking.brand_is_test
+        is_test: booking.brand_is_test,
+        company_name: booking.company_name
       };
     }
   };
@@ -492,17 +493,6 @@ Status: Cancelled`;
                 >
                   Today
                 </button>
-
-                {/* Talent Type Toggle */}
-                {hasAccountManagers && isBrand && (
-                  <p className="talent-type-toggle">
-                    {talentType === 'ambassador' ? (
-                      <>Looking for Account Managers? <button onClick={() => setTalentType('account_manager')} className="toggle-link">Click here</button></>
-                    ) : (
-                      <>Viewing Account Managers • <button onClick={() => setTalentType('ambassador')} className="toggle-link">Back to Brand Ambassadors</button></>
-                    )}
-                  </p>
-                )}
               </div>
 
               <div className="calendar-grid-container">
@@ -546,10 +536,32 @@ Status: Cancelled`;
                           <div className="booking-body">
                             <h3 className="booking-title">{booking.event_name}</h3>
                             <div className="booking-details">
+                              {(booking.brand_company_name || booking.company_name) && (
+                                <div className="booking-detail" style={{ fontWeight: '600', color: '#0A2540' }}>
+                                  <span className="detail-icon">🏢</span>
+                                  <span>{booking.brand_company_name || booking.company_name}</span>
+                                </div>
+                              )}
                               <div className="booking-detail">
                                 <span className="detail-icon">👤</span>
-                                <span><DisplayName user={getBookingPartner(booking)} demoMode={demoMode} /></span>
+                                <span>
+                                  <DisplayName
+                                    user={{
+                                      id: booking.ambassador_id,
+                                      name: booking.ambassador_name,
+                                      profile_photo: booking.ambassador_photo,
+                                      is_test: booking.ambassador_is_test
+                                    }}
+                                    demoMode={demoMode}
+                                  />
+                                </span>
                               </div>
+                              {booking.booked_by_am_name && (
+                                <div className="booking-detail" style={{ fontStyle: 'italic', color: '#6B7280' }}>
+                                  <span className="detail-icon">👔</span>
+                                  <span>Booked by {booking.booked_by_am_name}</span>
+                                </div>
+                              )}
                               <div className="booking-detail">
                                 <span className="detail-icon">🕐</span>
                                 <span>{formatTime(booking.start_time)} - {formatTime(booking.end_time)} CST</span>
@@ -635,6 +647,7 @@ Status: Cancelled`;
                             onUpdate={fetchBookings}
                             isPreview={user?.isPreview}
                             onCheckoutComplete={() => handleCheckoutComplete(booking)}
+                            ambassadorName={booking.ambassador_name}
                           />
                         </div>
                       ))}
@@ -799,18 +812,11 @@ Status: Cancelled`;
                 </div>
               )}
 
-              {/* Talent Type Toggle */}
-              {hasAccountManagers && isBrand && (
-                <p className="talent-type-toggle">
-                  {talentType === 'ambassador' ? (
-                    <>Looking for Account Managers? <button onClick={() => setTalentType('account_manager')} className="toggle-link">Click here</button></>
-                  ) : (
-                    <>Viewing Account Managers • <button onClick={() => setTalentType('ambassador')} className="toggle-link">Back to Brand Ambassadors</button></>
-                  )}
-                </p>
+              {/* Items List */}
+              {isBrand && bookings.length > 0 && (
+                <h2 className="section-title">Brand Ambassadors</h2>
               )}
 
-              {/* Items List */}
               {filteredItems.length === 0 ? (
                 <div className="empty-state">
                   <div className="empty-icon">📅</div>
@@ -852,11 +858,25 @@ Status: Cancelled`;
                             {isBooking ? item.event_name : `${isBrand ? item.account_manager_name : item.brand_name}`}
                           </h3>
                           <div className="booking-details">
+                            {isBooking && (item.brand_company_name || item.company_name) && (
+                              <div className="booking-detail" style={{ fontWeight: '600', color: '#0A2540' }}>
+                                <span className="detail-icon">🏢</span>
+                                <span>{item.brand_company_name || item.company_name}</span>
+                              </div>
+                            )}
                             <div className="booking-detail">
                               <span className="detail-icon">👤</span>
                               <span>
                                 {isBooking ? (
-                                  <DisplayName user={getBookingPartner(item)} demoMode={demoMode} />
+                                  <DisplayName
+                                    user={{
+                                      id: item.ambassador_id,
+                                      name: item.ambassador_name,
+                                      profile_photo: item.ambassador_photo,
+                                      is_test: item.ambassador_is_test
+                                    }}
+                                    demoMode={demoMode}
+                                  />
                                 ) : (
                                   <DisplayName
                                     user={{
@@ -869,6 +889,12 @@ Status: Cancelled`;
                                 )}
                               </span>
                             </div>
+                            {isBooking && item.booked_by_am_name && (
+                              <div className="booking-detail" style={{ fontStyle: 'italic', color: '#6B7280' }}>
+                                <span className="detail-icon">👔</span>
+                                <span>Booked by {item.booked_by_am_name}</span>
+                              </div>
+                            )}
                             {isBooking ? (
                               <>
                                 <div className="booking-detail">
@@ -994,6 +1020,7 @@ Status: Cancelled`;
                             onUpdate={fetchBookings}
                             isPreview={user?.isPreview}
                             onCheckoutComplete={() => handleCheckoutComplete(item)}
+                            ambassadorName={item.ambassador_name}
                           />
                         )}
                       </div>

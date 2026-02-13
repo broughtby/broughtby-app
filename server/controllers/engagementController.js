@@ -295,9 +295,41 @@ const endEngagement = async (req, res) => {
   }
 };
 
+const getAvailableBrands = async (req, res) => {
+  try {
+    // Only account managers can fetch their brand clients
+    if (req.user.role !== 'account_manager') {
+      return res.status(403).json({ error: 'Only account managers can access this endpoint' });
+    }
+
+    // Get all brands with active engagements for this AM
+    const result = await db.query(
+      `SELECT DISTINCT
+         u.id,
+         u.name,
+         u.email,
+         u.company_name,
+         u.company_logo,
+         u.profile_photo
+       FROM engagements e
+       JOIN users u ON e.brand_id = u.id
+       WHERE e.account_manager_id = $1
+       AND e.status = 'active'
+       ORDER BY u.company_name, u.name`,
+      [req.user.userId]
+    );
+
+    res.json({ brands: result.rows });
+  } catch (error) {
+    console.error('Get available brands error:', error);
+    res.status(500).json({ error: 'Failed to fetch available brands' });
+  }
+};
+
 module.exports = {
   createEngagement,
   getEngagements,
   updateEngagementStatus,
   endEngagement,
+  getAvailableBrands,
 };

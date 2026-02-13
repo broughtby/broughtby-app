@@ -1,12 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { engagementAPI } from '../services/api';
 import { getPhotoUrl } from '../services/upload';
 import DisplayName from './DisplayName';
 import DisplayRate from './DisplayRate';
 import './BookingModal.css';
 
 const BookingModal = ({ ambassador, onClose, onSubmit }) => {
-  const { demoMode, user } = useAuth();
+  const { demoMode, user, isAccountManager } = useAuth();
+  const [availableBrands, setAvailableBrands] = useState([]);
+  const [selectedBrandId, setSelectedBrandId] = useState('');
 
   // Pre-populate with YC-themed defaults for preview users
   const getDefaultEventDate = () => {
@@ -27,6 +30,22 @@ const BookingModal = ({ ambassador, onClose, onSubmit }) => {
   });
 
   const [errors, setErrors] = useState({});
+
+  // Fetch available brands for account managers
+  useEffect(() => {
+    const fetchAvailableBrands = async () => {
+      if (isAccountManager) {
+        try {
+          const response = await engagementAPI.getAvailableBrands();
+          setAvailableBrands(response.data.brands);
+        } catch (error) {
+          console.error('Failed to fetch available brands:', error);
+        }
+      }
+    };
+
+    fetchAvailableBrands();
+  }, [isAccountManager]);
 
   // Parse date string as local date (not UTC) to prevent timezone shifting
   const parseLocalDate = (dateString) => {
@@ -65,6 +84,11 @@ const BookingModal = ({ ambassador, onClose, onSubmit }) => {
 
   const validateForm = () => {
     const newErrors = {};
+
+    // Brand selection validation for account managers
+    if (isAccountManager && !selectedBrandId) {
+      newErrors.brandId = 'Please select a brand client';
+    }
 
     // Event Name validation
     if (!formData.eventName.trim()) {
@@ -115,6 +139,7 @@ const BookingModal = ({ ambassador, onClose, onSubmit }) => {
         hourlyRate: ambassador.hourly_rate,
         duration: duration,
         estimatedCost: estimatedCost,
+        brandId: isAccountManager ? selectedBrandId : null,
       });
     }
   };
@@ -162,6 +187,31 @@ const BookingModal = ({ ambassador, onClose, onSubmit }) => {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="booking-form">
+          {/* Brand Selection for Account Managers */}
+          {isAccountManager && (
+            <div className="form-group">
+              <label htmlFor="brandSelect">Select Brand Client *</label>
+              <select
+                id="brandSelect"
+                value={selectedBrandId}
+                onChange={(e) => {
+                  setSelectedBrandId(e.target.value);
+                  if (errors.brandId) {
+                    setErrors(prev => ({ ...prev, brandId: '' }));
+                  }
+                }}
+                className={errors.brandId ? 'error' : ''}
+              >
+                <option value="">-- Select a brand client --</option>
+                {availableBrands.map(brand => (
+                  <option key={brand.id} value={brand.id}>
+                    {brand.company_name || brand.name}
+                  </option>
+                ))}
+              </select>
+              {errors.brandId && <span className="error-message">{errors.brandId}</span>}
+            </div>
+          )}
           {/* Event Name */}
           <div className="form-group">
             <label htmlFor="eventName">Event Name *</label>
