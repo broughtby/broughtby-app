@@ -472,6 +472,37 @@ const migrations = [
       END IF;
     END $$;
   `,
+
+  // Add created_by_am_id to messages table for account manager attribution
+  `
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                     WHERE table_name = 'messages' AND column_name = 'created_by_am_id') THEN
+        ALTER TABLE messages ADD COLUMN created_by_am_id INTEGER REFERENCES users(id);
+      END IF;
+    END $$;
+  `,
+
+  // Add preview event fields for brand-specific booking modal defaults
+  `
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                     WHERE table_name = 'users' AND column_name = 'preview_event_name') THEN
+        ALTER TABLE users ADD COLUMN preview_event_name VARCHAR(255);
+      END IF;
+    END $$;
+  `,
+  `
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                     WHERE table_name = 'users' AND column_name = 'preview_event_notes') THEN
+        ALTER TABLE users ADD COLUMN preview_event_notes TEXT;
+      END IF;
+    END $$;
+  `,
 ];
 
 async function runMigrations() {

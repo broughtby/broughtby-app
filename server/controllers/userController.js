@@ -14,7 +14,8 @@ const getProfile = async (req, res) => {
     const result = await db.query(
       `SELECT id, email, role, name, profile_photo, bio, location, age,
               skills, hourly_rate, availability, monthly_rate, rating, is_admin, is_preview, created_at,
-              company_name, company_logo, company_website, contact_title
+              company_name, company_logo, company_website, contact_title,
+              preview_event_name, preview_event_notes
        FROM users WHERE id = $1`,
       [req.user.userId]
     );
@@ -39,7 +40,7 @@ const getProfile = async (req, res) => {
 
 const updateProfile = async (req, res) => {
   try {
-    const { email, name, profile_photo, bio, location, age, skills, hourly_rate, availability, monthly_rate, company_name, company_logo, company_website, contact_title } = req.body;
+    const { email, name, profile_photo, bio, location, age, skills, hourly_rate, availability, monthly_rate, company_name, company_logo, company_website, contact_title, preview_event_name, preview_event_notes } = req.body;
 
     const updates = [];
     const values = [];
@@ -118,6 +119,14 @@ const updateProfile = async (req, res) => {
     if (contact_title !== undefined) {
       updates.push(`contact_title = $${paramCount++}`);
       values.push(contact_title);
+    }
+    if (preview_event_name !== undefined) {
+      updates.push(`preview_event_name = $${paramCount++}`);
+      values.push(preview_event_name);
+    }
+    if (preview_event_notes !== undefined) {
+      updates.push(`preview_event_notes = $${paramCount++}`);
+      values.push(preview_event_notes);
     }
 
     if (updates.length === 0) {

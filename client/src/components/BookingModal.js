@@ -11,7 +11,7 @@ const BookingModal = ({ ambassador, onClose, onSubmit }) => {
   const [availableBrands, setAvailableBrands] = useState([]);
   const [selectedBrandId, setSelectedBrandId] = useState('');
 
-  // Pre-populate with YC-themed defaults for preview users
+  // Pre-populate with brand-specific defaults for preview users
   const getDefaultEventDate = () => {
     const twoWeeksOut = new Date();
     twoWeeksOut.setDate(twoWeeksOut.getDate() + 14);
@@ -21,12 +21,12 @@ const BookingModal = ({ ambassador, onClose, onSubmit }) => {
   const isPreview = user?.isPreview;
 
   const [formData, setFormData] = useState({
-    eventName: isPreview ? 'YC Founder Coffee Meetup' : '',
+    eventName: isPreview ? (user?.preview_event_name || `${user?.company_name || 'Brand'} Event`) : '',
     eventDate: isPreview ? getDefaultEventDate() : '',
     startTime: isPreview ? '10:00' : '',
     endTime: isPreview ? '12:00' : '',
-    eventLocation: isPreview ? 'The Stripe Office, 350 N. Orleans St., Suite 7500-S' : '',
-    notes: isPreview ? 'Please wear the branded t-shirt we sent you. Make sure attendees sign up with the QR code to join our email newsletter. Looking forward to hearing how it goes and what everyone thinks of the coffee!' : '',
+    eventLocation: isPreview ? (user?.location || '') : '',
+    notes: isPreview ? (user?.preview_event_notes || '') : '',
   });
 
   const [errors, setErrors] = useState({});
