@@ -215,11 +215,26 @@ const Register = () => {
         {/* Step 2: Profile Information */}
         {step === 2 && (
           <form onSubmit={handleSubmit} className="auth-form profile-form">
-            <ImageUpload
-              currentImage={formData.profile_photo ? getPhotoUrl(formData.profile_photo) : ''}
-              onImageChange={(filePath) => setFormData({ ...formData, profile_photo: filePath })}
-              label={formData.role === 'brand' ? 'Company Logo' : 'Profile Photo'}
-            />
+            {formData.role === 'brand' ? (
+              <>
+                <ImageUpload
+                  currentImage={formData.company_logo ? getPhotoUrl(formData.company_logo) : ''}
+                  onImageChange={(filePath) => setFormData({ ...formData, company_logo: filePath })}
+                  label="Company Logo"
+                />
+                <ImageUpload
+                  currentImage={formData.profile_photo ? getPhotoUrl(formData.profile_photo) : ''}
+                  onImageChange={(filePath) => setFormData({ ...formData, profile_photo: filePath })}
+                  label="Your Profile Photo (Optional)"
+                />
+              </>
+            ) : (
+              <ImageUpload
+                currentImage={formData.profile_photo ? getPhotoUrl(formData.profile_photo) : ''}
+                onImageChange={(filePath) => setFormData({ ...formData, profile_photo: filePath })}
+                label="Profile Photo"
+              />
+            )}
 
             <div className="form-group">
               <label htmlFor="bio">{formData.role === 'brand' ? 'About Your Brand' : 'Bio'}</label>
