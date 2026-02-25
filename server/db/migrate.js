@@ -503,6 +503,79 @@ const migrations = [
       END IF;
     END $$;
   `,
+
+  // Create broadcast_inquiries table for availability check system
+  `
+    CREATE TABLE IF NOT EXISTS broadcast_inquiries (
+      id SERIAL PRIMARY KEY,
+      brand_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      event_name VARCHAR(200) NOT NULL,
+      event_date DATE NOT NULL,
+      start_time TIME NOT NULL,
+      end_time TIME NOT NULL,
+      duration NUMERIC(5,2) NOT NULL,
+      event_location TEXT NOT NULL,
+      hourly_rate NUMERIC(10,2) NOT NULL,
+      total_cost NUMERIC(10,2) NOT NULL,
+      notes TEXT,
+      status VARCHAR(20) DEFAULT 'open',
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      CHECK (end_time > start_time),
+      CHECK (duration > 0),
+      CHECK (total_cost >= 0),
+      CHECK (status IN ('open', 'filled', 'cancelled'))
+    );
+  `,
+
+  // Create indexes for broadcast_inquiries
+  `
+    CREATE INDEX IF NOT EXISTS idx_broadcast_inquiries_brand ON broadcast_inquiries(brand_id);
+  `,
+  `
+    CREATE INDEX IF NOT EXISTS idx_broadcast_inquiries_status ON broadcast_inquiries(status);
+  `,
+  `
+    CREATE INDEX IF NOT EXISTS idx_broadcast_inquiries_event_date ON broadcast_inquiries(event_date);
+  `,
+
+  // Create inquiry_responses table for ambassador responses to broadcasts
+  `
+    CREATE TABLE IF NOT EXISTS inquiry_responses (
+      id SERIAL PRIMARY KEY,
+      inquiry_id INTEGER NOT NULL REFERENCES broadcast_inquiries(id) ON DELETE CASCADE,
+      ambassador_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      match_id INTEGER NOT NULL REFERENCES matches(id) ON DELETE CASCADE,
+      response VARCHAR(20) NOT NULL,
+      responded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      booking_id INTEGER REFERENCES bookings(id) ON DELETE SET NULL,
+      UNIQUE(inquiry_id, ambassador_id),
+      CHECK (response IN ('pending', 'available', 'not_available', 'selected', 'not_selected'))
+    );
+  `,
+
+  // Create indexes for inquiry_responses
+  `
+    CREATE INDEX IF NOT EXISTS idx_inquiry_responses_inquiry ON inquiry_responses(inquiry_id);
+  `,
+  `
+    CREATE INDEX IF NOT EXISTS idx_inquiry_responses_ambassador ON inquiry_responses(ambassador_id);
+  `,
+  `
+    CREATE INDEX IF NOT EXISTS idx_inquiry_responses_response ON inquiry_responses(response);
+  `,
+  `
+    CREATE INDEX IF NOT EXISTS idx_inquiry_responses_match ON inquiry_responses(match_id);
+  `,
+
+  // Fix inquiry_responses response constraint to include 'pending'
+  `
+    ALTER TABLE inquiry_responses DROP CONSTRAINT IF EXISTS inquiry_responses_response_check;
+  `,
+  `
+    ALTER TABLE inquiry_responses ADD CONSTRAINT inquiry_responses_response_check
+    CHECK (response IN ('pending', 'available', 'not_available', 'selected', 'not_selected'));
+  `,
 ];
 
 async function runMigrations() {

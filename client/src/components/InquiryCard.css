@@ -1,0 +1,240 @@
+/* Inquiry Card (Ambassador View) */
+.inquiry-card {
+  background-color: var(--white);
+  border: 2px solid #E5E7EB;
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.2s;
+}
+
+.inquiry-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.inquiry-card-responded {
+  opacity: 0.9;
+}
+
+/* Brand Info */
+.inquiry-card-brand-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #F3F4F6;
+}
+
+.brand-details h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--navy);
+  margin: 0 0 0.25rem 0;
+}
+
+.inquiry-date {
+  font-size: 0.875rem;
+  color: #6B7280;
+  margin: 0;
+}
+
+/* Event Details */
+.inquiry-event-details {
+  margin-bottom: 1.5rem;
+}
+
+.event-name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--navy);
+  margin: 0 0 1rem 0;
+}
+
+.event-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.95rem;
+  color: #374151;
+}
+
+.info-icon {
+  font-size: 1.125rem;
+  width: 24px;
+  text-align: center;
+}
+
+/* Event Notes */
+.event-notes {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background-color: #F9FAFB;
+  border-radius: 8px;
+  border-left: 4px solid var(--gold);
+}
+
+.notes-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #6B7280;
+  margin: 0 0 0.5rem 0;
+}
+
+.notes-content {
+  font-size: 0.95rem;
+  color: #374151;
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* Inquiry Actions (For Pending Response) */
+.inquiry-actions {
+  border-top: 1px solid #F3F4F6;
+  padding-top: 1.5rem;
+}
+
+.actions-prompt {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--navy);
+  margin: 0 0 1rem 0;
+  text-align: center;
+}
+
+.action-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.btn-not-available,
+.btn-available {
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-not-available {
+  background-color: #FEE2E2;
+  color: #991B1B;
+  border: 2px solid #FCA5A5;
+}
+
+.btn-not-available:hover:not(:disabled) {
+  background-color: #FCA5A5;
+  transform: translateY(-1px);
+}
+
+.btn-available {
+  background-color: #D1FAE5;
+  color: #065F46;
+  border: 2px solid #6EE7B7;
+}
+
+.btn-available:hover:not(:disabled) {
+  background-color: #6EE7B7;
+  transform: translateY(-1px);
+}
+
+.btn-not-available:disabled,
+.btn-available:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Response Status */
+.inquiry-response-status {
+  border-top: 1px solid #F3F4F6;
+  padding-top: 1.5rem;
+}
+
+.status-badge {
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.status-available {
+  background-color: #D1FAE5;
+  color: #065F46;
+  border-left: 4px solid #10B981;
+}
+
+.status-not-available {
+  background-color: #FEE2E2;
+  color: #991B1B;
+  border-left: 4px solid #EF4444;
+}
+
+.status-selected {
+  background-color: #DBEAFE;
+  color: #1E40AF;
+  border-left: 4px solid #3B82F6;
+}
+
+.status-not-selected {
+  background-color: #F3F4F6;
+  color: #6B7280;
+  border-left: 4px solid #9CA3AF;
+}
+
+.status-note {
+  margin: 0.5rem 0 0 0;
+  font-size: 0.875rem;
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .inquiry-card {
+    padding: 1.25rem;
+  }
+
+  .event-name {
+    font-size: 1.125rem;
+  }
+
+  .action-buttons {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .info-item {
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .inquiry-card {
+    padding: 1rem;
+  }
+
+  .inquiry-card-brand-info {
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .event-info {
+    gap: 0.5rem;
+  }
+
+  .btn-not-available,
+  .btn-available {
+    padding: 0.875rem 1.25rem;
+    font-size: 0.95rem;
+  }
+}

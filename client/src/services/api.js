@@ -103,4 +103,14 @@ export const engagementAPI = {
   getAvailableBrands: () => api.get('/engagements/available-brands'), // AM's brand clients
 };
 
+// Inquiry endpoints (broadcast availability checks)
+export const inquiryAPI = {
+  createInquiry: (data) => api.post('/inquiries', data),
+  getInquiries: () => api.get('/inquiries'),
+  getInquiryResponses: (inquiryId) => api.get(`/inquiries/${inquiryId}/responses`),
+  respondToInquiry: (inquiryId, response) => api.post(`/inquiries/${inquiryId}/respond`, { response }),
+  selectAmbassador: (inquiryId, ambassadorId) => api.post(`/inquiries/${inquiryId}/select`, { ambassadorId }),
+  cancelInquiry: (inquiryId) => api.delete(`/inquiries/${inquiryId}`),
+};
+
 export default api;

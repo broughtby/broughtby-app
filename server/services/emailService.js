@@ -1086,6 +1086,349 @@ const sendBookingConfirmedEmail = async ({ brandEmail, brandName, ambassadorName
   });
 };
 
+// Generate inquiry notification email HTML (to ambassadors when brand broadcasts availability inquiry)
+const generateInquiryNotificationEmail = ({ ambassadorName, brandName, eventName, eventDate, startTime, endTime, eventLocation, hourlyRate, totalCost, notes }) => {
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Availability Inquiry from ${brandName}</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+          background-color: #F7F8FA;
+        }
+        .email-container {
+          max-width: 600px;
+          margin: 0 auto;
+          background-color: #ffffff;
+        }
+        .header {
+          background: linear-gradient(135deg, #0A2540 0%, #0D3350 100%);
+          padding: 40px 30px;
+          text-align: center;
+        }
+        .logo {
+          color: #D4AF37;
+          font-size: 32px;
+          font-weight: 700;
+          margin: 0;
+          letter-spacing: 1px;
+        }
+        .content {
+          padding: 40px 30px;
+        }
+        .greeting {
+          font-size: 24px;
+          color: #0A2540;
+          margin: 0 0 20px 0;
+          font-weight: 600;
+        }
+        .message {
+          font-size: 16px;
+          line-height: 1.6;
+          color: #4B5563;
+          margin-bottom: 30px;
+        }
+        .inquiry-card {
+          background-color: #FEF3C7;
+          border-left: 4px solid #D4AF37;
+          padding: 20px;
+          margin: 30px 0;
+          border-radius: 4px;
+        }
+        .inquiry-title {
+          font-size: 20px;
+          color: #0A2540;
+          font-weight: 600;
+          margin: 0 0 15px 0;
+        }
+        .inquiry-detail {
+          font-size: 14px;
+          color: #374151;
+          margin: 8px 0;
+          display: flex;
+          align-items: flex-start;
+        }
+        .detail-label {
+          font-weight: 600;
+          min-width: 120px;
+        }
+        .cta-button {
+          display: inline-block;
+          background-color: #D4AF37;
+          color: #0A2540;
+          text-decoration: none;
+          padding: 16px 40px;
+          border-radius: 8px;
+          font-size: 16px;
+          font-weight: 600;
+          margin: 20px 0;
+          text-align: center;
+        }
+        .footer {
+          background-color: #F7F8FA;
+          padding: 30px;
+          text-align: center;
+          font-size: 14px;
+          color: #6B7280;
+        }
+        @media only screen and (max-width: 600px) {
+          .content {
+            padding: 30px 20px;
+          }
+          .header {
+            padding: 30px 20px;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-container">
+        <div class="header">
+          <h1 class="logo">BroughtBy</h1>
+        </div>
+        <div class="content">
+          <h2 class="greeting">Are you available?</h2>
+          <p class="message">
+            Hi ${ambassadorName}! ${brandName} is looking for an ambassador for an upcoming event. They're checking if you're available before sending a formal booking request.
+          </p>
+          <div class="inquiry-card">
+            <h3 class="inquiry-title">${eventName}</h3>
+            <div class="inquiry-detail">
+              <span class="detail-label">📅 Date:</span>
+              <span>${formatDate(eventDate)}</span>
+            </div>
+            <div class="inquiry-detail">
+              <span class="detail-label">⏰ Time:</span>
+              <span>${formatTime(startTime)} - ${formatTime(endTime)}</span>
+            </div>
+            <div class="inquiry-detail">
+              <span class="detail-label">📍 Location:</span>
+              <span>${eventLocation}</span>
+            </div>
+            <div class="inquiry-detail">
+              <span class="detail-label">💰 Rate:</span>
+              <span>$${hourlyRate}/hour ($${totalCost} total)</span>
+            </div>
+            ${notes ? `
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #FCD34D;">
+              <div class="inquiry-detail">
+                <span class="detail-label">📝 Details:</span>
+              </div>
+              <p style="margin: 5px 0 0 0; font-size: 14px; color: #6B7280;">${notes}</p>
+            </div>
+            ` : ''}
+          </div>
+          <p class="message">
+            If you're available and interested, respond in the app and ${brandName} will send you a formal booking request.
+          </p>
+          <div style="text-align: center;">
+            <a href="https://app.broughtby.co/inquiries" class="cta-button">
+              Respond to Inquiry
+            </a>
+          </div>
+        </div>
+        <div class="footer">
+          <p style="margin: 0 0 10px 0;">
+            <strong>BroughtBy</strong> - Premium Brand Ambassador Marketplace
+          </p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+};
+
+// Send inquiry notification email to ambassadors
+const sendInquiryNotificationEmail = async ({ ambassadorEmail, ambassadorName, brandName, eventName, eventDate, startTime, endTime, eventLocation, hourlyRate, totalCost, notes, inquiryId }) => {
+  const subject = `Availability check from ${brandName} on BroughtBy`;
+  const html = generateInquiryNotificationEmail({
+    ambassadorName,
+    brandName,
+    eventName,
+    eventDate,
+    startTime,
+    endTime,
+    eventLocation,
+    hourlyRate,
+    totalCost,
+    notes,
+  });
+
+  return await sendEmail({
+    to: ambassadorEmail,
+    subject,
+    html,
+  });
+};
+
+// Generate inquiry response email HTML (to brand when ambassador responds)
+const generateInquiryResponseEmail = ({ brandName, ambassadorName, response, eventName, eventDate }) => {
+  const isAvailable = response === 'available';
+  const statusColor = isAvailable ? '#10B981' : '#EF4444';
+  const statusText = isAvailable ? 'is available!' : 'is not available';
+  const statusEmoji = isAvailable ? '✅' : '❌';
+
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Response from ${ambassadorName}</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+          background-color: #F7F8FA;
+        }
+        .email-container {
+          max-width: 600px;
+          margin: 0 auto;
+          background-color: #ffffff;
+        }
+        .header {
+          background: linear-gradient(135deg, #0A2540 0%, #0D3350 100%);
+          padding: 40px 30px;
+          text-align: center;
+        }
+        .logo {
+          color: #D4AF37;
+          font-size: 32px;
+          font-weight: 700;
+          margin: 0;
+          letter-spacing: 1px;
+        }
+        .content {
+          padding: 40px 30px;
+        }
+        .greeting {
+          font-size: 24px;
+          color: #0A2540;
+          margin: 0 0 20px 0;
+          font-weight: 600;
+        }
+        .message {
+          font-size: 16px;
+          line-height: 1.6;
+          color: #4B5563;
+          margin-bottom: 30px;
+        }
+        .response-card {
+          background-color: ${isAvailable ? '#D1FAE5' : '#FEE2E2'};
+          border-left: 4px solid ${statusColor};
+          padding: 20px;
+          margin: 30px 0;
+          border-radius: 4px;
+          text-align: center;
+        }
+        .response-status {
+          font-size: 24px;
+          font-weight: 600;
+          color: ${statusColor};
+          margin: 0;
+        }
+        .cta-button {
+          display: inline-block;
+          background-color: #0A2540;
+          color: #ffffff;
+          text-decoration: none;
+          padding: 16px 40px;
+          border-radius: 8px;
+          font-size: 16px;
+          font-weight: 600;
+          margin: 20px 0;
+          text-align: center;
+        }
+        .footer {
+          background-color: #F7F8FA;
+          padding: 30px;
+          text-align: center;
+          font-size: 14px;
+          color: #6B7280;
+        }
+        @media only screen and (max-width: 600px) {
+          .content {
+            padding: 30px 20px;
+          }
+          .header {
+            padding: 30px 20px;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-container">
+        <div class="header">
+          <h1 class="logo">BroughtBy</h1>
+        </div>
+        <div class="content">
+          <h2 class="greeting">Response from ${ambassadorName}</h2>
+          <p class="message">
+            Hi ${brandName}! ${ambassadorName} has responded to your availability inquiry for ${eventName} on ${formatDate(eventDate)}.
+          </p>
+          <div class="response-card">
+            <p class="response-status">${statusEmoji} ${ambassadorName} ${statusText}</p>
+          </div>
+          ${isAvailable ? `
+          <p class="message">
+            Great news! ${ambassadorName} is available. You can now select them to send a formal booking request.
+          </p>
+          <div style="text-align: center;">
+            <a href="https://app.broughtby.co/inquiries" class="cta-button">
+              View All Responses
+            </a>
+          </div>
+          ` : `
+          <p class="message">
+            Unfortunately, ${ambassadorName} isn't available for this event. Check your other matches' responses to find someone who can help.
+          </p>
+          <div style="text-align: center;">
+            <a href="https://app.broughtby.co/inquiries" class="cta-button">
+              View Other Responses
+            </a>
+          </div>
+          `}
+        </div>
+        <div class="footer">
+          <p style="margin: 0 0 10px 0;">
+            <strong>BroughtBy</strong> - Premium Brand Ambassador Marketplace
+          </p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+};
+
+// Send inquiry response email to brand
+const sendInquiryResponseEmail = async ({ brandEmail, brandName, ambassadorName, response, eventName, eventDate, inquiryId }) => {
+  const isAvailable = response === 'available';
+  const subject = isAvailable
+    ? `${ambassadorName} is available for ${eventName}!`
+    : `${ambassadorName} is not available for ${eventName}`;
+
+  const html = generateInquiryResponseEmail({
+    brandName,
+    ambassadorName,
+    response,
+    eventName,
+    eventDate,
+  });
+
+  return await sendEmail({
+    to: brandEmail,
+    subject,
+    html,
+  });
+};
+
 // Generate engagement request email HTML (to Account Manager when Brand creates engagement)
 const generateEngagementRequestEmail = ({ accountManagerName, brandName, monthlyRate, startDate, notes }) => {
   return `
@@ -1901,6 +2244,10 @@ module.exports = {
   generateBookingRequestEmail,
   sendBookingConfirmedEmail,
   generateBookingConfirmedEmail,
+  sendInquiryNotificationEmail,
+  generateInquiryNotificationEmail,
+  sendInquiryResponseEmail,
+  generateInquiryResponseEmail,
   sendEngagementRequestEmail,
   generateEngagementRequestEmail,
   sendEngagementAcceptedEmail,

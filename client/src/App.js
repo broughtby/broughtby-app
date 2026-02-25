@@ -15,6 +15,8 @@ import Chat from './pages/Chat';
 import Profile from './pages/Profile';
 import Calendar from './pages/Calendar';
 import Admin from './pages/Admin';
+import Inquiries from './pages/Inquiries';
+import InquiryResponsesView from './pages/InquiryResponsesView';
 
 function App() {
   return (
@@ -84,6 +86,24 @@ function App() {
               element={
                 <PrivateRoute>
                   <Calendar />
+                </PrivateRoute>
+              }
+            />
+
+            <Route
+              path="/inquiries"
+              element={
+                <PrivateRoute>
+                  <Inquiries />
+                </PrivateRoute>
+              }
+            />
+
+            <Route
+              path="/inquiries/:inquiryId/responses"
+              element={
+                <PrivateRoute>
+                  <InquiryResponsesView />
                 </PrivateRoute>
               }
             />
