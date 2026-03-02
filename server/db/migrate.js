@@ -401,6 +401,23 @@ const migrations = [
     CREATE INDEX IF NOT EXISTS idx_users_is_preview_ambassador ON users(is_preview_ambassador);
   `,
 
+  // Add unique constraint to ensure only one preview ambassador at a time
+  `
+    -- Drop the old regular index
+    DROP INDEX IF EXISTS idx_users_is_preview_ambassador;
+
+    -- Create a unique partial index that only allows one is_preview_ambassador = TRUE
+    -- This prevents multiple preview ambassadors from being active simultaneously
+    CREATE UNIQUE INDEX idx_single_preview_ambassador
+    ON users (is_preview_ambassador)
+    WHERE is_preview_ambassador = TRUE;
+
+    -- Create a regular index for FALSE values (for query performance)
+    CREATE INDEX idx_users_is_preview_ambassador_false
+    ON users (is_preview_ambassador)
+    WHERE is_preview_ambassador = FALSE OR is_preview_ambassador IS NULL;
+  `,
+
   // Update role constraint to include account_manager
   `
     ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check;
