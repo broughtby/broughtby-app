@@ -408,14 +408,24 @@ const migrations = [
 
     -- Create a unique partial index that only allows one is_preview_ambassador = TRUE
     -- This prevents multiple preview ambassadors from being active simultaneously
-    CREATE UNIQUE INDEX idx_single_preview_ambassador
-    ON users (is_preview_ambassador)
-    WHERE is_preview_ambassador = TRUE;
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_single_preview_ambassador') THEN
+        CREATE UNIQUE INDEX idx_single_preview_ambassador
+        ON users (is_preview_ambassador)
+        WHERE is_preview_ambassador = TRUE;
+      END IF;
+    END $$;
 
     -- Create a regular index for FALSE values (for query performance)
-    CREATE INDEX idx_users_is_preview_ambassador_false
-    ON users (is_preview_ambassador)
-    WHERE is_preview_ambassador = FALSE OR is_preview_ambassador IS NULL;
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_users_is_preview_ambassador_false') THEN
+        CREATE INDEX idx_users_is_preview_ambassador_false
+        ON users (is_preview_ambassador)
+        WHERE is_preview_ambassador = FALSE OR is_preview_ambassador IS NULL;
+      END IF;
+    END $$;
   `,
 
   // Update role constraint to include account_manager
