@@ -64,6 +64,62 @@ const resetPreview = async (req, res) => {
   }
 };
 
+const togglePreviewAmbassador = async (req, res) => {
+  try {
+    const { ambassadorId, enabled } = req.body;
+
+    if (!ambassadorId || typeof enabled !== 'boolean') {
+      return res.status(400).json({ error: 'ambassadorId and enabled (boolean) are required' });
+    }
+
+    // Verify caller is a preview brand or admin
+    const userCheck = await db.query(
+      'SELECT is_preview, is_admin FROM users WHERE id = $1',
+      [req.user.userId]
+    );
+
+    if (userCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const { is_preview, is_admin } = userCheck.rows[0];
+    if (!is_preview && !is_admin) {
+      return res.status(403).json({ error: 'Only preview accounts or admins can toggle preview ambassadors' });
+    }
+
+    // Verify target is an ambassador
+    const ambassadorCheck = await db.query(
+      'SELECT id, name, role FROM users WHERE id = $1',
+      [ambassadorId]
+    );
+
+    if (ambassadorCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'Ambassador not found' });
+    }
+
+    if (ambassadorCheck.rows[0].role !== 'ambassador') {
+      return res.status(400).json({ error: 'User is not an ambassador' });
+    }
+
+    // Toggle the flag
+    await db.query(
+      'UPDATE users SET is_preview_ambassador = $1 WHERE id = $2',
+      [enabled, ambassadorId]
+    );
+
+    const ambassador = ambassadorCheck.rows[0];
+    res.json({
+      message: `${ambassador.name} preview mode ${enabled ? 'enabled' : 'disabled'}`,
+      ambassadorId,
+      enabled,
+    });
+  } catch (error) {
+    console.error('Toggle preview ambassador error:', error);
+    res.status(500).json({ error: 'Failed to toggle preview ambassador' });
+  }
+};
+
 module.exports = {
   resetPreview,
+  togglePreviewAmbassador,
 };

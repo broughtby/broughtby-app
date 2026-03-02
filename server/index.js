@@ -351,44 +351,58 @@ io.on('connection', (socket) => {
       // Broadcast to match room
       io.to(`match:${matchId}`).emit('new_message', enrichedMessage);
 
-      // Send notification to the other user
+      // Determine recipient and check if this is a preview interaction
       const match = matchCheck.rows[0];
       const recipientId = match.brand_id === socket.userId ? match.ambassador_id : match.brand_id;
-      io.to(`user:${recipientId}`).emit('message_notification', {
-        matchId,
-        message: enrichedMessage,
-      });
 
-      // Send email notification (fire and forget)
-      (async () => {
-        try {
-          const recipientResult = await db.query(
-            'SELECT email, name FROM users WHERE id = $1',
-            [recipientId]
-          );
+      const previewFlagCheck = await db.query(
+        'SELECT id, is_preview, is_preview_ambassador FROM users WHERE id IN ($1, $2)',
+        [socket.userId, recipientId]
+      );
+      const senderFlags = previewFlagCheck.rows.find(r => r.id === socket.userId);
+      const recipientFlags = previewFlagCheck.rows.find(r => r.id === recipientId);
+      const isPreviewInteraction = senderFlags?.is_preview && recipientFlags?.is_preview_ambassador;
 
-          if (recipientResult.rows.length > 0) {
-            const recipient = recipientResult.rows[0];
-            const html = generateNewMessageEmail({
-              recipientName: recipient.name,
-              senderName: userResult.rows[0].name,
-              messagePreview: content,
-              matchId,
-            });
+      // Send notification to the other user (skip for preview interactions to protect real ambassadors)
+      if (!isPreviewInteraction) {
+        io.to(`user:${recipientId}`).emit('message_notification', {
+          matchId,
+          message: enrichedMessage,
+        });
+      }
 
-            await sendEmail({
-              to: recipient.email,
-              subject: `[BroughtBy] ${userResult.rows[0].name} sent you a message`,
-              html,
-            });
+      // Send email notification (fire and forget, skip for preview interactions)
+      if (!isPreviewInteraction) {
+        (async () => {
+          try {
+            const recipientResult = await db.query(
+              'SELECT email, name FROM users WHERE id = $1',
+              [recipientId]
+            );
 
-            console.log(`Email notification sent to ${recipient.email}`);
+            if (recipientResult.rows.length > 0) {
+              const recipient = recipientResult.rows[0];
+              const html = generateNewMessageEmail({
+                recipientName: recipient.name,
+                senderName: userResult.rows[0].name,
+                messagePreview: content,
+                matchId,
+              });
+
+              await sendEmail({
+                to: recipient.email,
+                subject: `[BroughtBy] ${userResult.rows[0].name} sent you a message`,
+                html,
+              });
+
+              console.log(`Email notification sent to ${recipient.email}`);
+            }
+          } catch (emailError) {
+            console.error('Failed to send email notification:', emailError);
+            // Don't throw - email failures shouldn't block the message
           }
-        } catch (emailError) {
-          console.error('Failed to send email notification:', emailError);
-          // Don't throw - email failures shouldn't block the message
-        }
-      })();
+        })();
+      }
 
       // AI auto-reply for preview ambassador (fire and forget)
       (async () => {

@@ -482,6 +482,20 @@ Status: Pending your acceptance`;
     }
   };
 
+  const handleTogglePreviewAmbassador = async (ambassadorId, currentlyEnabled) => {
+    const newEnabled = !currentlyEnabled;
+    try {
+      await previewAPI.togglePreviewAmbassador(ambassadorId, newEnabled);
+      // Update local state so the UI reflects the change immediately
+      setAmbassadors(prev => prev.map(a =>
+        a.id === ambassadorId ? { ...a, is_preview_ambassador: newEnabled } : a
+      ));
+    } catch (error) {
+      console.error('Failed to toggle preview ambassador:', error);
+      alert('Failed to toggle preview mode. Please try again.');
+    }
+  };
+
   if (loading) {
     return (
       <div className="discover-container">
@@ -789,6 +803,18 @@ Status: Pending your acceptance`;
                   alt={currentAmbassador.name}
                   className="card-image"
                 />
+                {isPreview && (
+                  <button
+                    className={`preview-toggle-btn ${currentAmbassador.is_preview_ambassador ? 'active' : ''}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleTogglePreviewAmbassador(currentAmbassador.id, currentAmbassador.is_preview_ambassador);
+                    }}
+                    title={currentAmbassador.is_preview_ambassador ? 'Preview mode ON — click to disable' : 'Enable preview mode for demos'}
+                  >
+                    {currentAmbassador.is_preview_ambassador ? 'Preview ON' : 'Preview OFF'}
+                  </button>
+                )}
                 <div className="card-overlay">
                   <h2 className="card-name">
                     <DisplayName user={currentAmbassador} demoMode={demoMode} />
@@ -991,7 +1017,7 @@ Status: Pending your acceptance`;
           <div className="preview-toast">
             <div className="preview-toast-content">
               <p className="preview-toast-text">
-                <strong>This is a live preview</strong> — try {getPreviewActionVerb()} {getPreviewPersonLabel()} to experience the full flow!
+                <strong>Preview mode is off</strong> for this {talentType === 'account_manager' ? 'account manager' : 'ambassador'}. Enable it with the "Preview OFF" button on their card, or go to an ambassador with preview already enabled.
               </p>
               <button
                 className="preview-toast-button"
@@ -1116,6 +1142,18 @@ Status: Pending your acceptance`;
                 src={ambassador.profile_photo ? getPhotoUrl(ambassador.profile_photo) : 'https://via.placeholder.com/400'}
                 alt={ambassador.name}
               />
+              {isPreview && (
+                <button
+                  className={`preview-toggle-btn ${ambassador.is_preview_ambassador ? 'active' : ''}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleTogglePreviewAmbassador(ambassador.id, ambassador.is_preview_ambassador);
+                  }}
+                  title={ambassador.is_preview_ambassador ? 'Preview mode ON — click to disable' : 'Enable preview mode for demos'}
+                >
+                  {ambassador.is_preview_ambassador ? 'Preview ON' : 'Preview OFF'}
+                </button>
+              )}
               {ambassador.status && ambassador.status !== 'available' && (
                 <div className={`status-badge status-${ambassador.status}`}>
                   {ambassador.status === 'matched' ? (
@@ -1396,7 +1434,7 @@ Status: Pending your acceptance`;
         <div className="preview-toast">
           <div className="preview-toast-content">
             <p className="preview-toast-text">
-              <strong>This is a live preview</strong> — try {getPreviewActionVerb()} {getPreviewPersonLabel()} to experience the full flow!
+              <strong>Preview mode is off</strong> for this {talentType === 'account_manager' ? 'account manager' : 'ambassador'}. Enable it with the "Preview OFF" button on their card, or go to an ambassador with preview already enabled.
             </p>
             <button
               className="preview-toast-button"

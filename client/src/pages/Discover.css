@@ -308,6 +308,37 @@
   border: 2px solid rgba(255, 255, 255, 0.3);
 }
 
+/* Preview toggle button on ambassador cards */
+.preview-toggle-btn {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 15;
+  padding: 0.35rem 0.75rem;
+  border-radius: 16px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
+  background-color: rgba(100, 100, 100, 0.8);
+  color: #fff;
+}
+
+.preview-toggle-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.preview-toggle-btn.active {
+  background-color: rgba(52, 211, 153, 0.95);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 2px 8px rgba(52, 211, 153, 0.4);
+}
+
 .status-badge.status-passed {
   background-color: rgba(100, 100, 100, 0.95);
   color: var(--white);

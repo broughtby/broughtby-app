@@ -92,6 +92,7 @@ export const reviewAPI = {
 // Preview endpoints
 export const previewAPI = {
   resetPreview: () => api.post('/preview/reset'),
+  togglePreviewAmbassador: (ambassadorId, enabled) => api.post('/preview/toggle-ambassador', { ambassadorId, enabled }),
 };
 
 // Engagement endpoints

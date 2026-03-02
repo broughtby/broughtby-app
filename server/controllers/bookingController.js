@@ -128,37 +128,39 @@ const createBooking = async (req, res) => {
       ]
     );
 
-    // Send booking request email to ambassador (non-blocking)
-    db.query(
-      'SELECT email, name FROM users WHERE id = $1',
-      [ambassadorId]
-    ).then(ambassadorQuery => {
-      if (ambassadorQuery.rows.length > 0) {
-        db.query(
-          'SELECT name FROM users WHERE id = $1',
-          [effectiveBrandId]
-        ).then(brandQuery => {
-          if (brandQuery.rows.length > 0) {
-            const ambassador = ambassadorQuery.rows[0];
-            const brand = brandQuery.rows[0];
+    // Send booking request email to ambassador (non-blocking, skip for preview bookings)
+    if (!isPreviewBooking) {
+      db.query(
+        'SELECT email, name FROM users WHERE id = $1',
+        [ambassadorId]
+      ).then(ambassadorQuery => {
+        if (ambassadorQuery.rows.length > 0) {
+          db.query(
+            'SELECT name FROM users WHERE id = $1',
+            [effectiveBrandId]
+          ).then(brandQuery => {
+            if (brandQuery.rows.length > 0) {
+              const ambassador = ambassadorQuery.rows[0];
+              const brand = brandQuery.rows[0];
 
-            sendBookingRequestEmail({
-              ambassadorEmail: ambassador.email,
-              ambassadorName: ambassador.name,
-              brandName: brand.name,
-              eventName,
-              eventDate,
-              startTime,
-              endTime,
-              eventLocation,
-              hourlyRate,
-              totalCost,
-              notes,
-            }).catch(error => console.error('Failed to send booking request email:', error));
-          }
-        }).catch(error => console.error('Failed to query brand info:', error));
-      }
-    }).catch(error => console.error('Failed to query ambassador info:', error));
+              sendBookingRequestEmail({
+                ambassadorEmail: ambassador.email,
+                ambassadorName: ambassador.name,
+                brandName: brand.name,
+                eventName,
+                eventDate,
+                startTime,
+                endTime,
+                eventLocation,
+                hourlyRate,
+                totalCost,
+                notes,
+              }).catch(error => console.error('Failed to send booking request email:', error));
+            }
+          }).catch(error => console.error('Failed to query brand info:', error));
+        }
+      }).catch(error => console.error('Failed to query ambassador info:', error));
+    }
 
     res.status(201).json({
       message: isPreviewBooking ? 'Booking confirmed! You can now check in when your activation begins.' : 'Booking created successfully',

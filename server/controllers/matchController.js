@@ -57,13 +57,14 @@ const createMatch = async (req, res) => {
 
     // Get ambassador/account manager info for personalized welcome message
     const ambassadorQuery = await db.query(
-      'SELECT name, role FROM users WHERE id = $1',
+      'SELECT name, role, is_preview_ambassador FROM users WHERE id = $1',
       [req.user.userId]
     );
 
     if (ambassadorQuery.rows.length > 0) {
       const ambassadorName = ambassadorQuery.rows[0].name;
       const ambassadorRole = ambassadorQuery.rows[0].role;
+      const isPreviewAmbassador = ambassadorQuery.rows[0].is_preview_ambassador;
 
       // Get brand info for customized message
       const brandQuery = await db.query(
@@ -112,33 +113,36 @@ const createMatch = async (req, res) => {
     }
 
     // Send partnership accepted email to brand (non-blocking)
-    db.query(
-      'SELECT email, name FROM users WHERE id = $1',
-      [brandId]
-    ).then(brandQuery => {
-      if (brandQuery.rows.length > 0 && ambassadorQuery.rows.length > 0) {
-        const brand = brandQuery.rows[0];
-        const ambassador = ambassadorQuery.rows[0];
+    // Skip email if ambassador is a preview ambassador
+    if (!isPreviewAmbassador) {
+      db.query(
+        'SELECT email, name FROM users WHERE id = $1',
+        [brandId]
+      ).then(brandQuery => {
+        if (brandQuery.rows.length > 0 && ambassadorQuery.rows.length > 0) {
+          const brand = brandQuery.rows[0];
+          const ambassador = ambassadorQuery.rows[0];
 
-        // Get additional ambassador info for email
-        db.query(
-          'SELECT name, email, location, bio FROM users WHERE id = $1',
-          [req.user.userId]
-        ).then(ambassadorDetailQuery => {
-          if (ambassadorDetailQuery.rows.length > 0) {
-            const ambassadorDetails = ambassadorDetailQuery.rows[0];
+          // Get additional ambassador info for email
+          db.query(
+            'SELECT name, email, location, bio FROM users WHERE id = $1',
+            [req.user.userId]
+          ).then(ambassadorDetailQuery => {
+            if (ambassadorDetailQuery.rows.length > 0) {
+              const ambassadorDetails = ambassadorDetailQuery.rows[0];
 
-            sendPartnershipAcceptedEmail({
-              brandEmail: brand.email,
-              brandName: brand.name,
-              ambassadorName: ambassadorDetails.name,
-              ambassadorLocation: ambassadorDetails.location,
-              ambassadorBio: ambassadorDetails.bio,
-            }).catch(error => console.error('Failed to send partnership accepted email:', error));
-          }
-        }).catch(error => console.error('Failed to query ambassador details:', error));
-      }
-    }).catch(error => console.error('Failed to query brand info:', error));
+              sendPartnershipAcceptedEmail({
+                brandEmail: brand.email,
+                brandName: brand.name,
+                ambassadorName: ambassadorDetails.name,
+                ambassadorLocation: ambassadorDetails.location,
+                ambassadorBio: ambassadorDetails.bio,
+              }).catch(error => console.error('Failed to send partnership accepted email:', error));
+            }
+          }).catch(error => console.error('Failed to query ambassador details:', error));
+        }
+      }).catch(error => console.error('Failed to query brand info:', error));
+    }
 
     res.status(201).json({
       message: 'Partnership accepted successfully',

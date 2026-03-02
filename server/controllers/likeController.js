@@ -117,8 +117,9 @@ const createLike = async (req, res) => {
       });
     }
 
-    // Send email notification to non-test accounts (don't fail request if email fails)
-    if (!ambassador.is_test) {
+    // Send email notification to non-preview accounts (don't fail request if email fails)
+    // Preview ambassadors don't receive emails (whether they're test accounts or real people used for demos)
+    if (!ambassador.is_preview_ambassador) {
       sendPartnershipRequestEmail({
         ambassadorEmail: ambassador.email,
         ambassadorName: ambassador.name,
@@ -257,9 +258,9 @@ const demoAcceptLike = async (req, res) => {
       return res.status(403).json({ error: 'Only brands and account managers can demo accept' });
     }
 
-    // Verify pending like exists and ambassador is a test account
+    // Verify pending like exists and ambassador is a test account or preview ambassador
     const likeCheck = await db.query(
-      `SELECT l.id, u.name, u.is_test
+      `SELECT l.id, u.name, u.is_test, u.is_preview_ambassador
        FROM likes l
        JOIN users u ON l.ambassador_id = u.id
        WHERE l.brand_id = $1 AND l.ambassador_id = $2 AND l.status = 'pending'`,
@@ -272,9 +273,9 @@ const demoAcceptLike = async (req, res) => {
 
     const ambassador = likeCheck.rows[0];
 
-    // Only allow demo accept for test accounts
-    if (!ambassador.is_test) {
-      return res.status(403).json({ error: 'Demo accept only works for test accounts' });
+    // Only allow demo accept for test accounts or preview ambassadors
+    if (!ambassador.is_test && !ambassador.is_preview_ambassador) {
+      return res.status(403).json({ error: 'Demo accept only works for test accounts or preview ambassadors' });
     }
 
     // Update like status to accepted
