@@ -237,6 +237,20 @@ You're friendly, professional, and interested in working together on brand activ
       ];
     }
 
+    // Anthropic API also requires conversations to END with a user message
+    // (can't have two assistant messages in a row)
+    // Remove trailing assistant messages
+    while (messagesToSend.length > 0 && messagesToSend[messagesToSend.length - 1].role === 'assistant') {
+      console.log('⚠️ Removing trailing assistant message to maintain alternating structure');
+      messagesToSend.pop();
+    }
+
+    // If we removed all messages, use just the fallback
+    if (messagesToSend.length === 0) {
+      console.log('⚠️ All messages were assistant messages, using only fallback');
+      messagesToSend = [{ role: 'user', content: fallbackUserMessage }];
+    }
+
     console.log('🔑 Calling Anthropic API with model: claude-sonnet-4-5-20250929');
     console.log('📝 System prompt length:', systemPrompt.length);
     console.log('📝 System prompt:', systemPrompt);
