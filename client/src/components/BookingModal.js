@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { engagementAPI } from '../services/api';
+import { engagementAPI, previewAPI } from '../services/api';
 import { getPhotoUrl } from '../services/upload';
 import DisplayName from './DisplayName';
 import DisplayRate from './DisplayRate';
@@ -21,15 +21,57 @@ const BookingModal = ({ ambassador, onClose, onSubmit }) => {
   const isPreview = user?.isPreview;
 
   const [formData, setFormData] = useState({
-    eventName: isPreview ? (user?.preview_event_name || `${user?.company_name || 'Brand'} Event`) : '',
-    eventDate: isPreview ? getDefaultEventDate() : '',
-    startTime: isPreview ? '10:00' : '',
-    endTime: isPreview ? '12:00' : '',
-    eventLocation: isPreview ? (user?.location || '') : '',
-    notes: isPreview ? (user?.preview_event_notes || '') : '',
+    eventName: '',
+    eventDate: '',
+    startTime: '',
+    endTime: '',
+    eventLocation: '',
+    notes: '',
   });
 
   const [errors, setErrors] = useState({});
+  const [generatingAI, setGeneratingAI] = useState(false);
+
+  // Auto-generate event details for preview brands on mount
+  useEffect(() => {
+    if (isPreview) {
+      generateEventDetails();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPreview]);
+
+  const generateEventDetails = async () => {
+    if (!isPreview) return;
+
+    setGeneratingAI(true);
+
+    try {
+      const response = await previewAPI.generateEventDetails();
+      const eventDetails = response.data;
+
+      setFormData({
+        eventName: eventDetails.eventName || '',
+        eventDate: eventDetails.eventDate || '',
+        startTime: eventDetails.startTime || '',
+        endTime: eventDetails.endTime || '',
+        eventLocation: eventDetails.eventLocation || '',
+        notes: eventDetails.notes || '',
+      });
+    } catch (error) {
+      console.error('Failed to generate event details:', error);
+      // Fall back to default values
+      setFormData({
+        eventName: `${user?.company_name || 'Brand'} Event`,
+        eventDate: getDefaultEventDate(),
+        startTime: '10:00',
+        endTime: '14:00',
+        eventLocation: user?.location || '',
+        notes: '',
+      });
+    } finally {
+      setGeneratingAI(false);
+    }
+  };
 
   // Fetch available brands for account managers
   useEffect(() => {
@@ -162,10 +204,25 @@ const BookingModal = ({ ambassador, onClose, onSubmit }) => {
     <div className="booking-modal" onClick={onClose}>
       <div className="booking-modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="booking-modal-header">
-          <h1 className="booking-modal-title">Book Ambassador</h1>
-          <button className="booking-modal-close" onClick={onClose}>
-            ×
-          </button>
+          <h1 className="booking-modal-title">
+            {generatingAI ? 'Generating Event Details...' : 'Book Ambassador'}
+          </h1>
+          <div className="booking-modal-header-actions">
+            {isPreview && (
+              <button
+                type="button"
+                className="regenerate-button"
+                onClick={generateEventDetails}
+                disabled={generatingAI}
+                title="Regenerate event details with AI"
+              >
+                {generatingAI ? '✨ Generating...' : '✨ Regenerate'}
+              </button>
+            )}
+            <button className="booking-modal-close" onClick={onClose}>
+              ×
+            </button>
+          </div>
         </div>
 
         {/* Ambassador Info */}
