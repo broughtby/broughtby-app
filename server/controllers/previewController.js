@@ -122,15 +122,15 @@ const togglePreviewAmbassador = async (req, res) => {
 
 const generateBrandMessage = async (req, res) => {
   try {
-    const { matchId } = req.body;
+    const { matchId, demoMode } = req.body;
 
     if (!matchId) {
       return res.status(400).json({ error: 'matchId is required' });
     }
 
-    // Verify caller is a preview brand and check demo mode
+    // Verify caller is a preview brand
     const userCheck = await db.query(
-      'SELECT is_preview, name, company_name, bio, demo_mode FROM users WHERE id = $1',
+      'SELECT is_preview, name, company_name, bio FROM users WHERE id = $1',
       [req.user.userId]
     );
 
@@ -143,7 +143,8 @@ const generateBrandMessage = async (req, res) => {
       return res.status(403).json({ error: 'Only preview accounts can generate AI messages' });
     }
 
-    const isDemoMode = brand.demo_mode;
+    // Use demoMode from request body (stored in localStorage on frontend)
+    const isDemoMode = demoMode === true;
 
     // Get match data to find ambassador
     const matchQuery = await db.query(

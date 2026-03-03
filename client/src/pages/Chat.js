@@ -159,7 +159,7 @@ const Chat = () => {
     setGeneratingAI(true);
 
     try {
-      const response = await previewAPI.generateBrandMessage(matchId);
+      const response = await previewAPI.generateBrandMessage(matchId, demoMode);
       const aiMessage = response.data.message;
 
       // Populate the input field with AI-generated message

@@ -93,7 +93,7 @@ export const reviewAPI = {
 export const previewAPI = {
   resetPreview: () => api.post('/preview/reset'),
   togglePreviewAmbassador: (ambassadorId, enabled) => api.post('/preview/toggle-ambassador', { ambassadorId, enabled }),
-  generateBrandMessage: (matchId) => api.post('/preview/generate-brand-message', { matchId }),
+  generateBrandMessage: (matchId, demoMode) => api.post('/preview/generate-brand-message', { matchId, demoMode }),
   generateEventDetails: () => api.post('/preview/generate-event-details'),
 };
 
