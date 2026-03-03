@@ -234,12 +234,26 @@ io.on('connection', (socket) => {
             return { role, content: msg.content };
           });
 
+          // Get brand profile data for context
+          const brandProfile = await db.query(
+            'SELECT name, company_name, bio, location FROM users WHERE id = $1',
+            [brand_id]
+          );
+          const brand = brandProfile.rows[0];
+          const brandName = brand.company_name || brand.name;
+          const brandInfo = brand.bio ? ` They describe themselves as: "${brand.bio}"` : '';
+          const brandLocation = brand.location ? ` They're based in ${brand.location}.` : '';
+
           // Get ambassador profile data for dynamic system prompt
           const profile = ambassadorCheck.rows[0];
           const skills = profile.skills ? profile.skills.join(', ') : 'various skills';
 
-          // Build dynamic system prompt based on ambassador's actual profile
-          const systemPrompt = `You are ${profile.name}, a brand ambassador${profile.age ? ` who is ${profile.age} years old` : ''}${profile.location ? ` based in ${profile.location}` : ''}. ${profile.bio || 'You are enthusiastic about brand ambassador work and connecting with brands.'} Your expertise includes: ${skills}. You're friendly, professional, and excited to work with brands on activations and events. Keep your responses short and conversational (1-3 sentences). Don't be overly formal — you're chatting, not writing an email.`;
+          // Build dynamic system prompt with brand context
+          const systemPrompt = `You are ${profile.name}, a brand ambassador${profile.age ? ` who is ${profile.age} years old` : ''}${profile.location ? ` based in ${profile.location}` : ''}. ${profile.bio || 'You are enthusiastic about brand ambassador work and connecting with brands.'} Your expertise includes: ${skills}.
+
+You are currently chatting with ${brandName}.${brandInfo}${brandLocation}
+
+You're friendly, professional, and excited to work with brands on activations and events. Keep your responses short and conversational (1-3 sentences). Don't be overly formal — you're chatting, not writing an email. Ask relevant questions about their brand and events.`;
 
           // Call Anthropic API
           const Anthropic = require('@anthropic-ai/sdk');
@@ -467,6 +481,19 @@ io.on('connection', (socket) => {
             return { role, content: msg.content };
           });
 
+          // Brand is the sender (socket.userId) since AI auto-reply only triggers when brand sends message
+          const brandId = socket.userId;
+
+          // Get brand profile data for context
+          const brandProfile = await db.query(
+            'SELECT name, company_name, bio, location FROM users WHERE id = $1',
+            [brandId]
+          );
+          const brand = brandProfile.rows[0];
+          const brandName = brand.company_name || brand.name;
+          const brandInfo = brand.bio ? ` They describe themselves as: "${brand.bio}"` : '';
+          const brandLocation = brand.location ? ` They're based in ${brand.location}.` : '';
+
           // Get ambassador profile data to build dynamic system prompt
           const ambassadorProfile = await db.query(
             'SELECT name, bio, location, age, skills, hourly_rate FROM users WHERE id = $1',
@@ -476,8 +503,12 @@ io.on('connection', (socket) => {
           const profile = ambassadorProfile.rows[0];
           const skills = profile.skills ? profile.skills.join(', ') : 'various skills';
 
-          // Build dynamic system prompt based on ambassador's actual profile
-          const systemPrompt = `You are ${profile.name}, a brand ambassador${profile.age ? ` who is ${profile.age} years old` : ''}${profile.location ? ` based in ${profile.location}` : ''}. ${profile.bio || 'You are enthusiastic about brand ambassador work and connecting with brands.'} Your expertise includes: ${skills}. You're friendly, professional, and excited to work with brands on activations and events. Keep your responses short and conversational (1-3 sentences). Don't be overly formal — you're chatting, not writing an email.`;
+          // Build dynamic system prompt with brand context
+          const systemPrompt = `You are ${profile.name}, a brand ambassador${profile.age ? ` who is ${profile.age} years old` : ''}${profile.location ? ` based in ${profile.location}` : ''}. ${profile.bio || 'You are enthusiastic about brand ambassador work and connecting with brands.'} Your expertise includes: ${skills}.
+
+You are currently chatting with ${brandName}.${brandInfo}${brandLocation}
+
+You're friendly, professional, and excited to work with brands on activations and events. Keep your responses short and conversational (1-3 sentences). Don't be overly formal — you're chatting, not writing an email. Ask relevant questions about their brand and events.`;
 
           // Call Anthropic API
           const anthropic = new Anthropic({
