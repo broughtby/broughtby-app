@@ -213,9 +213,20 @@ You're friendly, professional, and interested in working together on brand activ
     }
 
     // Call Anthropic API
+    if (!process.env.ANTHROPIC_API_KEY) {
+      console.error('❌ ANTHROPIC_API_KEY is not configured');
+      return res.status(500).json({ error: 'API key not configured. Please contact support.' });
+    }
+
+    console.log('🔑 ANTHROPIC_API_KEY is configured:', process.env.ANTHROPIC_API_KEY ? 'Yes (length: ' + process.env.ANTHROPIC_API_KEY.length + ')' : 'No');
+
     const anthropic = new Anthropic({
       apiKey: process.env.ANTHROPIC_API_KEY,
     });
+
+    console.log('🔑 Calling Anthropic API with model: claude-sonnet-4-5-20250929');
+    console.log('📝 System prompt length:', systemPrompt.length);
+    console.log('💬 Conversation history length:', conversationHistory.length);
 
     const response = await anthropic.messages.create({
       model: 'claude-sonnet-4-5-20250929',
@@ -225,6 +236,13 @@ You're friendly, professional, and interested in working together on brand activ
         { role: 'user', content: fallbackUserMessage }
       ],
     });
+
+    console.log('✅ Anthropic API response received:', JSON.stringify(response, null, 2));
+
+    if (!response || !response.content || !response.content[0] || !response.content[0].text) {
+      console.error('❌ Invalid Anthropic API response structure:', response);
+      throw new Error('Invalid API response: missing content or text field');
+    }
 
     const aiMessage = response.content[0].text;
 
