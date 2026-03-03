@@ -224,17 +224,22 @@ You're friendly, professional, and interested in working together on brand activ
       apiKey: process.env.ANTHROPIC_API_KEY,
     });
 
+    const messagesToSend = conversationHistory.length > 0 ? conversationHistory : [
+      { role: 'user', content: fallbackUserMessage }
+    ];
+
     console.log('🔑 Calling Anthropic API with model: claude-sonnet-4-5-20250929');
     console.log('📝 System prompt length:', systemPrompt.length);
+    console.log('📝 System prompt:', systemPrompt);
     console.log('💬 Conversation history length:', conversationHistory.length);
+    console.log('💬 Messages to send:', JSON.stringify(messagesToSend, null, 2));
+    console.log('🎯 Fallback message being used?', conversationHistory.length === 0);
 
     const response = await anthropic.messages.create({
       model: 'claude-sonnet-4-5-20250929',
       max_tokens: 1024,
       system: systemPrompt,
-      messages: conversationHistory.length > 0 ? conversationHistory : [
-        { role: 'user', content: fallbackUserMessage }
-      ],
+      messages: messagesToSend,
     });
 
     console.log('✅ Anthropic API response received:', JSON.stringify(response, null, 2));
