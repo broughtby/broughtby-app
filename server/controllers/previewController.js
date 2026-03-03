@@ -167,6 +167,10 @@ const generateBrandMessage = async (req, res) => {
       [match.ambassador_id]
     );
 
+    if (ambassadorQuery.rows.length === 0) {
+      return res.status(404).json({ error: 'Ambassador not found' });
+    }
+
     const ambassador = ambassadorQuery.rows[0];
 
     // Get recent message history for context
@@ -229,7 +233,13 @@ You're friendly, professional, and interested in working together on brand activ
     });
   } catch (error) {
     console.error('Generate brand message error:', error);
-    res.status(500).json({ error: 'Failed to generate message' });
+    console.error('Error stack:', error.stack);
+    console.error('Error details:', {
+      message: error.message,
+      name: error.name,
+      code: error.code
+    });
+    res.status(500).json({ error: 'Failed to generate message', details: error.message });
   }
 };
 

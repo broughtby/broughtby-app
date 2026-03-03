@@ -154,21 +154,51 @@ const Chat = () => {
   };
 
   const handleGenerateAIMessage = async () => {
-    if (generatingAI) return;
+    console.log('🤖 AI button clicked');
+    console.log('   generatingAI:', generatingAI);
+    console.log('   matchId:', matchId);
+    console.log('   demoMode:', demoMode);
 
+    if (generatingAI) {
+      console.log('   ⏸️  Already generating, skipping');
+      return;
+    }
+
+    // Ensure matchId is available
+    if (!matchId) {
+      console.error('❌ Cannot generate AI message: matchId is not available');
+      alert('Please wait a moment and try again.');
+      return;
+    }
+
+    console.log('   ✅ Validation passed, calling API...');
     setGeneratingAI(true);
 
     try {
-      const response = await previewAPI.generateBrandMessage(matchId, demoMode);
+      // Explicitly convert demoMode to boolean to ensure it's never undefined
+      const isDemoMode = demoMode === true;
+      console.log('   📡 Calling previewAPI.generateBrandMessage with:', { matchId, isDemoMode });
+
+      const response = await previewAPI.generateBrandMessage(matchId, isDemoMode);
+      console.log('   ✅ API response received:', response.data);
+
       const aiMessage = response.data.message;
 
       // Populate the input field with AI-generated message
       setNewMessage(aiMessage);
+      console.log('   ✅ Message set successfully');
     } catch (error) {
-      console.error('Failed to generate AI message:', error);
-      alert('Failed to generate AI message. Please try again.');
+      console.error('❌ Failed to generate AI message:', error);
+      console.error('   Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+      const errorMsg = error.response?.data?.error || 'Failed to generate AI message. Please try again.';
+      alert(errorMsg);
     } finally {
       setGeneratingAI(false);
+      console.log('   🏁 Generation complete');
     }
   };
 
