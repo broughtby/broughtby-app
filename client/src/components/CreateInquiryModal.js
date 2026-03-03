@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { previewAPI } from '../services/api';
 import './CreateInquiryModal.css';
 
 const CreateInquiryModal = ({ onClose, onSubmit, matchCount }) => {
@@ -14,16 +15,60 @@ const CreateInquiryModal = ({ onClose, onSubmit, matchCount }) => {
   const isPreview = user?.isPreview;
 
   const [formData, setFormData] = useState({
-    eventName: isPreview ? (user?.preview_event_name || `${user?.company_name || 'Brand'} Event`) : '',
-    eventDate: isPreview ? getDefaultEventDate() : '',
-    startTime: isPreview ? '10:00' : '',
-    endTime: isPreview ? '12:00' : '',
-    eventLocation: isPreview ? (user?.location || '') : '',
-    hourlyRate: isPreview ? '50' : '',
-    notes: isPreview ? (user?.preview_event_notes || '') : '',
+    eventName: '',
+    eventDate: '',
+    startTime: '',
+    endTime: '',
+    eventLocation: '',
+    hourlyRate: '',
+    notes: '',
   });
 
   const [errors, setErrors] = useState({});
+  const [generatingAI, setGeneratingAI] = useState(false);
+
+  // Auto-generate event details for preview brands on mount
+  useEffect(() => {
+    if (isPreview) {
+      generateEventDetails();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPreview]);
+
+  const generateEventDetails = async () => {
+    if (!isPreview) return;
+
+    setGeneratingAI(true);
+
+    try {
+      const response = await previewAPI.generateEventDetails();
+      const eventDetails = response.data;
+
+      setFormData({
+        eventName: eventDetails.eventName || '',
+        eventDate: eventDetails.eventDate || '',
+        startTime: eventDetails.startTime || '',
+        endTime: eventDetails.endTime || '',
+        eventLocation: eventDetails.eventLocation || '',
+        hourlyRate: eventDetails.hourlyRate || '',
+        notes: eventDetails.notes || '',
+      });
+    } catch (error) {
+      console.error('Failed to generate event details:', error);
+      // Fall back to default values
+      setFormData({
+        eventName: `${user?.company_name || 'Brand'} Event`,
+        eventDate: getDefaultEventDate(),
+        startTime: '10:00',
+        endTime: '14:00',
+        eventLocation: user?.location || '',
+        hourlyRate: '50',
+        notes: '',
+      });
+    } finally {
+      setGeneratingAI(false);
+    }
+  };
 
   const parseLocalDate = (dateString) => {
     if (!dateString) return new Date();
@@ -119,11 +164,24 @@ const CreateInquiryModal = ({ onClose, onSubmit, matchCount }) => {
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>Check Availability</h2>
-          <button className="modal-close" onClick={onClose}>&times;</button>
+          <div className="modal-header-actions">
+            {isPreview && (
+              <button
+                type="button"
+                className="regenerate-button"
+                onClick={generateEventDetails}
+                disabled={generatingAI}
+                title="Regenerate event details with AI"
+              >
+                {generatingAI ? '✨ Generating...' : '✨ Regenerate'}
+              </button>
+            )}
+            <button className="modal-close" onClick={onClose}>&times;</button>
+          </div>
         </div>
 
         <p className="inquiry-description">
-          Send this event to all {matchCount} of your matched ambassadors to see who's available.
+          {generatingAI ? 'Generating event details with AI...' : `Send this event to all ${matchCount} of your matched ambassadors to see who's available.`}
         </p>
 
         <form onSubmit={handleSubmit}>

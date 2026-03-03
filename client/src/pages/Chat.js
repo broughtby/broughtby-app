@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { messageAPI, matchAPI, bookingAPI, engagementAPI } from '../services/api';
+import { messageAPI, matchAPI, bookingAPI, engagementAPI, previewAPI } from '../services/api';
 import socketService from '../services/socket';
 import DisplayName from '../components/DisplayName';
 import BookingModal from '../components/BookingModal';
@@ -18,6 +18,7 @@ const Chat = () => {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [generatingAI, setGeneratingAI] = useState(false);
   const [matchData, setMatchData] = useState(null);
   const [bookingAmbassador, setBookingAmbassador] = useState(null);
   const [showBookingSuccess, setShowBookingSuccess] = useState(false);
@@ -149,6 +150,25 @@ const Chat = () => {
       setNewMessage(messageContent); // Restore message on error
     } finally {
       setSending(false);
+    }
+  };
+
+  const handleGenerateAIMessage = async () => {
+    if (generatingAI) return;
+
+    setGeneratingAI(true);
+
+    try {
+      const response = await previewAPI.generateBrandMessage(matchId);
+      const aiMessage = response.data.message;
+
+      // Populate the input field with AI-generated message
+      setNewMessage(aiMessage);
+    } catch (error) {
+      console.error('Failed to generate AI message:', error);
+      alert('Failed to generate AI message. Please try again.');
+    } finally {
+      setGeneratingAI(false);
     }
   };
 
@@ -421,6 +441,16 @@ Status: Pending your acceptance`;
           className="message-input"
           disabled={sending}
         />
+        {user?.isPreview && isBrand && (
+          <button
+            type="button"
+            className="ai-generate-button"
+            onClick={handleGenerateAIMessage}
+            disabled={generatingAI || sending}
+          >
+            {generatingAI ? '✨ Generating...' : '✨ AI'}
+          </button>
+        )}
         <button
           type="submit"
           className="send-button"

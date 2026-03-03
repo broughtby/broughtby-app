@@ -1,4 +1,5 @@
 const db = require('../config/database');
+const Anthropic = require('@anthropic-ai/sdk');
 
 const resetPreview = async (req, res) => {
   try {
@@ -119,7 +120,180 @@ const togglePreviewAmbassador = async (req, res) => {
   }
 };
 
+const generateBrandMessage = async (req, res) => {
+  try {
+    const { matchId } = req.body;
+
+    if (!matchId) {
+      return res.status(400).json({ error: 'matchId is required' });
+    }
+
+    // Verify caller is a preview brand
+    const userCheck = await db.query(
+      'SELECT is_preview, name, company_name, bio FROM users WHERE id = $1',
+      [req.user.userId]
+    );
+
+    if (userCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const brand = userCheck.rows[0];
+    if (!brand.is_preview) {
+      return res.status(403).json({ error: 'Only preview accounts can generate AI messages' });
+    }
+
+    // Get match data to find ambassador
+    const matchQuery = await db.query(
+      'SELECT brand_id, ambassador_id FROM matches WHERE id = $1',
+      [matchId]
+    );
+
+    if (matchQuery.rows.length === 0) {
+      return res.status(404).json({ error: 'Match not found' });
+    }
+
+    const match = matchQuery.rows[0];
+    if (match.brand_id !== req.user.userId) {
+      return res.status(403).json({ error: 'Not authorized for this match' });
+    }
+
+    // Get ambassador info
+    const ambassadorQuery = await db.query(
+      'SELECT name, bio, location, age, skills FROM users WHERE id = $1',
+      [match.ambassador_id]
+    );
+
+    const ambassador = ambassadorQuery.rows[0];
+
+    // Get recent message history for context
+    const messagesQuery = await db.query(
+      'SELECT sender_id, content FROM messages WHERE match_id = $1 ORDER BY created_at DESC LIMIT 10',
+      [matchId]
+    );
+
+    const conversationHistory = messagesQuery.rows.reverse().map(msg => ({
+      role: msg.sender_id === req.user.userId ? 'assistant' : 'user',
+      content: msg.content,
+    }));
+
+    // Build system prompt for brand
+    const brandName = brand.company_name || brand.name;
+    const brandInfo = brand.bio || 'a brand looking to work with ambassadors';
+    const ambassadorName = ambassador.name;
+    const ambassadorSkills = ambassador.skills ? ambassador.skills.join(', ') : 'various skills';
+
+    const systemPrompt = `You are a representative from ${brandName}, ${brandInfo}. You're chatting with ${ambassadorName}, a brand ambassador with expertise in ${ambassadorSkills}.
+
+You're friendly, professional, and interested in working together on brand activations and events. Keep your responses conversational and natural (1-3 sentences). Ask relevant questions about their availability, experience, or ideas for collaboration.`;
+
+    // Call Anthropic API
+    const anthropic = new Anthropic({
+      apiKey: process.env.ANTHROPIC_API_KEY,
+    });
+
+    const response = await anthropic.messages.create({
+      model: 'claude-sonnet-4-5-20250929',
+      max_tokens: 1024,
+      system: systemPrompt,
+      messages: conversationHistory.length > 0 ? conversationHistory : [
+        { role: 'user', content: `Hi! I'm ${ambassadorName}. Nice to connect!` }
+      ],
+    });
+
+    const aiMessage = response.content[0].text;
+
+    res.json({
+      message: aiMessage,
+    });
+  } catch (error) {
+    console.error('Generate brand message error:', error);
+    res.status(500).json({ error: 'Failed to generate message' });
+  }
+};
+
+const generateEventDetails = async (req, res) => {
+  try {
+    // Verify caller is a preview brand
+    const userCheck = await db.query(
+      'SELECT is_preview, name, company_name, bio, location FROM users WHERE id = $1',
+      [req.user.userId]
+    );
+
+    if (userCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const brand = userCheck.rows[0];
+    if (!brand.is_preview) {
+      return res.status(403).json({ error: 'Only preview accounts can generate AI event details' });
+    }
+
+    const brandName = brand.company_name || brand.name;
+    const brandInfo = brand.bio || 'a brand';
+    const brandLocation = brand.location || 'a major city';
+
+    // Create prompt for AI to generate event details
+    const systemPrompt = `You are helping generate realistic event details for ${brandName}, ${brandInfo}.
+
+Generate a brand activation event with these fields:
+1. eventName: A creative, engaging event name related to the brand
+2. eventLocation: A specific venue/address in ${brandLocation}
+3. notes: 2-3 sentences describing the event concept and what ambassadors will do
+
+Return ONLY valid JSON with these exact fields: eventName, eventLocation, notes. No additional text or markdown.`;
+
+    const anthropic = new Anthropic({
+      apiKey: process.env.ANTHROPIC_API_KEY,
+    });
+
+    const response = await anthropic.messages.create({
+      model: 'claude-sonnet-4-5-20250929',
+      max_tokens: 512,
+      system: systemPrompt,
+      messages: [
+        { role: 'user', content: 'Generate event details now.' }
+      ],
+    });
+
+    const aiResponse = response.content[0].text;
+
+    // Parse JSON response
+    let eventDetails;
+    try {
+      // Try to extract JSON from markdown code blocks if present
+      const jsonMatch = aiResponse.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/) || aiResponse.match(/(\{[\s\S]*\})/);
+      eventDetails = JSON.parse(jsonMatch ? jsonMatch[1] : aiResponse);
+    } catch (parseError) {
+      console.error('Failed to parse AI response:', aiResponse);
+      // Fallback to default values
+      eventDetails = {
+        eventName: `${brandName} Brand Activation`,
+        eventLocation: brandLocation,
+        notes: `Join us for an exciting brand activation event. Ambassadors will engage with customers and share the ${brandName} story.`,
+      };
+    }
+
+    // Add default time and rate values
+    const twoWeeksOut = new Date();
+    twoWeeksOut.setDate(twoWeeksOut.getDate() + 14);
+
+    res.json({
+      ...eventDetails,
+      eventDate: twoWeeksOut.toISOString().split('T')[0],
+      startTime: '10:00',
+      endTime: '14:00',
+      hourlyRate: '50',
+    });
+  } catch (error) {
+    console.error('Generate event details error:', error);
+    res.status(500).json({ error: 'Failed to generate event details' });
+  }
+};
+
 module.exports = {
   resetPreview,
   togglePreviewAmbassador,
+  generateBrandMessage,
+  generateEventDetails,
 };

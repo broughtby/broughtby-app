@@ -252,6 +252,26 @@
   cursor: not-allowed;
 }
 
+.ai-generate-button {
+  background-color: var(--gold);
+  color: var(--navy);
+  padding: 0.9rem 1.5rem;
+  border-radius: 25px;
+  font-weight: 600;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+
+.ai-generate-button:hover:not(:disabled) {
+  background-color: #C4A036;
+  transform: translateY(-1px);
+}
+
+.ai-generate-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .loading {
   text-align: center;
   padding: 4rem;
