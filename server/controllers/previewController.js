@@ -128,9 +128,9 @@ const generateBrandMessage = async (req, res) => {
       return res.status(400).json({ error: 'matchId is required' });
     }
 
-    // Verify caller is a preview brand
+    // Verify caller is a preview brand and check demo mode
     const userCheck = await db.query(
-      'SELECT is_preview, name, company_name, bio FROM users WHERE id = $1',
+      'SELECT is_preview, name, company_name, bio, demo_mode FROM users WHERE id = $1',
       [req.user.userId]
     );
 
@@ -142,6 +142,8 @@ const generateBrandMessage = async (req, res) => {
     if (!brand.is_preview) {
       return res.status(403).json({ error: 'Only preview accounts can generate AI messages' });
     }
+
+    const isDemoMode = brand.demo_mode;
 
     // Get match data to find ambassador
     const matchQuery = await db.query(
@@ -183,9 +185,27 @@ const generateBrandMessage = async (req, res) => {
     const ambassadorName = ambassador.name;
     const ambassadorSkills = ambassador.skills ? ambassador.skills.join(', ') : 'various skills';
 
-    const systemPrompt = `You are a representative from ${brandName}, ${brandInfo}. You're chatting with ${ambassadorName}, a brand ambassador with expertise in ${ambassadorSkills}.
+    // Adjust system prompt based on demo mode
+    let systemPrompt;
+    let fallbackUserMessage;
+
+    if (isDemoMode) {
+      // Demo mode: don't use names for privacy
+      systemPrompt = `You are a representative from ${brandName}, ${brandInfo}. You're chatting with a brand ambassador with expertise in ${ambassadorSkills}.
+
+You're friendly, professional, and interested in working together on brand activations and events. Keep your responses conversational and natural (1-3 sentences). Ask relevant questions about their availability, experience, or ideas for collaboration.
+
+IMPORTANT: Do NOT use any names in your messages. Keep all communication professional but avoid mentioning specific names for privacy reasons.`;
+
+      fallbackUserMessage = 'Hi! Nice to connect!';
+    } else {
+      // Normal mode: use names
+      systemPrompt = `You are a representative from ${brandName}, ${brandInfo}. You're chatting with ${ambassadorName}, a brand ambassador with expertise in ${ambassadorSkills}.
 
 You're friendly, professional, and interested in working together on brand activations and events. Keep your responses conversational and natural (1-3 sentences). Ask relevant questions about their availability, experience, or ideas for collaboration.`;
+
+      fallbackUserMessage = `Hi! I'm ${ambassadorName}. Nice to connect!`;
+    }
 
     // Call Anthropic API
     const anthropic = new Anthropic({
@@ -197,7 +217,7 @@ You're friendly, professional, and interested in working together on brand activ
       max_tokens: 1024,
       system: systemPrompt,
       messages: conversationHistory.length > 0 ? conversationHistory : [
-        { role: 'user', content: `Hi! I'm ${ambassadorName}. Nice to connect!` }
+        { role: 'user', content: fallbackUserMessage }
       ],
     });
 
