@@ -224,9 +224,18 @@ You're friendly, professional, and interested in working together on brand activ
       apiKey: process.env.ANTHROPIC_API_KEY,
     });
 
-    const messagesToSend = conversationHistory.length > 0 ? conversationHistory : [
-      { role: 'user', content: fallbackUserMessage }
-    ];
+    // Anthropic API requires conversations to start with a user message
+    // If we only have assistant messages (or no messages), prepend a user message
+    let messagesToSend = conversationHistory.length > 0 ? conversationHistory : [];
+
+    // Check if the conversation starts with an assistant message
+    if (messagesToSend.length === 0 || messagesToSend[0].role !== 'user') {
+      console.log('⚠️ Conversation does not start with user message, prepending fallback');
+      messagesToSend = [
+        { role: 'user', content: fallbackUserMessage },
+        ...messagesToSend
+      ];
+    }
 
     console.log('🔑 Calling Anthropic API with model: claude-sonnet-4-5-20250929');
     console.log('📝 System prompt length:', systemPrompt.length);
