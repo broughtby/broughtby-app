@@ -14,7 +14,7 @@ const ReviewModal = ({ booking, partnerInfo, onClose, onSubmit, isPreview }) => 
   const getDefaultComment = () => {
     if (!isPreview) return '';
     if (isReviewingAsHirer) {
-      const name = partnerInfo?.name?.split(' ')[0] || 'The ambassador';
+      const name = demoMode ? 'The ambassador' : (partnerInfo?.name?.split(' ')[0] || 'The ambassador');
       return `${name} was fantastic! Showed up on time, engaged with all the founders, and made sure everyone signed up for our newsletter. Represented our brand perfectly and got so much great product feedback on our coffee. Would definitely book again for future YCBuzz events!`;
     }
     return '';
@@ -261,7 +261,7 @@ const ReviewModal = ({ booking, partnerInfo, onClose, onSubmit, isPreview }) => 
               name="comment"
               value={formData.comment}
               onChange={handleChange}
-              placeholder={`Share your experience working with ${partnerInfo.name}...`}
+              placeholder={`Share your experience working with ${demoMode ? 'this ambassador' : partnerInfo.name}...`}
               rows="4"
             />
           </div>
