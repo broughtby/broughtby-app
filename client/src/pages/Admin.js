@@ -24,6 +24,8 @@ const Admin = () => {
       setLoading(true);
       const filterRole = roleFilter === 'all' ? undefined : roleFilter;
       const response = await adminAPI.getAllUsersWithStatus(filterRole);
+      console.log('📊 Users data received:', response.data.users);
+      console.log('📊 First user status:', response.data.users[0]?.status);
       setUsers(response.data.users);
     } catch (error) {
       console.error('Failed to fetch users:', error);
@@ -157,7 +159,9 @@ const Admin = () => {
                 </tr>
               </thead>
               <tbody>
-                {users.map(user => (
+                {users.map(user => {
+                  console.log(`🔍 Rendering user ${user.email}, status:`, user.status);
+                  return (
                   <tr key={user.id}>
                     <td>
                       <strong>{user.name}</strong>
@@ -204,7 +208,8 @@ const Admin = () => {
                     </td>
                     <td>{new Date(user.createdAt).toLocaleDateString()}</td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
             {users.length === 0 && (
