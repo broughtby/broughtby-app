@@ -43,11 +43,11 @@ const createLike = async (req, res) => {
 
     // Create request (like with pending status)
     const result = await db.query(
-      `INSERT INTO likes (brand_id, ambassador_id, status, created_by_am_id)
-       VALUES ($1, $2, 'pending', $3)
+      `INSERT INTO likes (brand_id, ambassador_id, status)
+       VALUES ($1, $2, 'pending')
        ON CONFLICT (brand_id, ambassador_id) DO NOTHING
        RETURNING id, created_at`,
-      [req.user.userId, ambassadorId, null]
+      [req.user.userId, ambassadorId]
     );
 
     if (result.rows.length === 0) {
@@ -104,9 +104,9 @@ const createLike = async (req, res) => {
       }
 
       await db.query(
-        `INSERT INTO messages (match_id, sender_id, content, created_by_am_id)
-         VALUES ($1, $2, $3, $4)`,
-        [matchId, req.user.userId, welcomeMessage, null]
+        `INSERT INTO messages (match_id, sender_id, content)
+         VALUES ($1, $2, $3)`,
+        [matchId, req.user.userId, welcomeMessage]
       );
 
       // Note: AI auto-reply will be triggered when brand user opens the chat
@@ -156,13 +156,11 @@ const getReceivedLikes = async (req, res) => {
     }
 
     const result = await db.query(
-      `SELECT l.id, l.created_at, l.status, l.created_by_am_id,
+      `SELECT l.id, l.created_at, l.status,
               u.id as brand_id, u.name, u.profile_photo, u.bio, u.location, u.skills, u.is_test,
-              u.company_name, u.company_logo,
-              am.name as am_name, am.profile_photo as am_profile_photo
+              u.company_name, u.company_logo
        FROM likes l
        JOIN users u ON l.brand_id = u.id
-       LEFT JOIN users am ON l.created_by_am_id = am.id
        WHERE l.ambassador_id = $1
        AND l.status = 'pending'
        ORDER BY l.created_at DESC`,
@@ -318,9 +316,9 @@ const demoAcceptLike = async (req, res) => {
       : `Hi ${ambassador.name}! We want to do a series of events this spring and summer in chicago. I think you could be a good fit. Interested?`;
 
     await db.query(
-      `INSERT INTO messages (match_id, sender_id, content, created_by_am_id)
-       VALUES ($1, $2, $3, $4)`,
-      [matchId, req.user.userId, welcomeMessage, null]
+      `INSERT INTO messages (match_id, sender_id, content)
+       VALUES ($1, $2, $3)`,
+      [matchId, req.user.userId, welcomeMessage]
     );
 
     // Note: AI auto-reply will be triggered when brand user opens the chat
