@@ -315,7 +315,7 @@ Status: Pending your acceptance`;
     try {
       // Only send like request if not already liked
       if (currentAmbassador.status === 'available') {
-        const response = await likeAPI.createLike(currentAmbassador.id);
+        const response = await likeAPI.createLike(currentAmbassador.id, demoMode);
 
         // Check if auto-matched in preview mode
         if (response.data.autoMatched) {
@@ -1367,7 +1367,7 @@ Status: Pending your acceptance`;
                       }
 
                       try {
-                        const response = await likeAPI.createLike(selectedAmbassador.id);
+                        const response = await likeAPI.createLike(selectedAmbassador.id, demoMode);
 
                         // Check if auto-matched in preview mode
                         if (response.data.autoMatched) {

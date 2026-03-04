@@ -92,7 +92,7 @@ const Matches = () => {
 
   const handleAcceptRequest = async (brandId) => {
     try {
-      await matchAPI.createMatch(brandId);
+      await matchAPI.createMatch(brandId, demoMode);
       // Refresh data
       await fetchData();
     } catch (error) {

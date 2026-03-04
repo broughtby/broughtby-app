@@ -39,7 +39,7 @@ export const userAPI = {
 
 // Like endpoints
 export const likeAPI = {
-  createLike: (ambassadorId) => api.post('/likes', { ambassadorId }),
+  createLike: (ambassadorId, demoMode) => api.post('/likes', { ambassadorId, demoMode }),
   createPass: (ambassadorId) => api.post('/likes/pass', { ambassadorId }),
   declineLike: (brandId) => api.post('/likes/decline', { brandId }),
   demoAcceptLike: (ambassadorId) => api.post('/likes/demo-accept', { ambassadorId }),
@@ -48,7 +48,7 @@ export const likeAPI = {
 
 // Match endpoints
 export const matchAPI = {
-  createMatch: (brandId) => api.post('/matches', { brandId }),
+  createMatch: (brandId, demoMode) => api.post('/matches', { brandId, demoMode }),
   getMatches: () => api.get('/matches'),
 };
 

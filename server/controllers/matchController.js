@@ -13,7 +13,7 @@ const getIo = () => {
 
 const createMatch = async (req, res) => {
   try {
-    const { brandId } = req.body;
+    const { brandId, demoMode } = req.body;
 
     // Only ambassadors and account managers can create matches (by accepting likes)
     if (req.user.role !== 'ambassador' && req.user.role !== 'account_manager') {
@@ -62,9 +62,11 @@ const createMatch = async (req, res) => {
     );
 
     if (ambassadorQuery.rows.length > 0) {
-      const ambassadorName = ambassadorQuery.rows[0].name;
+      const ambassadorFullName = ambassadorQuery.rows[0].name;
       const ambassadorRole = ambassadorQuery.rows[0].role;
       const isPreviewAmbassador = ambassadorQuery.rows[0].is_preview_ambassador;
+      // In demo mode, only use first name for privacy
+      const ambassadorName = demoMode === true ? ambassadorFullName.split(' ')[0] : ambassadorFullName;
 
       // Get brand info for customized message
       const brandQuery = await db.query(
