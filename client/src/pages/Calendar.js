@@ -648,6 +648,7 @@ Status: Cancelled`;
                             isPreview={user?.isPreview}
                             onCheckoutComplete={() => handleCheckoutComplete(booking)}
                             ambassadorName={booking.ambassador_name}
+                            demoMode={demoMode}
                           />
                         </div>
                       ))}
@@ -1021,6 +1022,7 @@ Status: Cancelled`;
                             isPreview={user?.isPreview}
                             onCheckoutComplete={() => handleCheckoutComplete(item)}
                             ambassadorName={item.ambassador_name}
+                            demoMode={demoMode}
                           />
                         )}
                       </div>
