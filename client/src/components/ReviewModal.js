@@ -14,7 +14,8 @@ const ReviewModal = ({ booking, partnerInfo, onClose, onSubmit, isPreview }) => 
   const getDefaultComment = () => {
     if (!isPreview) return '';
     if (isReviewingAsHirer) {
-      return 'Allan was fantastic! He showed up on time, engaged with all the founders, and made sure everyone signed up for our newsletter. He represented our brand perfectly and got so much great product feedback on our coffee. Would definitely book again for future YCBuzz events!';
+      const name = partnerInfo?.name?.split(' ')[0] || 'The ambassador';
+      return `${name} was fantastic! Showed up on time, engaged with all the founders, and made sure everyone signed up for our newsletter. Represented our brand perfectly and got so much great product feedback on our coffee. Would definitely book again for future YCBuzz events!`;
     }
     return '';
   };

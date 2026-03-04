@@ -1040,7 +1040,7 @@ Status: Cancelled`;
         <div className="review-prompt-modal" onClick={handleCloseReviewPrompt}>
           <div className="review-prompt-content" onClick={(e) => e.stopPropagation()}>
             <div className="review-prompt-icon">⭐</div>
-            <h2>What did you think of Allan?</h2>
+            <h2>What did you think of <DisplayName user={getBookingPartner(promptBooking)} demoMode={demoMode} />?</h2>
             <p>Share your experience to help other brands discover great ambassadors!</p>
             <div className="review-prompt-actions">
               <button
