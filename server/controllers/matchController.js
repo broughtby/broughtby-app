@@ -170,7 +170,7 @@ const getMatches = async (req, res) => {
         SELECT m.id as match_id, m.created_at,
                u.id as user_id, u.name, u.profile_photo, u.bio, u.location,
                u.age, u.skills, u.hourly_rate, u.availability, u.rating, u.is_test,
-               u.role, u.monthly_rate,
+               u.role,
                am.id as matched_by_am_id, am.name as matched_by_am_name,
                (SELECT content FROM messages WHERE match_id = m.id
                 ORDER BY created_at DESC LIMIT 1) as last_message,
@@ -194,7 +194,7 @@ const getMatches = async (req, res) => {
         SELECT m.id as match_id, m.created_at,
                u.id as user_id, u.name, u.profile_photo, u.bio, u.location,
                u.age, u.skills, u.hourly_rate, u.availability, u.rating, u.is_test,
-               u.role, u.monthly_rate, u.company_name, u.company_logo,
+               u.role, u.company_name, u.company_logo,
                (SELECT content FROM messages WHERE match_id = m.id
                 ORDER BY created_at DESC LIMIT 1) as last_message,
                (SELECT created_at FROM messages WHERE match_id = m.id

@@ -13,7 +13,7 @@ const getProfile = async (req, res) => {
   try {
     const result = await db.query(
       `SELECT id, email, role, name, profile_photo, bio, location, age,
-              skills, hourly_rate, availability, monthly_rate, rating, is_admin, is_preview, created_at,
+              skills, hourly_rate, availability, rating, is_admin, is_preview, created_at,
               company_name, company_logo, company_website, contact_title,
               preview_event_name, preview_event_notes
        FROM users WHERE id = $1`,
@@ -40,7 +40,7 @@ const getProfile = async (req, res) => {
 
 const updateProfile = async (req, res) => {
   try {
-    const { email, name, profile_photo, bio, location, age, skills, hourly_rate, availability, monthly_rate, company_name, company_logo, company_website, contact_title, preview_event_name, preview_event_notes } = req.body;
+    const { email, name, profile_photo, bio, location, age, skills, hourly_rate, availability, company_name, company_logo, company_website, contact_title, preview_event_name, preview_event_notes } = req.body;
 
     const updates = [];
     const values = [];
@@ -100,10 +100,6 @@ const updateProfile = async (req, res) => {
       updates.push(`availability = $${paramCount++}`);
       values.push(availability);
     }
-    if (monthly_rate !== undefined) {
-      updates.push(`monthly_rate = $${paramCount++}`);
-      values.push(sanitizeNumericField(monthly_rate));
-    }
     if (company_name !== undefined) {
       updates.push(`company_name = $${paramCount++}`);
       values.push(company_name);
@@ -141,7 +137,7 @@ const updateProfile = async (req, res) => {
       SET ${updates.join(', ')}
       WHERE id = $${paramCount}
       RETURNING id, email, role, name, profile_photo, bio, location, age,
-                skills, hourly_rate, availability, monthly_rate, rating, is_admin,
+                skills, hourly_rate, availability, rating, is_admin,
                 company_name, company_logo, company_website, contact_title
     `;
 
@@ -197,7 +193,7 @@ const getAmbassadors = async (req, res) => {
 
       const result = await db.query(
         `SELECT u.id, u.name, u.profile_photo, u.bio, u.location, u.age,
-                u.skills, u.hourly_rate, u.monthly_rate, u.availability, u.rating, u.role,
+                u.skills, u.hourly_rate, u.availability, u.rating, u.role,
                 u.is_test, u.is_preview_ambassador,
                 l.id as like_id,
                 m.id as match_id,
@@ -234,7 +230,6 @@ const getAmbassadors = async (req, res) => {
         age: row.age,
         skills: row.skills,
         hourly_rate: row.hourly_rate,
-        monthly_rate: row.monthly_rate,
         availability: row.availability,
         rating: row.rating,
         role: row.role,
