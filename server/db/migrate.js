@@ -603,6 +603,68 @@ const migrations = [
     ALTER TABLE inquiry_responses ADD CONSTRAINT inquiry_responses_response_check
     CHECK (response IN ('pending', 'available', 'not_available', 'selected', 'not_selected'));
   `,
+
+  // ==================== REMOVE ACCOUNT MANAGER FUNCTIONALITY ====================
+
+  // Delete all users with account_manager role
+  `
+    DELETE FROM users WHERE role = 'account_manager';
+  `,
+
+  // Drop engagements table
+  `
+    DROP TABLE IF EXISTS engagements;
+  `,
+
+  // Remove created_by_am_id column from messages table
+  `
+    DO $$
+    BEGIN
+      IF EXISTS (SELECT 1 FROM information_schema.columns
+                 WHERE table_name = 'messages' AND column_name = 'created_by_am_id') THEN
+        ALTER TABLE messages DROP COLUMN created_by_am_id;
+      END IF;
+    END $$;
+  `,
+
+  // Remove created_by_am_id column from bookings table
+  `
+    DO $$
+    BEGIN
+      IF EXISTS (SELECT 1 FROM information_schema.columns
+                 WHERE table_name = 'bookings' AND column_name = 'created_by_am_id') THEN
+        ALTER TABLE bookings DROP COLUMN created_by_am_id;
+      END IF;
+    END $$;
+  `,
+
+  // Remove created_by_am_id column from likes table
+  `
+    DO $$
+    BEGIN
+      IF EXISTS (SELECT 1 FROM information_schema.columns
+                 WHERE table_name = 'likes' AND column_name = 'created_by_am_id') THEN
+        ALTER TABLE likes DROP COLUMN created_by_am_id;
+      END IF;
+    END $$;
+  `,
+
+  // Remove monthly_rate column from users table
+  `
+    DO $$
+    BEGIN
+      IF EXISTS (SELECT 1 FROM information_schema.columns
+                 WHERE table_name = 'users' AND column_name = 'monthly_rate') THEN
+        ALTER TABLE users DROP COLUMN monthly_rate;
+      END IF;
+    END $$;
+  `,
+
+  // Update role constraint to remove account_manager
+  `
+    ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check;
+    ALTER TABLE users ADD CONSTRAINT users_role_check CHECK (role IN ('brand', 'ambassador'));
+  `,
 ];
 
 async function runMigrations() {

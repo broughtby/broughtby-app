@@ -76,9 +76,6 @@ export const adminAPI = {
   impersonateUser: (userId) => api.post('/admin/impersonate', { userId }),
   stopImpersonation: () => api.post('/admin/stop-impersonation'),
   resetDemoData: (targetUserId) => api.post('/admin/reset-demo-data', { targetUserId }),
-  createEngagement: (data) => api.post('/admin/engagements', data),
-  getAllEngagements: () => api.get('/admin/engagements'),
-  updateEngagement: (id, data) => api.patch(`/admin/engagements/${id}`, data),
 };
 
 // Review endpoints
@@ -95,15 +92,6 @@ export const previewAPI = {
   togglePreviewAmbassador: (ambassadorId, enabled) => api.post('/preview/toggle-ambassador', { ambassadorId, enabled }),
   generateBrandMessage: (matchId, demoMode) => api.post('/preview/generate-brand-message', { matchId, demoMode }),
   generateEventDetails: () => api.post('/preview/generate-event-details'),
-};
-
-// Engagement endpoints
-export const engagementAPI = {
-  createEngagement: (data) => api.post('/engagements', data),
-  getEngagements: () => api.get('/engagements'),
-  updateEngagementStatus: (id, status) => api.patch(`/engagements/${id}/status`, { status }),
-  endEngagement: (id, endDate) => api.patch(`/engagements/${id}/end`, { endDate }),
-  getAvailableBrands: () => api.get('/engagements/available-brands'), // AM's brand clients
 };
 
 // Inquiry endpoints (broadcast availability checks)

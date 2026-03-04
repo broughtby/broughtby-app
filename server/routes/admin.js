@@ -19,9 +19,4 @@ router.post('/stop-impersonation', auth, adminController.stopImpersonation);
 // Reset demo data for a specific user
 router.post('/reset-demo-data', adminController.resetDemoData);
 
-// Engagement management
-router.post('/engagements', adminController.createEngagement);
-router.get('/engagements', adminController.getAllEngagements);
-router.patch('/engagements/:id', adminController.updateEngagement);
-
 module.exports = router;
