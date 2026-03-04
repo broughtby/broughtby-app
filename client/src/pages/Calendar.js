@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { bookingAPI, messageAPI, reviewAPI, engagementAPI } from '../services/api';
+import { bookingAPI, messageAPI, reviewAPI } from '../services/api';
 import ReactCalendar from 'react-calendar';
 import { format, isSameDay } from 'date-fns';
 import TimeTracking from '../components/TimeTracking';
@@ -12,7 +12,6 @@ import './Calendar.css';
 const Calendar = () => {
   const { user, isBrand, isAmbassador, isAccountManager, demoMode } = useAuth();
   const [bookings, setBookings] = useState([]);
-  const [engagements, setEngagements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [viewMode, setViewMode] = useState('list'); // 'calendar' or 'list'
@@ -22,9 +21,6 @@ const Calendar = () => {
   const [bookingReviews, setBookingReviews] = useState({}); // Map of booking ID to review status
   const [showReviewPrompt, setShowReviewPrompt] = useState(false);
   const [promptBooking, setPromptBooking] = useState(null);
-  const [selectedEngagement, setSelectedEngagement] = useState(null);
-  const [showEndModal, setShowEndModal] = useState(false);
-  const [endDate, setEndDate] = useState('');
   const [talentType, setTalentType] = useState('ambassador'); // 'ambassador' or 'account_manager'
   const [hasAccountManagers, setHasAccountManagers] = useState(false);
 
@@ -37,21 +33,6 @@ const Calendar = () => {
       const response = await bookingAPI.getBookings();
       const bookingsData = response.data.bookings;
       setBookings(bookingsData);
-
-      // Fetch engagements
-      try {
-        const engagementsResponse = await engagementAPI.getEngagements();
-        const engagementsData = engagementsResponse.data.engagements || [];
-        setEngagements(engagementsData);
-
-        // Check if user has any account manager engagements
-        if (isBrand && engagementsData.length > 0) {
-          setHasAccountManagers(true);
-        }
-      } catch (error) {
-        console.error('Failed to fetch engagements:', error);
-        setEngagements([]);
-      }
 
       // Fetch review status for completed bookings
       const completedBookings = bookingsData.filter(b => b.status === 'completed');
@@ -336,95 +317,18 @@ Status: Cancelled`;
     setPromptBooking(null);
   };
 
-  // Engagement action handlers
-  const handleAcceptEngagement = async (engagementId) => {
-    try {
-      await engagementAPI.updateEngagementStatus(engagementId, 'active');
-      await fetchBookings();
-    } catch (error) {
-      console.error('Failed to accept engagement:', error);
-      alert(error.response?.data?.error || 'Failed to accept engagement');
-    }
-  };
-
-  const handleDeclineEngagement = async (engagementId) => {
-    try {
-      await engagementAPI.updateEngagementStatus(engagementId, 'declined');
-      await fetchBookings();
-    } catch (error) {
-      console.error('Failed to decline engagement:', error);
-      alert(error.response?.data?.error || 'Failed to decline engagement');
-    }
-  };
-
-  const handlePauseEngagement = async (engagementId) => {
-    try {
-      await engagementAPI.updateEngagementStatus(engagementId, 'paused');
-      await fetchBookings();
-    } catch (error) {
-      console.error('Failed to pause engagement:', error);
-      alert(error.response?.data?.error || 'Failed to pause engagement');
-    }
-  };
-
-  const handleResumeEngagement = async (engagementId) => {
-    try {
-      await engagementAPI.updateEngagementStatus(engagementId, 'active');
-      await fetchBookings();
-    } catch (error) {
-      console.error('Failed to resume engagement:', error);
-      alert(error.response?.data?.error || 'Failed to resume engagement');
-    }
-  };
-
-  const openEndModal = (engagement) => {
-    setSelectedEngagement(engagement);
-    setShowEndModal(true);
-    setEndDate(new Date().toISOString().split('T')[0]);
-  };
-
-  const closeEndModal = () => {
-    setShowEndModal(false);
-    setSelectedEngagement(null);
-    setEndDate('');
-  };
-
-  const handleEndEngagement = async () => {
-    if (!selectedEngagement || !endDate) return;
-
-    try {
-      await engagementAPI.endEngagement(selectedEngagement.id, endDate);
-      closeEndModal();
-      await fetchBookings();
-    } catch (error) {
-      console.error('Failed to end engagement:', error);
-      alert(error.response?.data?.error || 'Failed to end engagement');
-    }
-  };
-
   // Get items based on current talent type
   const getUnifiedItems = () => {
     const items = [];
 
-    if (talentType === 'ambassador') {
-      // Show only bookings (brand ambassadors)
-      bookings.forEach(booking => {
-        items.push({
-          ...booking,
-          itemType: 'booking',
-          sortDate: booking.event_date
-        });
+    // Show only bookings (brand ambassadors)
+    bookings.forEach(booking => {
+      items.push({
+        ...booking,
+        itemType: 'booking',
+        sortDate: booking.event_date
       });
-    } else {
-      // Show only engagements (account managers)
-      engagements.forEach(engagement => {
-        items.push({
-          ...engagement,
-          itemType: 'engagement',
-          sortDate: engagement.start_date
-        });
-      });
-    }
+    });
 
     // Sort by date (most recent first)
     return items.sort((a, b) => new Date(b.sortDate) - new Date(a.sortDate));
@@ -469,15 +373,13 @@ Status: Cancelled`;
         </div>
       </div>
 
-      {(bookings.length === 0 && engagements.length === 0) ? (
+      {bookings.length === 0 ? (
         <div className="empty-state">
           <div className="empty-icon">📅</div>
-          <h2>No bookings or engagements yet</h2>
+          <h2>No bookings yet</h2>
           <p>
             {isBrand
-              ? 'Create bookings and engagements from the Matches page!'
-              : isAccountManager
-              ? 'Brand engagements will appear here when assigned.'
+              ? 'Create bookings from the Matches page!'
               : 'Brands will send you booking requests.'}
           </p>
         </div>
@@ -662,157 +564,6 @@ Status: Cancelled`;
           {/* List View */}
           {viewMode === 'list' && (
             <>
-              {/* Account Manager Section - Show at top for brands */}
-              {isBrand && engagements.length > 0 && (
-                <div className="account-manager-section">
-                  <h2 className="section-title">Your Account Manager{engagements.length > 1 ? 's' : ''}</h2>
-                  {engagements.map((engagement) => (
-                    <div key={engagement.id} className={`account-manager-card ${engagement.status}`}>
-                      <img
-                        src={engagement.account_manager_photo || 'https://via.placeholder.com/80'}
-                        alt={engagement.account_manager_name}
-                        className="am-photo"
-                      />
-                      <div className="am-info">
-                        <h3>
-                          {engagement.account_manager_name}
-                          {engagement.status === 'pending' && (
-                            <span className="pending-badge"> (Pending Acceptance)</span>
-                          )}
-                        </h3>
-                        <div className="engagement-details">
-                          <div className="engagement-detail">
-                            <span className="detail-icon">💰</span>
-                            <span>${engagement.monthly_rate.toLocaleString()}/month</span>
-                          </div>
-                          <div className="engagement-detail">
-                            <span className="detail-icon">📅</span>
-                            <span>
-                              {engagement.status === 'active' && `Active since ${new Date(engagement.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`}
-                              {engagement.status === 'pending' && `Starts ${new Date(engagement.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`}
-                              {engagement.status === 'paused' && `Paused (started ${new Date(engagement.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })})`}
-                              {engagement.status === 'ended' && `Started ${new Date(engagement.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`}
-                            </span>
-                          </div>
-                          {engagement.end_date && (
-                            <div className="engagement-detail">
-                              <span className="detail-icon">🏁</span>
-                              <span>Ends {new Date(engagement.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                            </div>
-                          )}
-                          {engagement.notes && (
-                            <div className="engagement-detail scope-of-work">
-                              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
-                                <span className="detail-icon">📝</span>
-                                <span className="scope-label">Scope of Work:</span>
-                              </div>
-                              <span className="scope-text">{engagement.notes}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Brand Assignments Section - Show at top for account managers */}
-              {isAccountManager && engagements.length > 0 && (
-                <div className="account-manager-section">
-                  <h2 className="section-title">Account Management: Brands</h2>
-                  {engagements.map((engagement) => (
-                    <div key={engagement.id} className={`account-manager-card ${engagement.status}`}>
-                      <img
-                        src={engagement.company_logo || engagement.brand_photo || 'https://via.placeholder.com/80'}
-                        alt={engagement.company_name || engagement.brand_name}
-                        className="am-photo"
-                      />
-                      <div className="am-info">
-                        <h3>{engagement.company_name || engagement.brand_name}</h3>
-                        <div className="engagement-details">
-                          <div className="engagement-detail">
-                            <span className="detail-icon">💰</span>
-                            <span>${engagement.monthly_rate.toLocaleString()}/month</span>
-                          </div>
-                          <div className="engagement-detail">
-                            <span className="detail-icon">📅</span>
-                            <span>
-                              {engagement.status === 'active' && `Active since ${new Date(engagement.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`}
-                              {engagement.status === 'pending' && `Starts ${new Date(engagement.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`}
-                              {engagement.status === 'paused' && `Paused (started ${new Date(engagement.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })})`}
-                              {engagement.status === 'ended' && `Started ${new Date(engagement.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`}
-                            </span>
-                          </div>
-                          {engagement.end_date && (
-                            <div className="engagement-detail">
-                              <span className="detail-icon">🏁</span>
-                              <span>Ends {new Date(engagement.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                            </div>
-                          )}
-                          {engagement.notes && (
-                            <div className="engagement-detail scope-of-work">
-                              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
-                                <span className="detail-icon">📝</span>
-                                <span className="scope-label">Scope of Work:</span>
-                              </div>
-                              <span className="scope-text">{engagement.notes}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      {engagement.status === 'pending' && (
-                        <div className="engagement-actions">
-                          <button
-                            className="action-btn decline-btn"
-                            onClick={() => handleDeclineEngagement(engagement.id)}
-                          >
-                            Decline
-                          </button>
-                          <button
-                            className="action-btn confirm-btn"
-                            onClick={() => handleAcceptEngagement(engagement.id)}
-                          >
-                            Accept
-                          </button>
-                        </div>
-                      )}
-                      {engagement.status === 'active' && (
-                        <div className="engagement-actions">
-                          <button
-                            className="action-btn secondary-btn"
-                            onClick={() => handlePauseEngagement(engagement.id)}
-                          >
-                            Pause
-                          </button>
-                          <button
-                            className="action-btn cancel-btn"
-                            onClick={() => openEndModal(engagement)}
-                          >
-                            End
-                          </button>
-                        </div>
-                      )}
-                      {engagement.status === 'paused' && (
-                        <div className="engagement-actions">
-                          <button
-                            className="action-btn confirm-btn"
-                            onClick={() => handleResumeEngagement(engagement.id)}
-                          >
-                            Resume
-                          </button>
-                          <button
-                            className="action-btn cancel-btn"
-                            onClick={() => openEndModal(engagement)}
-                          >
-                            End
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-
               {/* Items List */}
               {isBrand && bookings.length > 0 && (
                 <h2 className="section-title">Brand Ambassadors</h2>
@@ -821,20 +572,13 @@ Status: Cancelled`;
               {filteredItems.length === 0 ? (
                 <div className="empty-state">
                   <div className="empty-icon">📅</div>
-                  <h2>
-                    {talentType === 'ambassador' ? 'No bookings yet' : 'No engagements yet'}
-                  </h2>
-                  <p>
-                    {talentType === 'ambassador'
-                      ? 'Your bookings with brand ambassadors will appear here'
-                      : 'Your engagements with account managers will appear here'}
-                  </p>
+                  <h2>No bookings yet</h2>
+                  <p>Your bookings with brand ambassadors will appear here</p>
                 </div>
               ) : (
                 <div className="bookings-grid">
                   {filteredItems.map((item) => {
                     const isBooking = item.itemType === 'booking';
-                    const isEngagement = item.itemType === 'engagement';
 
                     return (
                       <div
@@ -943,73 +687,33 @@ Status: Cancelled`;
 
                         {/* Actions */}
                         <div className="booking-actions">
-                          {isBooking ? (
+                          {item.status === 'pending' && isAmbassador && (
                             <>
-                              {item.status === 'pending' && isAmbassador && (
-                                <>
-                                  <button className="action-btn decline-btn" onClick={() => handleDecline(item)}>
-                                    Decline
-                                  </button>
-                                  <button className="action-btn confirm-btn" onClick={() => handleConfirm(item)}>
-                                    Confirm
-                                  </button>
-                                </>
-                              )}
-                              {item.status === 'pending' && isBrand && (
-                                <button className="action-btn cancel-btn" onClick={() => handleCancel(item)}>
-                                  Cancel Request
-                                </button>
-                              )}
-                              {item.status === 'confirmed' && (
-                                <button className="action-btn cancel-btn" onClick={() => handleCancel(item)}>
-                                  Cancel Booking
-                                </button>
-                              )}
-                              {item.status === 'completed' && !bookingReviews[item.id] && (
-                                <button className="action-btn review-btn" onClick={() => handleOpenReview(item)}>
-                                  Leave Review
-                                </button>
-                              )}
-                              {item.status === 'completed' && bookingReviews[item.id] && (
-                                <span className="reviewed-badge">✓ Reviewed</span>
-                              )}
+                              <button className="action-btn decline-btn" onClick={() => handleDecline(item)}>
+                                Decline
+                              </button>
+                              <button className="action-btn confirm-btn" onClick={() => handleConfirm(item)}>
+                                Confirm
+                              </button>
                             </>
-                          ) : (
-                            <>
-                              {item.status === 'pending' && isAccountManager && (
-                                <>
-                                  <button className="action-btn decline-btn" onClick={() => handleDeclineEngagement(item.id)}>
-                                    Decline
-                                  </button>
-                                  <button className="action-btn confirm-btn" onClick={() => handleAcceptEngagement(item.id)}>
-                                    Accept
-                                  </button>
-                                </>
-                              )}
-                              {item.status === 'pending' && !isAccountManager && (
-                                <span className="pending-text">Awaiting acceptance</span>
-                              )}
-                              {item.status === 'active' && (
-                                <>
-                                  <button className="action-btn secondary-btn" onClick={() => handlePauseEngagement(item.id)}>
-                                    Pause
-                                  </button>
-                                  <button className="action-btn cancel-btn" onClick={() => openEndModal(item)}>
-                                    End
-                                  </button>
-                                </>
-                              )}
-                              {item.status === 'paused' && (
-                                <>
-                                  <button className="action-btn confirm-btn" onClick={() => handleResumeEngagement(item.id)}>
-                                    Resume
-                                  </button>
-                                  <button className="action-btn cancel-btn" onClick={() => openEndModal(item)}>
-                                    End
-                                  </button>
-                                </>
-                              )}
-                            </>
+                          )}
+                          {item.status === 'pending' && isBrand && (
+                            <button className="action-btn cancel-btn" onClick={() => handleCancel(item)}>
+                              Cancel Request
+                            </button>
+                          )}
+                          {item.status === 'confirmed' && (
+                            <button className="action-btn cancel-btn" onClick={() => handleCancel(item)}>
+                              Cancel Booking
+                            </button>
+                          )}
+                          {item.status === 'completed' && !bookingReviews[item.id] && (
+                            <button className="action-btn review-btn" onClick={() => handleOpenReview(item)}>
+                              Leave Review
+                            </button>
+                          )}
+                          {item.status === 'completed' && bookingReviews[item.id] && (
+                            <span className="reviewed-badge">✓ Reviewed</span>
                           )}
                         </div>
 

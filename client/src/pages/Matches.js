@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { matchAPI, likeAPI, bookingAPI, messageAPI, engagementAPI } from '../services/api';
+import { matchAPI, likeAPI, bookingAPI, messageAPI } from '../services/api';
 import { getPhotoUrl } from '../services/upload';
 import DisplayName from '../components/DisplayName';
 import BookingModal from '../components/BookingModal';
-import EngagementModal from '../components/EngagementModal';
 import BrandAvatar from '../components/BrandAvatar';
 import './Matches.css';
 
@@ -13,12 +12,9 @@ const Matches = () => {
   const { isAmbassador, isBrand, isAccountManager, demoMode, user } = useAuth();
   const [matches, setMatches] = useState([]);
   const [likes, setLikes] = useState([]);
-  const [engagements, setEngagements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [bookingAmbassador, setBookingAmbassador] = useState(null);
-  const [engagementAccountManager, setEngagementAccountManager] = useState(null);
   const [showBookingSuccess, setShowBookingSuccess] = useState(false);
-  const [showEngagementSuccess, setShowEngagementSuccess] = useState(false);
   const [bookingAutoConfirmed, setBookingAutoConfirmed] = useState(false);
   const navigate = useNavigate();
 
@@ -30,21 +26,6 @@ const Matches = () => {
       if (isAmbassador) {
         const likesResponse = await likeAPI.getReceivedLikes();
         setLikes(likesResponse.data.likes);
-      }
-
-      // Fetch engagements for brands and account managers
-      if (isBrand || isAccountManager) {
-        try {
-          const engagementsResponse = await engagementAPI.getEngagements();
-          // Filter for active engagements only
-          const activeEngagements = engagementsResponse.data.engagements.filter(
-            engagement => engagement.status === 'active'
-          );
-          setEngagements(activeEngagements);
-        } catch (error) {
-          console.error('Failed to fetch engagements:', error);
-          // Don't fail the whole page if engagements fail to load
-        }
       }
     } catch (error) {
       console.error('Failed to fetch data:', error);
@@ -170,53 +151,6 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
 
       // Check if we have a specific error message from the backend
       const errorMessage = error.response?.data?.error || 'Failed to create booking. Please try again.';
-      alert(errorMessage);
-    }
-  };
-
-  const handleEngagementSubmit = async (engagementData) => {
-    try {
-      // Find the match for this account manager
-      const match = matches.find(m => m.user_id === engagementData.accountManagerId);
-
-      if (!match) {
-        alert('Error: Could not find match. Please try again.');
-        return;
-      }
-
-      // Create engagement in database
-      const engagementPayload = {
-        matchId: match.match_id,
-        accountManagerId: engagementData.accountManagerId,
-        monthlyRate: engagementData.monthlyRate,
-        startDate: engagementData.startDate,
-        notes: engagementData.notes,
-      };
-
-      await engagementAPI.createEngagement(engagementPayload);
-
-      // Send a message in the chat with engagement details
-      const engagementMessage = `💼 New Engagement Request
-
-Monthly Retainer: $${engagementData.monthlyRate.toLocaleString()}/month
-Start Date: ${new Date(engagementData.startDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-${engagementData.notes ? `\nScope of Work: ${engagementData.notes}` : ''}
-
-Status: Pending your acceptance`;
-
-      await messageAPI.createMessage(match.match_id, engagementMessage);
-
-      // Close modal and show success
-      setEngagementAccountManager(null);
-      setShowEngagementSuccess(true);
-
-      // Refresh data to show updated engagement status
-      await fetchData();
-    } catch (error) {
-      console.error('Failed to create engagement:', error);
-
-      // Check if we have a specific error message from the backend
-      const errorMessage = error.response?.data?.error || 'Failed to create engagement. Please try again.';
       alert(errorMessage);
     }
   };
@@ -348,31 +282,20 @@ Status: Pending your acceptance`;
                         Message
                       </button>
 
-                      {/* Booking/Engagement Creation for Brands */}
+                      {/* Booking Creation for Brands */}
                       {isBrand && (
                         <button
                           className="book-button-small"
                           onClick={(e) => {
                             e.stopPropagation();
-                            if (match.role === 'account_manager') {
-                              // Transform match object for EngagementModal
-                              setEngagementAccountManager({
-                                id: match.user_id,
-                                name: match.name,
-                                monthly_rate: match.monthly_rate,
-                                profile_photo: match.profile_photo,
-                                location: match.location,
-                              });
-                            } else {
-                              // Transform match object to ambassador format for BookingModal
-                              setBookingAmbassador({
-                                id: match.user_id,
-                                name: match.name,
-                                hourly_rate: match.hourly_rate,
-                                profile_photo: match.profile_photo,
-                                is_test: match.is_test,
-                              });
-                            }
+                            // Transform match object to ambassador format for BookingModal
+                            setBookingAmbassador({
+                              id: match.user_id,
+                              name: match.name,
+                              hourly_rate: match.hourly_rate,
+                              profile_photo: match.profile_photo,
+                              is_test: match.is_test,
+                            });
                           }}
                         >
                           Book Now
@@ -433,92 +356,6 @@ Status: Pending your acceptance`;
             </div>
           </>
         )}
-          {/* Show Engagements Section for Brands */}
-          {isBrand && engagements.length > 0 && (
-            <div className="engagements-section">
-              <h2 className="section-title">Your Account Manager</h2>
-              <div className="engagements-grid">
-                {engagements.map((engagement) => (
-                  <div key={engagement.id} className="engagement-card">
-                    <img
-                      src={engagement.account_manager_photo ? getPhotoUrl(engagement.account_manager_photo) : 'https://via.placeholder.com/200'}
-                      alt={engagement.account_manager_name}
-                      className="engagement-photo"
-                    />
-                    <div className="engagement-info">
-                      <h3>{engagement.account_manager_name}</h3>
-                      <p className="engagement-meta">Active since {new Date(engagement.start_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</p>
-                      <p className="engagement-rate">${engagement.monthly_rate.toLocaleString()}/month</p>
-                    </div>
-                    <div className="engagement-actions">
-                      <button
-                        className="message-button"
-                        onClick={() => {
-                          // Find the match for this engagement
-                          const match = matches.find(m => m.user_id === engagement.account_manager_id);
-                          if (match) {
-                            handleChatClick(match.match_id);
-                          } else if (engagement.match_id) {
-                            handleChatClick(engagement.match_id);
-                          }
-                        }}
-                      >
-                        Message
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Show Engagements Section for Account Managers */}
-          {isAccountManager && engagements.length > 0 && (
-            <div className="engagements-section">
-              <h2 className="section-title">Brand Clients</h2>
-              <div className="engagements-grid">
-                {engagements.map((engagement) => (
-                  <div key={engagement.id} className="engagement-card">
-                    <BrandAvatar
-                      companyLogo={engagement.company_logo}
-                      personPhoto={engagement.brand_photo}
-                      companyName={engagement.company_name || engagement.brand_name}
-                      personName={engagement.brand_name}
-                      size="large"
-                    />
-                    <div className="engagement-info">
-                      <h3>{engagement.company_name || engagement.brand_name}</h3>
-                      <p className="engagement-meta">Active since {new Date(engagement.start_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</p>
-                    </div>
-                    <div className="engagement-actions">
-                      <button
-                        className="message-button"
-                        onClick={() => {
-                          // Find the match for this engagement
-                          const match = matches.find(m => m.user_id === engagement.brand_id);
-                          if (match) {
-                            handleChatClick(match.match_id);
-                          } else if (engagement.match_id) {
-                            handleChatClick(engagement.match_id);
-                          }
-                        }}
-                      >
-                        Message
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Separator if there are engagements (brands only, not account managers) */}
-          {isBrand && engagements.length > 0 && matches.length > 0 && (
-            <div className="section-divider">
-              <h2 className="section-title">Your Matches</h2>
-            </div>
-          )}
-
           {matches.length === 0 && likes.length === 0 && (
             <div className="empty-state">
               <div className="empty-icon">🤝</div>
@@ -539,15 +376,6 @@ Status: Pending your acceptance`;
           ambassador={bookingAmbassador}
           onClose={() => setBookingAmbassador(null)}
           onSubmit={handleBookingSubmit}
-        />
-      )}
-
-      {/* Engagement Modal */}
-      {engagementAccountManager && (
-        <EngagementModal
-          accountManager={engagementAccountManager}
-          onClose={() => setEngagementAccountManager(null)}
-          onSubmit={handleEngagementSubmit}
         />
       )}
 
@@ -575,36 +403,6 @@ Status: Pending your acceptance`;
               <button
                 className="dismiss-button"
                 onClick={() => setShowBookingSuccess(false)}
-              >
-                Stay in Matches
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Engagement Success Modal */}
-      {showEngagementSuccess && (
-        <div className="booking-success-modal" onClick={() => setShowEngagementSuccess(false)}>
-          <div className="booking-success-content" onClick={(e) => e.stopPropagation()}>
-            <div className="booking-success-icon">💼</div>
-            <h2>Engagement Request Sent!</h2>
-            <p>
-              Your engagement request has been sent and is pending acceptance from the account manager. View in Calendar to track the status.
-            </p>
-            <div className="booking-success-actions">
-              <button
-                className="view-calendar-button"
-                onClick={() => {
-                  setShowEngagementSuccess(false);
-                  navigate('/calendar');
-                }}
-              >
-                View in Calendar
-              </button>
-              <button
-                className="dismiss-button"
-                onClick={() => setShowEngagementSuccess(false)}
               >
                 Stay in Matches
               </button>
