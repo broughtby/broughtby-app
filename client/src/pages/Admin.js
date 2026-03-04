@@ -184,7 +184,7 @@ const Admin = () => {
                           tooltip="Test/demo account for development purposes"
                         />
                         <StatusBadge
-                          label="Preview"
+                          label="Preview Brand"
                           active={user.status.isPreview}
                           tooltip="YC preview brand account for demonstrations"
                         />
