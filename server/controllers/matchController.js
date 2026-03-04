@@ -13,7 +13,7 @@ const getIo = () => {
 
 const createMatch = async (req, res) => {
   try {
-    const { brandId } = req.body;
+    const { brandId, demoMode } = req.body;
 
     // Only ambassadors and account managers can create matches (by accepting likes)
     if (req.user.role !== 'ambassador' && req.user.role !== 'account_manager') {
@@ -62,9 +62,12 @@ const createMatch = async (req, res) => {
     );
 
     if (ambassadorQuery.rows.length > 0) {
-      const ambassadorName = ambassadorQuery.rows[0].name;
+      const ambassadorFullName = ambassadorQuery.rows[0].name;
       const ambassadorRole = ambassadorQuery.rows[0].role;
       const isPreviewAmbassador = ambassadorQuery.rows[0].is_preview_ambassador;
+      // In demo mode, don't use any name to conceal identity
+      const isDemoMode = demoMode === true;
+      const greeting = isDemoMode ? 'Hey!' : `Hi ${ambassadorFullName}!`;
 
       // Get brand info for customized message
       const brandQuery = await db.query(
@@ -93,12 +96,12 @@ const createMatch = async (req, res) => {
       // Customize message based on role
       if (ambassadorRole === 'account_manager') {
         // Account manager welcome message
-        welcomeMessage = `Hi ${ambassadorName}! We have some account management needs for ${companyName}. Interested?`;
+        welcomeMessage = `${greeting} We have some account management needs for ${companyName}. Interested?`;
       } else {
         // Regular ambassador welcome message - customize for YC Buzz preview account
         welcomeMessage = brandEmail === 'yc@broughtby.co'
-          ? `Hi ${ambassadorName}! We're launching a new coffee brand for founders and want to do a series of coffee events this spring and summer in chicago. I think you could be a good fit. Interested?`
-          : `Hi ${ambassadorName}! We want to do a series of events this spring and summer in chicago. I think you could be a good fit. Interested?`;
+          ? `${greeting} We're launching a new coffee brand for founders and want to do a series of coffee events this spring and summer in chicago. I think you could be a good fit. Interested?`
+          : `${greeting} We want to do a series of events this spring and summer in chicago. I think you could be a good fit. Interested?`;
       }
 
       // Insert the welcome message into the messages table
