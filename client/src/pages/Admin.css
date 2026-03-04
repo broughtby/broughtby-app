@@ -369,6 +369,144 @@ tbody tr:hover {
   border-radius: 6px;
 }
 
+/* User Status Section */
+.user-status-section {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.section-header h2 {
+  color: var(--navy);
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+/* Role Filter Buttons */
+.role-filter {
+  display: flex;
+  gap: 0.5rem;
+  background-color: var(--light-gray);
+  padding: 0.25rem;
+  border-radius: 8px;
+}
+
+.role-filter button {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: transparent;
+  color: var(--dark-gray);
+  font-weight: 600;
+  font-size: 0.9rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.role-filter button:hover {
+  background-color: white;
+  color: var(--navy);
+}
+
+.role-filter button.active {
+  background-color: var(--navy);
+  color: white;
+  box-shadow: 0 2px 4px rgba(10, 37, 64, 0.2);
+}
+
+/* Users Table */
+.users-table-container {
+  overflow-x: auto;
+}
+
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.users-table thead {
+  background-color: var(--light-gray);
+}
+
+.users-table th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: var(--navy);
+  border-bottom: 2px solid var(--medium-gray);
+}
+
+.users-table td {
+  padding: 1rem;
+  border-bottom: 1px solid var(--medium-gray);
+  vertical-align: middle;
+}
+
+.users-table tbody tr:hover {
+  background-color: var(--light-gray);
+}
+
+.company-name {
+  font-size: 0.875rem;
+  color: var(--dark-gray);
+  margin-top: 0.25rem;
+}
+
+/* Role Badge */
+.role-badge {
+  display: inline-block;
+  padding: 0.4rem 0.8rem;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.role-brand {
+  background-color: #DBEAFE;
+  color: #1E40AF;
+}
+
+.role-ambassador {
+  background-color: #FEF3C7;
+  color: #92400E;
+}
+
+/* Status Flags */
+.status-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.status-flags .status-badge {
+  background-color: #F3F4F6;
+  color: #374151;
+  padding: 0.35rem 0.7rem;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: help;
+  transition: all 0.2s;
+}
+
+.status-flags .status-badge:hover {
+  background-color: var(--navy);
+  color: white;
+  transform: translateY(-1px);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .admin-header {
@@ -409,5 +547,20 @@ tbody tr:hover {
 
   .btn-small {
     width: 100%;
+  }
+
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .role-filter {
+    width: 100%;
+  }
+
+  .role-filter button {
+    flex: 1;
+    font-size: 0.8rem;
+    padding: 0.5rem;
   }
 }

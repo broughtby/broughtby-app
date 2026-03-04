@@ -73,6 +73,7 @@ export const bookingAPI = {
 // Admin endpoints
 export const adminAPI = {
   searchUsers: (query) => api.get('/admin/users/search', { params: { q: query } }),
+  getAllUsersWithStatus: (role) => api.get('/admin/users/status', { params: { role } }),
   impersonateUser: (userId) => api.post('/admin/impersonate', { userId }),
   stopImpersonation: () => api.post('/admin/stop-impersonation'),
   resetDemoData: (targetUserId) => api.post('/admin/reset-demo-data', { targetUserId }),

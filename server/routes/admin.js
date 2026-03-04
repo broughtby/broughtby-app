@@ -10,6 +10,9 @@ router.use(requireAdmin);
 // Search users by email or name
 router.get('/users/search', adminController.searchUsers);
 
+// Get all users with status information
+router.get('/users/status', adminController.getAllUsersWithStatus);
+
 // Impersonate a user
 router.post('/impersonate', adminController.impersonateUser);
 
