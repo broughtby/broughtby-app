@@ -1,3 +1,4 @@
+// Admin dashboard with user status overview
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { adminAPI } from '../services/api';
