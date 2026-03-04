@@ -89,17 +89,18 @@ const createLike = async (req, res) => {
       // Get brand company name
       const brandCompanyName = brand.company_name || brand.name;
 
-      // In demo mode, only use first name for privacy
-      const ambassadorDisplayName = demoMode === true ? ambassador.name.split(' ')[0] : ambassador.name;
+      // In demo mode, don't use any name to conceal identity
+      const isDemoMode = demoMode === true;
+      const greeting = isDemoMode ? 'Hey!' : `Hi ${ambassador.name}!`;
 
       if (ambassador.role === 'account_manager') {
         // Account manager welcome message
-        welcomeMessage = `Hi ${ambassadorDisplayName}! We have some account management needs for ${brandCompanyName}. Interested?`;
+        welcomeMessage = `${greeting} We have some account management needs for ${brandCompanyName}. Interested?`;
       } else {
         // Regular ambassador welcome message - customize for YC Buzz preview account
         welcomeMessage = brand.email === 'yc@broughtby.co'
-          ? `Hi ${ambassadorDisplayName}! We're launching a new coffee brand for founders and want to do a series of coffee events this spring and summer in chicago. I think you could be a good fit. Interested?`
-          : `Hi ${ambassadorDisplayName}! We want to do a series of events this spring and summer in chicago. I think you could be a good fit. Interested?`;
+          ? `${greeting} We're launching a new coffee brand for founders and want to do a series of coffee events this spring and summer in chicago. I think you could be a good fit. Interested?`
+          : `${greeting} We want to do a series of events this spring and summer in chicago. I think you could be a good fit. Interested?`;
       }
 
       await db.query(
