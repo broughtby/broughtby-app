@@ -18,8 +18,25 @@ import Admin from './pages/Admin';
 import SmsCampaigns from './pages/SmsCampaigns';
 import SmsCampaignForm from './pages/SmsCampaignForm';
 import SmsCampaignDetail from './pages/SmsCampaignDetail';
+import BrandSmsCampaigns from './pages/BrandSmsCampaigns';
+import BrandSmsCampaignDetail from './pages/BrandSmsCampaignDetail';
+import { useAuth } from './context/AuthContext';
 import Inquiries from './pages/Inquiries';
 import InquiryResponsesView from './pages/InquiryResponsesView';
+
+const SmsCampaignsRoleSwitch = () => {
+  const { isAdmin, user } = useAuth();
+  if (isAdmin) return <SmsCampaigns />;
+  if (user?.role === 'brand') return <BrandSmsCampaigns />;
+  return <Navigate to="/" />;
+};
+
+const SmsCampaignDetailRoleSwitch = () => {
+  const { isAdmin, user } = useAuth();
+  if (isAdmin) return <SmsCampaignDetail />;
+  if (user?.role === 'brand') return <BrandSmsCampaignDetail />;
+  return <Navigate to="/" />;
+};
 
 function App() {
   return (
@@ -133,7 +150,7 @@ function App() {
               path="/sms-campaigns"
               element={
                 <PrivateRoute>
-                  <SmsCampaigns />
+                  <SmsCampaignsRoleSwitch />
                 </PrivateRoute>
               }
             />
@@ -149,7 +166,7 @@ function App() {
               path="/sms-campaigns/:id"
               element={
                 <PrivateRoute>
-                  <SmsCampaignDetail />
+                  <SmsCampaignDetailRoleSwitch />
                 </PrivateRoute>
               }
             />

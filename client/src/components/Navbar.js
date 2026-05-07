@@ -145,8 +145,8 @@ const Navbar = () => {
                 </Link>
               )}
 
-              {/* SMS Campaigns Link - Only visible to admins */}
-              {isAdmin && (
+              {/* SMS Campaigns Link - Visible to admins and brand users */}
+              {(isAdmin || user?.role === 'brand') && (
                 <Link to="/sms-campaigns" className="nav-link admin-link" onClick={closeMobileMenu}>
                   SMS Campaigns
                 </Link>

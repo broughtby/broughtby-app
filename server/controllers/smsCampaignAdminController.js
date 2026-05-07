@@ -33,10 +33,33 @@ function csvEscape(value) {
   return str;
 }
 
+// Role-aware access helpers
+function isUserAdmin(req) {
+  return !!(req.user?.isAdmin || req.user?.isImpersonating);
+}
+
+// Returns { allowed: true } for admin, brand owner, otherwise { allowed: false }.
+async function checkCampaignAccess(req, campaignId) {
+  if (isUserAdmin(req)) return { allowed: true };
+  if (req.user?.role !== 'brand') return { allowed: false, code: 403 };
+  const r = await db.query('SELECT brand_id FROM campaigns WHERE id = $1', [campaignId]);
+  if (r.rows.length === 0) return { allowed: false, code: 404 };
+  if (r.rows[0].brand_id !== req.user.userId) return { allowed: false, code: 404 };
+  return { allowed: true };
+}
+
 // === Campaign CRUD ===
 
 const listCampaigns = async (req, res) => {
   try {
+    const isAdmin = isUserAdmin(req);
+    if (!isAdmin && req.user?.role !== 'brand') {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    const where = isAdmin ? '' : 'WHERE c.brand_id = $1';
+    const params = isAdmin ? [] : [req.user.userId];
+
     const result = await db.query(
       `SELECT c.*,
               u.name AS brand_name,
@@ -58,8 +81,9 @@ const listCampaigns = async (req, res) => {
          FROM coupons
          GROUP BY campaign_id
        ) p ON p.campaign_id = c.id
+       ${where}
        ORDER BY c.created_at DESC`,
-      []
+      params
     );
 
     res.json({ campaigns: result.rows });
@@ -72,6 +96,10 @@ const listCampaigns = async (req, res) => {
 const getCampaign = async (req, res) => {
   try {
     const { id } = req.params;
+    const access = await checkCampaignAccess(req, id);
+    if (!access.allowed) {
+      return res.status(access.code).json({ error: access.code === 404 ? 'Campaign not found' : 'Access denied' });
+    }
 
     const campaignResult = await db.query(
       `SELECT c.*,
@@ -176,6 +204,10 @@ const updateCampaign = async (req, res) => {
 const listSubmissions = async (req, res) => {
   try {
     const { id } = req.params;
+    const access = await checkCampaignAccess(req, id);
+    if (!access.allowed) {
+      return res.status(access.code).json({ error: access.code === 404 ? 'Campaign not found' : 'Access denied' });
+    }
     const limit = Math.min(parseInt(req.query.limit, 10) || 500, 2000);
 
     const result = await db.query(
@@ -200,6 +232,10 @@ const listSubmissions = async (req, res) => {
 const exportSubmissionsCsv = async (req, res) => {
   try {
     const { id } = req.params;
+    const access = await checkCampaignAccess(req, id);
+    if (!access.allowed) {
+      return res.status(access.code).json({ error: access.code === 404 ? 'Campaign not found' : 'Access denied' });
+    }
 
     const campaignResult = await db.query(
       `SELECT name, event_code FROM campaigns WHERE id = $1`,
@@ -311,6 +347,10 @@ const uploadCoupons = async (req, res) => {
 const getCouponPool = async (req, res) => {
   try {
     const { id } = req.params;
+    const access = await checkCampaignAccess(req, id);
+    if (!access.allowed) {
+      return res.status(access.code).json({ error: access.code === 404 ? 'Campaign not found' : 'Access denied' });
+    }
     const result = await db.query(
       `SELECT COUNT(*) AS total,
               COUNT(*) FILTER (WHERE status = 'available') AS available,
