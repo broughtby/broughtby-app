@@ -23,6 +23,7 @@ const previewRoutes = require('./routes/previewRoutes');
 const engagementRoutes = require('./routes/engagements');
 const inquiryRoutes = require('./routes/inquiries');
 const smsCampaignRoutes = require('./routes/smsCampaigns');
+const adminSmsCampaignRoutes = require('./routes/adminSmsCampaigns');
 
 const app = express();
 const server = http.createServer(app);
@@ -83,6 +84,7 @@ app.use('/api/preview', previewRoutes);
 app.use('/api/engagements', engagementRoutes);
 app.use('/api/inquiries', inquiryRoutes);
 app.use('/api/sms', smsCampaignRoutes);
+app.use('/api/sms-campaigns', adminSmsCampaignRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
