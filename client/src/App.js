@@ -17,6 +17,7 @@ import Calendar from './pages/Calendar';
 import Admin from './pages/Admin';
 import SmsCampaigns from './pages/SmsCampaigns';
 import SmsCampaignForm from './pages/SmsCampaignForm';
+import SmsCampaignDetail from './pages/SmsCampaignDetail';
 import Inquiries from './pages/Inquiries';
 import InquiryResponsesView from './pages/InquiryResponsesView';
 
@@ -141,6 +142,14 @@ function App() {
               element={
                 <PrivateRoute>
                   <SmsCampaignForm />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/sms-campaigns/:id"
+              element={
+                <PrivateRoute>
+                  <SmsCampaignDetail />
                 </PrivateRoute>
               }
             />

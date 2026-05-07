@@ -91,7 +91,7 @@ const SmsCampaigns = () => {
             </thead>
             <tbody>
               {campaigns.map((c) => (
-                <tr key={c.id} onClick={() => navigate(`/sms-campaigns/${c.id}/edit`)}>
+                <tr key={c.id} onClick={() => navigate(`/sms-campaigns/${c.id}`)}>
                   <td>
                     <div className="strong">{c.name}</div>
                     <div className="muted" style={{ fontSize: '0.825rem' }}>

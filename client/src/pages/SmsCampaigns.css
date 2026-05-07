@@ -349,6 +349,185 @@
   font-size: 0.85rem;
 }
 
+/* Stats grid (campaign detail) */
+.sms-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.sms-stat-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08);
+  padding: 1.25rem;
+}
+
+.sms-stat-card.accent {
+  border-left: 4px solid var(--gold);
+}
+
+.sms-stat-label {
+  font-size: 0.78rem;
+  color: var(--dark-gray);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.sms-stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--navy);
+  line-height: 1;
+  margin-bottom: 0.25rem;
+}
+
+.sms-stat-value.small {
+  font-size: 1.25rem;
+  padding-top: 0.5rem;
+}
+
+.sms-stat-sub {
+  font-size: 0.825rem;
+  color: var(--dark-gray);
+}
+
+/* Coupon pool bar */
+.sms-pool-bar {
+  background: var(--medium-gray);
+  height: 12px;
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 0.75rem 0;
+}
+
+.sms-pool-fill {
+  background: linear-gradient(90deg, var(--navy), var(--gold));
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.sms-pool-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.875rem;
+  color: var(--dark-gray);
+}
+
+.sms-pool-meta strong {
+  color: var(--navy);
+}
+
+/* Photo gallery */
+.sms-photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.sms-photo-card {
+  aspect-ratio: 1;
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+  background: var(--medium-gray);
+  cursor: pointer;
+  transition: transform 0.15s;
+  display: block;
+  text-decoration: none;
+}
+
+.sms-photo-card:hover {
+  transform: scale(1.02);
+}
+
+.sms-photo-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.sms-photo-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--dark-gray);
+  font-size: 0.825rem;
+  background: var(--light-gray);
+}
+
+.sms-photo-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(transparent, rgba(0,0,0,0.85));
+  color: white;
+  padding: 1.5rem 0.75rem 0.6rem;
+  font-size: 0.78rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.sms-photo-overlay .phone {
+  font-weight: 500;
+}
+
+.sms-photo-overlay .code-pill {
+  background: var(--gold);
+  color: var(--navy);
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 0.72rem;
+  font-family: 'Menlo', monospace;
+}
+
+/* Tabs */
+.sms-tabs {
+  display: flex;
+  gap: 0.25rem;
+  background: var(--light-gray);
+  padding: 0.25rem;
+  border-radius: 8px;
+  width: fit-content;
+}
+
+.sms-tabs button {
+  padding: 0.45rem 1rem;
+  border: none;
+  background: transparent;
+  color: var(--dark-gray);
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.sms-tabs button.active {
+  background: white;
+  color: var(--navy);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.sms-flex {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.sms-flex .spacer {
+  flex: 1;
+}
+
 @media (max-width: 768px) {
   .sms-form-row {
     grid-template-columns: 1fr;
