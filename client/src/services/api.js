@@ -95,6 +95,19 @@ export const previewAPI = {
   generateEventDetails: () => api.post('/preview/generate-event-details'),
 };
 
+// SMS Campaign endpoints (admin only)
+export const smsCampaignAPI = {
+  list: () => api.get('/sms-campaigns'),
+  create: (data) => api.post('/sms-campaigns', data),
+  get: (id) => api.get(`/sms-campaigns/${id}`),
+  update: (id, data) => api.patch(`/sms-campaigns/${id}`, data),
+  listSubmissions: (id, params) => api.get(`/sms-campaigns/${id}/submissions`, { params }),
+  exportCsvUrl: (id) => `${API_URL}/sms-campaigns/${id}/export`,
+  getCouponPool: (id) => api.get(`/sms-campaigns/${id}/coupons`),
+  uploadCoupons: (id, codes) => api.post(`/sms-campaigns/${id}/coupons`, { codes }),
+  manualAssign: (id, data) => api.post(`/sms-campaigns/${id}/manual-assign`, data),
+};
+
 // Inquiry endpoints (broadcast availability checks)
 export const inquiryAPI = {
   createInquiry: (data) => api.post('/inquiries', data),

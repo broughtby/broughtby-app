@@ -15,6 +15,8 @@ import Chat from './pages/Chat';
 import Profile from './pages/Profile';
 import Calendar from './pages/Calendar';
 import Admin from './pages/Admin';
+import SmsCampaigns from './pages/SmsCampaigns';
+import SmsCampaignForm from './pages/SmsCampaignForm';
 import Inquiries from './pages/Inquiries';
 import InquiryResponsesView from './pages/InquiryResponsesView';
 
@@ -122,6 +124,31 @@ function App() {
               element={
                 <PrivateRoute>
                   <Admin />
+                </PrivateRoute>
+              }
+            />
+
+            <Route
+              path="/sms-campaigns"
+              element={
+                <PrivateRoute>
+                  <SmsCampaigns />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/sms-campaigns/new"
+              element={
+                <PrivateRoute>
+                  <SmsCampaignForm />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/sms-campaigns/:id/edit"
+              element={
+                <PrivateRoute>
+                  <SmsCampaignForm />
                 </PrivateRoute>
               }
             />
