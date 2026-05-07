@@ -665,6 +665,112 @@ const migrations = [
     ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check;
     ALTER TABLE users ADD CONSTRAINT users_role_check CHECK (role IN ('brand', 'ambassador'));
   `,
+
+  // ==================== PHOTO-TO-COUPON FEATURE ====================
+
+  // Create campaigns table
+  `
+    CREATE TABLE IF NOT EXISTS campaigns (
+      id SERIAL PRIMARY KEY,
+      brand_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      name VARCHAR(255) NOT NULL,
+      event_code VARCHAR(50) NOT NULL,
+      event_venue VARCHAR(255),
+      twilio_number VARCHAR(20) NOT NULL,
+      active_start TIMESTAMP,
+      active_end TIMESTAMP,
+      reply_message_template TEXT,
+      consent_message_template TEXT,
+      already_claimed_message_template TEXT,
+      out_of_codes_message_template TEXT,
+      status VARCHAR(20) DEFAULT 'draft',
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      CHECK (status IN ('draft', 'active', 'paused', 'ended'))
+    );
+  `,
+
+  `
+    CREATE INDEX IF NOT EXISTS idx_campaigns_brand ON campaigns(brand_id);
+  `,
+  `
+    CREATE INDEX IF NOT EXISTS idx_campaigns_twilio_number ON campaigns(twilio_number);
+  `,
+  `
+    CREATE INDEX IF NOT EXISTS idx_campaigns_status ON campaigns(status);
+  `,
+
+  // Create coupons table (submission_id FK added later — circular ref with photo_submissions)
+  `
+    CREATE TABLE IF NOT EXISTS coupons (
+      id SERIAL PRIMARY KEY,
+      campaign_id INTEGER NOT NULL REFERENCES campaigns(id),
+      code VARCHAR(100) NOT NULL,
+      status VARCHAR(20) DEFAULT 'available',
+      submission_id INTEGER,
+      assigned_at TIMESTAMP,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(code),
+      CHECK (status IN ('available', 'assigned'))
+    );
+  `,
+
+  `
+    CREATE INDEX IF NOT EXISTS idx_coupons_campaign ON coupons(campaign_id);
+  `,
+  `
+    CREATE INDEX IF NOT EXISTS idx_coupons_status ON coupons(status);
+  `,
+
+  // Create photo_submissions table
+  `
+    CREATE TABLE IF NOT EXISTS photo_submissions (
+      id SERIAL PRIMARY KEY,
+      campaign_id INTEGER NOT NULL REFERENCES campaigns(id),
+      phone_number VARCHAR(20) NOT NULL,
+      twilio_message_sid VARCHAR(50) NOT NULL,
+      media_url VARCHAR(500),
+      coupon_id INTEGER REFERENCES coupons(id) ON DELETE SET NULL,
+      submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      replied_at TIMESTAMP,
+      UNIQUE(campaign_id, phone_number)
+    );
+  `,
+
+  `
+    CREATE INDEX IF NOT EXISTS idx_photo_submissions_campaign ON photo_submissions(campaign_id);
+  `,
+  `
+    CREATE INDEX IF NOT EXISTS idx_photo_submissions_phone ON photo_submissions(phone_number);
+  `,
+  `
+    CREATE INDEX IF NOT EXISTS idx_photo_submissions_coupon ON photo_submissions(coupon_id);
+  `,
+
+  // Add coupons.submission_id FK now that photo_submissions exists
+  `
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM information_schema.table_constraints
+        WHERE constraint_name = 'coupons_submission_id_fkey'
+          AND table_name = 'coupons'
+      ) THEN
+        ALTER TABLE coupons
+          ADD CONSTRAINT coupons_submission_id_fkey
+          FOREIGN KEY (submission_id) REFERENCES photo_submissions(id) ON DELETE SET NULL;
+      END IF;
+    END $$;
+  `,
+
+  // Create phone_consent table
+  `
+    CREATE TABLE IF NOT EXISTS phone_consent (
+      phone_number VARCHAR(20) PRIMARY KEY,
+      first_consent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      terms_version VARCHAR(20)
+    );
+  `,
 ];
 
 async function runMigrations() {
