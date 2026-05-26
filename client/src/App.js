@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import ImpersonationBanner from './components/ImpersonationBanner';
@@ -20,6 +20,7 @@ import SmsCampaignForm from './pages/SmsCampaignForm';
 import SmsCampaignDetail from './pages/SmsCampaignDetail';
 import BrandSmsCampaigns from './pages/BrandSmsCampaigns';
 import BrandSmsCampaignDetail from './pages/BrandSmsCampaignDetail';
+import PublicSubmission from './pages/PublicSubmission';
 import { useAuth } from './context/AuthContext';
 import Inquiries from './pages/Inquiries';
 import InquiryResponsesView from './pages/InquiryResponsesView';
@@ -38,13 +39,27 @@ const SmsCampaignDetailRoleSwitch = () => {
   return <Navigate to="/" />;
 };
 
+// Routes that should render full-screen without the BroughtBy navbar
+// (public landing pages for event attendees).
+function AppChrome({ children }) {
+  const location = useLocation();
+  const isPublicLanding = location.pathname.startsWith('/c/');
+  if (isPublicLanding) return children;
+  return (
+    <>
+      <Navbar />
+      <ImpersonationBanner />
+      {children}
+    </>
+  );
+}
+
 function App() {
   return (
     <AuthProvider>
       <Router>
         <div className="App">
-          <Navbar />
-          <ImpersonationBanner />
+          <AppChrome>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
@@ -179,8 +194,11 @@ function App() {
               }
             />
 
+            <Route path="/c/:eventCode" element={<PublicSubmission />} />
+
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
+          </AppChrome>
         </div>
       </Router>
     </AuthProvider>
