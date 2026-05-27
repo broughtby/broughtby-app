@@ -237,7 +237,6 @@ const PublicSubmission = () => {
               type="file"
               accept="image/*"
               multiple
-              capture="environment"
               style={{ display: 'none' }}
               onChange={handleFilesChange}
             />
