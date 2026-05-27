@@ -137,8 +137,8 @@ const createCampaign = async (req, res) => {
   try {
     const body = req.body || {};
 
-    if (!body.brand_id || !body.name || !body.event_code || !body.twilio_number) {
-      return res.status(400).json({ error: 'brand_id, name, event_code, and twilio_number are required' });
+    if (!body.brand_id || !body.name || !body.event_code) {
+      return res.status(400).json({ error: 'brand_id, name, and event_code are required' });
     }
     if (body.status && !VALID_STATUSES.includes(body.status)) {
       return res.status(400).json({ error: `status must be one of ${VALID_STATUSES.join(', ')}` });

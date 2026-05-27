@@ -118,8 +118,8 @@ const SmsCampaignForm = () => {
   const handleSave = async (newStatus) => {
     setError('');
     setSuccess('');
-    if (!form.brand_id || !form.name || !form.event_code || !form.twilio_number) {
-      setError('Brand, name, event code, and Twilio number are required.');
+    if (!form.brand_id || !form.name || !form.event_code) {
+      setError('Brand, name, and event code are required.');
       return;
     }
 
@@ -279,7 +279,7 @@ const SmsCampaignForm = () => {
         </div>
 
         <div className="sms-form-group">
-          <label>Twilio phone number *</label>
+          <label>Twilio phone number</label>
           <input
             type="tel"
             value={form.twilio_number}
@@ -287,7 +287,8 @@ const SmsCampaignForm = () => {
             placeholder="+15554102024"
           />
           <span className="helper-text">
-            E.164 format with leading <code>+</code> and country code. Inbound MMS to this number routes to this campaign.
+            Optional. Only needed for the SMS flow once Twilio A2P 10DLC is approved.
+            Public landing page campaigns (QR code based) don't need a number.
           </span>
         </div>
 

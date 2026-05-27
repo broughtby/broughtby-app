@@ -771,6 +771,12 @@ const migrations = [
       terms_version VARCHAR(20)
     );
   `,
+
+  // Make campaigns.twilio_number nullable — landing-page-only campaigns
+  // don't need an SMS number assigned.
+  `
+    ALTER TABLE campaigns ALTER COLUMN twilio_number DROP NOT NULL;
+  `,
 ];
 
 async function runMigrations() {
