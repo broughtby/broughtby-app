@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useLocation } from 'react-router-dom';
 import { smsCampaignAPI } from '../services/api';
 import './SmsCampaigns.css';
 
@@ -18,6 +18,10 @@ function StatusBadge({ status }) {
 
 const BrandSmsCampaignDetail = () => {
   const { id } = useParams();
+  const location = useLocation();
+  const isPhotosApp = location.pathname.startsWith('/photos');
+  const listPath = isPhotosApp ? '/photos/campaigns' : '/sms-campaigns';
+  const editPath = isPhotosApp ? `/photos/campaigns/${id}/edit` : `/sms-campaigns/${id}/edit`;
 
   const [campaign, setCampaign] = useState(null);
   const [stats, setStats] = useState({});
@@ -94,7 +98,7 @@ const BrandSmsCampaignDetail = () => {
   return (
     <div className="sms-campaigns-container">
       <div className="sms-breadcrumb">
-        <Link to="/sms-campaigns">SMS Campaigns</Link>
+        <Link to={listPath}>{isPhotosApp ? 'Campaigns' : 'SMS Campaigns'}</Link>
         <span className="sep">/</span>
         <span className="current">{campaign.name}</span>
       </div>
@@ -111,7 +115,10 @@ const BrandSmsCampaignDetail = () => {
           </p>
         </div>
         <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
-          <button onClick={handleExport} className="sms-btn sms-btn-secondary">Export CSV</button>
+          <button onClick={handleExport} className="sms-btn sms-btn-ghost">Export CSV</button>
+          {isPhotosApp && (
+            <Link to={editPath} className="sms-btn sms-btn-secondary">Edit campaign</Link>
+          )}
         </div>
       </div>
 

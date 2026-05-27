@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { smsCampaignAPI } from '../services/api';
 import './SmsCampaigns.css';
 
@@ -18,6 +18,9 @@ function StatusBadge({ status }) {
 
 const BrandSmsCampaigns = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isPhotosApp = location.pathname.startsWith('/photos');
+  const base = isPhotosApp ? '/photos/campaigns' : '/sms-campaigns';
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -54,11 +57,16 @@ const BrandSmsCampaigns = () => {
     <div className="sms-campaigns-container">
       <div className="sms-page-header">
         <div>
-          <h1>My SMS Campaigns</h1>
+          <h1>{isPhotosApp ? 'Your campaigns' : 'My SMS Campaigns'}</h1>
           <p style={{ margin: '0.5rem 0 0 0', color: 'var(--dark-gray)' }}>
-            Photos and submissions from your SMS campaigns.
+            {isPhotosApp
+              ? 'Photos and submissions from your photo campaigns.'
+              : 'Photos and submissions from your SMS campaigns.'}
           </p>
         </div>
+        {isPhotosApp && (
+          <Link to={`${base}/new`} className="sms-btn sms-btn-primary">+ New Campaign</Link>
+        )}
       </div>
 
       {error && <div className="sms-alert sms-alert-error">{error}</div>}
@@ -66,7 +74,13 @@ const BrandSmsCampaigns = () => {
       {campaigns.length === 0 ? (
         <div className="sms-card sms-card-padded">
           <div className="sms-empty">
-            No campaigns yet. Once your account team sets one up, you'll see photos and stats here.
+            {isPhotosApp ? (
+              <>
+                No campaigns yet. <Link to={`${base}/new`}>Create your first one</Link> to get started.
+              </>
+            ) : (
+              <>No campaigns yet. Once your account team sets one up, you'll see photos and stats here.</>
+            )}
           </div>
         </div>
       ) : (
@@ -91,7 +105,7 @@ const BrandSmsCampaigns = () => {
                 </thead>
                 <tbody>
                   {activeCampaigns.map((c) => (
-                    <tr key={c.id} onClick={() => navigate(`/sms-campaigns/${c.id}`)}>
+                    <tr key={c.id} onClick={() => navigate(`${base}/${c.id}`)}>
                       <td>
                         <div className="strong">{c.name}</div>
                         <div className="muted" style={{ fontSize: '0.825rem' }}>
@@ -108,7 +122,7 @@ const BrandSmsCampaigns = () => {
                       <td className="muted">{formatDateRange(c.active_start, c.active_end)}</td>
                       <td className="text-right">
                         <Link
-                          to={`/sms-campaigns/${c.id}`}
+                          to={`${base}/${c.id}`}
                           className="sms-btn sms-btn-primary sms-btn-small"
                           onClick={(e) => e.stopPropagation()}
                         >
@@ -141,7 +155,7 @@ const BrandSmsCampaigns = () => {
                 </thead>
                 <tbody>
                   {otherCampaigns.map((c) => (
-                    <tr key={c.id} onClick={() => navigate(`/sms-campaigns/${c.id}`)}>
+                    <tr key={c.id} onClick={() => navigate(`${base}/${c.id}`)}>
                       <td><div className="strong">{c.name}</div></td>
                       <td><code className="sms-code-pill">{c.event_code}</code></td>
                       <td><StatusBadge status={c.status} /></td>
@@ -154,7 +168,7 @@ const BrandSmsCampaigns = () => {
                       <td className="muted">{formatDateRange(c.active_start, c.active_end)}</td>
                       <td className="text-right">
                         <Link
-                          to={`/sms-campaigns/${c.id}`}
+                          to={`${base}/${c.id}`}
                           className="sms-btn sms-btn-ghost sms-btn-small"
                           onClick={(e) => e.stopPropagation()}
                         >

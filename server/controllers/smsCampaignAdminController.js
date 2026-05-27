@@ -136,7 +136,17 @@ const getCampaign = async (req, res) => {
 
 const createCampaign = async (req, res) => {
   try {
-    const body = req.body || {};
+    const isAdmin = isUserAdmin(req);
+    if (!isAdmin && req.user?.role !== 'brand') {
+      return res.status(403).json({ error: 'Only brands and admins can create campaigns' });
+    }
+
+    const body = { ...(req.body || {}) };
+
+    // Brands can only create campaigns for themselves; admins can pick any brand
+    if (!isAdmin) {
+      body.brand_id = req.user.userId;
+    }
 
     if (!body.brand_id || !body.name || !body.event_code) {
       return res.status(400).json({ error: 'brand_id, name, and event_code are required' });
@@ -166,7 +176,16 @@ const createCampaign = async (req, res) => {
 const updateCampaign = async (req, res) => {
   try {
     const { id } = req.params;
-    const body = req.body || {};
+    const access = await checkCampaignAccess(req, id);
+    if (!access.allowed) {
+      return res.status(access.code).json({ error: access.code === 404 ? 'Campaign not found' : 'Access denied' });
+    }
+
+    const isAdmin = isUserAdmin(req);
+    const body = { ...(req.body || {}) };
+
+    // Brands can't reassign a campaign to a different brand
+    if (!isAdmin) delete body.brand_id;
 
     if (body.status && !VALID_STATUSES.includes(body.status)) {
       return res.status(400).json({ error: `status must be one of ${VALID_STATUSES.join(', ')}` });
@@ -289,6 +308,9 @@ const exportSubmissionsCsv = async (req, res) => {
 
 const uploadCoupons = async (req, res) => {
   try {
+    if (!isUserAdmin(req)) {
+      return res.status(403).json({ error: 'Admin only' });
+    }
     const { id } = req.params;
     const codes = req.body?.codes;
 
@@ -381,6 +403,9 @@ const getCouponPool = async (req, res) => {
 
 const manualAssign = async (req, res) => {
   try {
+    if (!isUserAdmin(req)) {
+      return res.status(403).json({ error: 'Admin only' });
+    }
     const { id } = req.params;
     const { phone_number, send_sms = true } = req.body || {};
 

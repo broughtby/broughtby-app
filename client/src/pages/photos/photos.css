@@ -1,0 +1,342 @@
+.photos-app {
+  min-height: 100vh;
+  background: var(--light-gray);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* Navbar */
+.photos-navbar {
+  background: white;
+  border-bottom: 1px solid var(--medium-gray);
+  padding: 0.75rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.photos-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: var(--navy);
+  font-size: 1.05rem;
+}
+
+.photos-logo strong {
+  font-weight: 700;
+}
+
+.photos-logo-mark {
+  color: var(--gold);
+  font-size: 1.25rem;
+}
+
+.photos-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.photos-nav-link {
+  color: var(--dark-gray);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.4rem 0;
+  border-bottom: 2px solid transparent;
+}
+
+.photos-nav-link.active {
+  color: var(--navy);
+  border-bottom-color: var(--gold);
+}
+
+.photos-nav-link:hover {
+  color: var(--navy);
+}
+
+.photos-account {
+  position: relative;
+}
+
+.photos-account-btn {
+  background: var(--light-gray);
+  border: none;
+  border-radius: 20px;
+  padding: 0.45rem 0.95rem;
+  font-size: 0.875rem;
+  color: var(--navy);
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.photos-account-btn:hover {
+  background: var(--medium-gray);
+}
+
+.photos-caret {
+  font-size: 0.7rem;
+  opacity: 0.6;
+}
+
+.photos-account-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0.5rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  padding: 0.75rem;
+  min-width: 200px;
+  z-index: 100;
+}
+
+.photos-account-email {
+  font-size: 0.8rem;
+  color: var(--dark-gray);
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--medium-gray);
+  margin-bottom: 0.4rem;
+}
+
+.photos-account-menu button {
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 0.6rem 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--navy);
+  font-size: 0.9rem;
+}
+
+.photos-account-menu button:hover {
+  background: var(--light-gray);
+}
+
+/* Buttons */
+.photos-btn {
+  padding: 0.7rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  text-decoration: none;
+  transition: all 0.15s;
+}
+
+.photos-btn-primary {
+  background: linear-gradient(135deg, var(--navy) 0%, #0D3350 100%);
+  color: white;
+}
+
+.photos-btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(10, 37, 64, 0.25);
+}
+
+.photos-btn-secondary {
+  background: white;
+  color: var(--navy);
+  border: 2px solid var(--navy);
+}
+
+.photos-btn-ghost {
+  background: transparent;
+  color: var(--dark-gray);
+  border: 1px solid var(--medium-gray);
+}
+
+.photos-btn-ghost:hover {
+  background: var(--light-gray);
+  color: var(--navy);
+}
+
+.photos-btn-small {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+}
+
+.photos-btn-large {
+  padding: 0.95rem 1.75rem;
+  font-size: 1.05rem;
+}
+
+.photos-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Landing page */
+.photos-landing {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 4rem 1.5rem;
+}
+
+.photos-hero {
+  text-align: center;
+  padding: 3rem 0 4rem;
+}
+
+.photos-hero-eyebrow {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--gold);
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.photos-hero h1 {
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--navy);
+  margin: 0 0 1rem 0;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.photos-hero p {
+  font-size: 1.15rem;
+  color: var(--dark-gray);
+  line-height: 1.5;
+  max-width: 580px;
+  margin: 0 auto 2rem;
+}
+
+.photos-hero-cta {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.photos-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  margin-top: 4rem;
+}
+
+.photos-feature {
+  text-align: left;
+}
+
+.photos-feature-icon {
+  font-size: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.photos-feature h3 {
+  font-size: 1.1rem;
+  color: var(--navy);
+  margin: 0 0 0.5rem 0;
+}
+
+.photos-feature p {
+  color: var(--dark-gray);
+  font-size: 0.95rem;
+  line-height: 1.55;
+  margin: 0;
+}
+
+/* Auth forms */
+.photos-auth-container {
+  max-width: 440px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 4rem;
+}
+
+.photos-auth-card {
+  background: white;
+  border-radius: 12px;
+  padding: 2.25rem 2rem;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+}
+
+.photos-auth-card h1 {
+  font-size: 1.6rem;
+  color: var(--navy);
+  margin: 0 0 0.4rem 0;
+}
+
+.photos-auth-card .photos-auth-sub {
+  color: var(--dark-gray);
+  font-size: 0.95rem;
+  margin: 0 0 1.5rem 0;
+}
+
+.photos-field {
+  margin-bottom: 1rem;
+}
+
+.photos-field label {
+  display: block;
+  font-weight: 600;
+  color: var(--navy);
+  margin-bottom: 0.4rem;
+  font-size: 0.875rem;
+}
+
+.photos-field input {
+  width: 100%;
+  padding: 0.75rem 0.85rem;
+  border: 2px solid var(--medium-gray);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: var(--navy);
+  background: white;
+}
+
+.photos-field input:focus {
+  outline: none;
+  border-color: var(--navy);
+}
+
+.photos-error {
+  background: #FEE2E2;
+  color: #991B1B;
+  padding: 0.7rem 0.9rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.photos-auth-switch {
+  text-align: center;
+  margin-top: 1.25rem;
+  font-size: 0.9rem;
+  color: var(--dark-gray);
+}
+
+.photos-auth-switch a {
+  color: var(--navy);
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .photos-navbar { padding: 0.75rem 1rem; }
+  .photos-hero h1 { font-size: 2rem; }
+  .photos-hero p { font-size: 1rem; }
+  .photos-feature-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+  .photos-landing { padding: 1.5rem 1rem; }
+  .photos-auth-container { padding: 1.5rem 1rem; }
+}

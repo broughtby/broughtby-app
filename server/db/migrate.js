@@ -827,6 +827,22 @@ const migrations = [
     CREATE INDEX IF NOT EXISTS idx_photo_submissions_email
     ON photo_submissions (email);
   `,
+
+  // Track which product a user signed up for ('ambassador' | 'photos').
+  // Used to route them to the right experience after login. Existing
+  // users default to NULL → treated as 'ambassador' for backwards compat.
+  `
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                     WHERE table_name = 'users' AND column_name = 'signup_source') THEN
+        ALTER TABLE users ADD COLUMN signup_source VARCHAR(20);
+      END IF;
+    END $$;
+  `,
+  `
+    CREATE INDEX IF NOT EXISTS idx_users_signup_source ON users(signup_source);
+  `,
 ];
 
 async function runMigrations() {

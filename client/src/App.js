@@ -21,6 +21,10 @@ import SmsCampaignDetail from './pages/SmsCampaignDetail';
 import BrandSmsCampaigns from './pages/BrandSmsCampaigns';
 import BrandSmsCampaignDetail from './pages/BrandSmsCampaignDetail';
 import PublicSubmission from './pages/PublicSubmission';
+import PhotosLayout from './pages/photos/PhotosLayout';
+import PhotosLanding from './pages/photos/PhotosLanding';
+import PhotosSignup from './pages/photos/PhotosSignup';
+import PhotosLogin from './pages/photos/PhotosLogin';
 import { useAuth } from './context/AuthContext';
 import Inquiries from './pages/Inquiries';
 import InquiryResponsesView from './pages/InquiryResponsesView';
@@ -39,12 +43,13 @@ const SmsCampaignDetailRoleSwitch = () => {
   return <Navigate to="/" />;
 };
 
-// Routes that should render full-screen without the BroughtBy navbar
-// (public landing pages for event attendees).
+// Routes that should render without the BroughtBy ambassador navbar:
+// - /c/* (public customer-facing photo submission)
+// - /photos/* (standalone BroughtBy Photos product — has its own navbar)
 function AppChrome({ children }) {
   const location = useLocation();
-  const isPublicLanding = location.pathname.startsWith('/c/');
-  if (isPublicLanding) return children;
+  const path = location.pathname;
+  if (path.startsWith('/c/') || path.startsWith('/photos')) return children;
   return (
     <>
       <Navbar />
@@ -195,6 +200,43 @@ function App() {
             />
 
             <Route path="/c/:eventCode" element={<PublicSubmission />} />
+
+            {/* BroughtBy Photos — standalone product */}
+            <Route path="/photos" element={<PhotosLayout><PhotosLanding /></PhotosLayout>} />
+            <Route path="/photos/signup" element={<PhotosLayout><PhotosSignup /></PhotosLayout>} />
+            <Route path="/photos/login" element={<PhotosLayout><PhotosLogin /></PhotosLayout>} />
+            <Route
+              path="/photos/campaigns"
+              element={
+                <PrivateRoute>
+                  <PhotosLayout><BrandSmsCampaigns /></PhotosLayout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/photos/campaigns/new"
+              element={
+                <PrivateRoute>
+                  <PhotosLayout><SmsCampaignForm /></PhotosLayout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/photos/campaigns/:id"
+              element={
+                <PrivateRoute>
+                  <PhotosLayout><BrandSmsCampaignDetail /></PhotosLayout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/photos/campaigns/:id/edit"
+              element={
+                <PrivateRoute>
+                  <PhotosLayout><SmsCampaignForm /></PhotosLayout>
+                </PrivateRoute>
+              }
+            />
 
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>

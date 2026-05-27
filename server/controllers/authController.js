@@ -27,7 +27,8 @@ const register = async (req, res) => {
       company_name,
       company_logo,
       company_website,
-      contact_title
+      contact_title,
+      signup_source
     } = req.body;
 
     // Check if user already exists
@@ -45,12 +46,12 @@ const register = async (req, res) => {
       `INSERT INTO users (
         email, password_hash, role, name, profile_photo, bio, location,
         age, skills, hourly_rate, availability,
-        company_name, company_logo, company_website, contact_title
+        company_name, company_logo, company_website, contact_title, signup_source
       )
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
        RETURNING id, email, role, name, profile_photo, bio, location, age,
                  skills, hourly_rate, availability, rating, is_admin, is_preview, created_at,
-                 company_name, company_logo, company_website, contact_title`,
+                 company_name, company_logo, company_website, contact_title, signup_source`,
       [
         email,
         passwordHash,
@@ -66,7 +67,8 @@ const register = async (req, res) => {
         company_name || null,
         company_logo || null,
         company_website || null,
-        contact_title || null
+        contact_title || null,
+        signup_source || null
       ]
     );
 
@@ -122,7 +124,7 @@ const login = async (req, res) => {
     const result = await db.query(
       `SELECT id, email, password_hash, role, name, profile_photo, bio, location, age,
               skills, hourly_rate, availability, rating, is_admin, is_preview, created_at,
-              company_name, company_logo, company_website, contact_title
+              company_name, company_logo, company_website, contact_title, signup_source
        FROM users WHERE LOWER(email) = LOWER($1)`,
       [email]
     );
@@ -175,6 +177,7 @@ const login = async (req, res) => {
       company_logo: user.company_logo,
       company_website: user.company_website,
       contact_title: user.contact_title,
+      signup_source: user.signup_source,
     };
 
     console.log('📤 Full response user object:', responseUser);

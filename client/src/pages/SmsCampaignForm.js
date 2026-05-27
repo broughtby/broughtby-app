@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { smsCampaignAPI, adminAPI } from '../services/api';
 import './SmsCampaigns.css';
@@ -37,8 +37,15 @@ function toDateTimeLocal(iso) {
 const SmsCampaignForm = () => {
   const { id } = useParams();
   const isEdit = Boolean(id);
-  const { isAdmin } = useAuth();
+  const { isAdmin, user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isBrand = user?.role === 'brand';
+  const canUse = isAdmin || isBrand;
+  // Are we inside the BroughtBy Photos app (vs the admin-section path)?
+  const isPhotosApp = location.pathname.startsWith('/photos');
+  const listPath = isPhotosApp ? '/photos/campaigns' : '/sms-campaigns';
+  const editPath = (campaignId) => isPhotosApp ? `/photos/campaigns/${campaignId}/edit` : `/sms-campaigns/${campaignId}/edit`;
 
   const [form, setForm] = useState(emptyForm());
   const [brands, setBrands] = useState([]);
@@ -68,7 +75,7 @@ const SmsCampaignForm = () => {
 
   // Load campaign if editing
   useEffect(() => {
-    if (!isEdit || !isAdmin) return;
+    if (!isEdit || !canUse) return;
     let mounted = true;
     (async () => {
       try {
@@ -104,7 +111,7 @@ const SmsCampaignForm = () => {
       }
     })();
     return () => { mounted = false; };
-  }, [id, isEdit, isAdmin]);
+  }, [id, isEdit, canUse]);
 
   const handleChange = (field) => (e) => {
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
@@ -123,7 +130,13 @@ const SmsCampaignForm = () => {
   const handleSave = async (newStatus) => {
     setError('');
     setSuccess('');
-    if (!form.brand_id || !form.name || !form.event_code) {
+    // Brand-mode users don't pick a brand; the backend auto-sets it
+    if (!isAdmin) {
+      if (!form.name || !form.event_code) {
+        setError('Name and event code are required.');
+        return;
+      }
+    } else if (!form.brand_id || !form.name || !form.event_code) {
       setError('Brand, name, and event code are required.');
       return;
     }
@@ -141,7 +154,7 @@ const SmsCampaignForm = () => {
       } else {
         const res = await smsCampaignAPI.create(payload);
         savedId = res.data.campaign.id;
-        navigate(`/sms-campaigns/${savedId}/edit`, { replace: true });
+        navigate(editPath(savedId), { replace: true });
         setSuccess('Campaign created. Upload coupon codes below.');
       }
     } catch (err) {
@@ -189,10 +202,10 @@ const SmsCampaignForm = () => {
     }
   };
 
-  if (!isAdmin) {
+  if (!canUse) {
     return (
       <div className="sms-campaigns-container">
-        <div className="sms-error">Admin access required.</div>
+        <div className="sms-error">You don't have access to this page.</div>
       </div>
     );
   }
@@ -208,15 +221,14 @@ const SmsCampaignForm = () => {
   return (
     <div className="sms-campaigns-container">
       <div className="sms-breadcrumb">
-        <Link to="/admin">Admin</Link>
-        <span className="sep">/</span>
-        <Link to="/sms-campaigns">SMS Campaigns</Link>
+        {!isPhotosApp && <><Link to="/admin">Admin</Link><span className="sep">/</span></>}
+        <Link to={listPath}>{isPhotosApp ? 'Campaigns' : 'SMS Campaigns'}</Link>
         <span className="sep">/</span>
         <span className="current">{isEdit ? form.name || 'Edit' : 'New campaign'}</span>
       </div>
 
       <div className="sms-page-header">
-        <h1>{isEdit ? `Edit: ${form.name || 'Campaign'}` : 'New SMS Campaign'}</h1>
+        <h1>{isEdit ? `Edit: ${form.name || 'Campaign'}` : 'New campaign'}</h1>
       </div>
 
       {error && <div className="sms-alert sms-alert-error">{error}</div>}
@@ -226,17 +238,19 @@ const SmsCampaignForm = () => {
         <h2>Campaign details</h2>
 
         <div className="sms-form-row">
-          <div className="sms-form-group">
-            <label>Brand *</label>
-            <select value={form.brand_id} onChange={handleChange('brand_id')}>
-              <option value="">— select brand —</option>
-              {brands.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.company_name ? `${b.company_name} (${b.name})` : b.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          {isAdmin ? (
+            <div className="sms-form-group">
+              <label>Brand *</label>
+              <select value={form.brand_id} onChange={handleChange('brand_id')}>
+                <option value="">— select brand —</option>
+                {brands.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.company_name ? `${b.company_name} (${b.name})` : b.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : null}
           <div className="sms-form-group">
             <label>Status</label>
             <select value={form.status} onChange={handleChange('status')}>
@@ -245,7 +259,7 @@ const SmsCampaignForm = () => {
               <option value="paused">Paused</option>
               <option value="ended">Ended</option>
             </select>
-            <span className="helper-text">Only active campaigns receive texts.</span>
+            <span className="helper-text">Only active campaigns receive submissions.</span>
           </div>
         </div>
 
@@ -438,7 +452,7 @@ const SmsCampaignForm = () => {
       )}
 
       <div className="sms-form-actions">
-        <Link to="/sms-campaigns" className="sms-btn sms-btn-ghost">Cancel</Link>
+        <Link to={listPath} className="sms-btn sms-btn-ghost">Cancel</Link>
         <button
           type="button"
           className="sms-btn sms-btn-secondary"
