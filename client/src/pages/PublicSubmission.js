@@ -11,8 +11,8 @@ const PublicSubmission = () => {
   const [campaignError, setCampaignError] = useState('');
   const [loadingCampaign, setLoadingCampaign] = useState(true);
 
-  const [photo, setPhoto] = useState(null);
-  const [photoPreview, setPhotoPreview] = useState(null);
+  // Array of { file, preview } objects (one per selected photo)
+  const [photos, setPhotos] = useState([]);
   const [phone, setPhone] = useState('');
   const [consent, setConsent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -44,31 +44,50 @@ const PublicSubmission = () => {
     return () => { mounted = false; };
   }, [eventCode]);
 
-  const handleFileChange = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 10 * 1024 * 1024) {
-      setError('Photo is too large (max 10MB).');
-      return;
-    }
-    setPhoto(file);
+  const MAX_PHOTOS = 5;
+  const MAX_SIZE_BYTES = 10 * 1024 * 1024;
+
+  const handleFilesChange = async (e) => {
+    const incoming = Array.from(e.target.files || []);
+    if (incoming.length === 0) return;
     setError('');
-    const reader = new FileReader();
-    reader.onload = (ev) => setPhotoPreview(ev.target.result);
-    reader.readAsDataURL(file);
+
+    // Filter oversized
+    const ok = incoming.filter(f => {
+      if (f.size > MAX_SIZE_BYTES) {
+        setError(`"${f.name}" is too large (max 10MB).`);
+        return false;
+      }
+      return true;
+    });
+
+    // Cap total to MAX_PHOTOS
+    const remainingSlots = MAX_PHOTOS - photos.length;
+    const accepted = ok.slice(0, remainingSlots);
+    if (ok.length > remainingSlots) {
+      setError(`You can attach up to ${MAX_PHOTOS} photos.`);
+    }
+
+    // Generate previews
+    const newEntries = await Promise.all(accepted.map(file => new Promise(resolve => {
+      const reader = new FileReader();
+      reader.onload = (ev) => resolve({ file, preview: ev.target.result });
+      reader.readAsDataURL(file);
+    })));
+
+    setPhotos(prev => [...prev, ...newEntries]);
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const handleClearPhoto = () => {
-    setPhoto(null);
-    setPhotoPreview(null);
-    if (fileInputRef.current) fileInputRef.current.value = '';
+  const handleRemovePhoto = (idx) => {
+    setPhotos(prev => prev.filter((_, i) => i !== idx));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    if (!photo) { setError('Please add a photo.'); return; }
+    if (photos.length === 0) { setError('Please add at least one photo.'); return; }
     if (!phone.trim()) { setError('Please enter your phone number.'); return; }
     if (!consent) { setError('Please check the box to agree to the terms.'); return; }
 
@@ -76,7 +95,7 @@ const PublicSubmission = () => {
     formData.append('event_code', eventCode);
     formData.append('phone_number', phone.trim());
     formData.append('consent', 'true');
-    formData.append('photo', photo);
+    photos.forEach(({ file }) => formData.append('photos', file));
 
     setSubmitting(true);
     try {
@@ -176,34 +195,51 @@ const PublicSubmission = () => {
 
         <form onSubmit={handleSubmit}>
           <div className="ps-photo-upload">
-            {photoPreview ? (
-              <div className="ps-photo-preview">
-                <img src={photoPreview} alt="Your submission" />
-                <button
-                  type="button"
-                  className="ps-btn ps-btn-ghost ps-btn-small ps-change-btn"
-                  onClick={handleClearPhoto}
-                >
-                  Change
-                </button>
-              </div>
-            ) : (
+            {photos.length === 0 ? (
               <button
                 type="button"
                 className="ps-photo-button"
                 onClick={() => fileInputRef.current?.click()}
               >
                 <span className="ps-photo-icon">📸</span>
-                <span>Tap to add a photo</span>
+                <span>Tap to add photos</span>
+                <span className="ps-photo-meta">Up to {MAX_PHOTOS}</span>
               </button>
+            ) : (
+              <div className="ps-photo-grid">
+                {photos.map((p, idx) => (
+                  <div key={idx} className="ps-photo-thumb">
+                    <img src={p.preview} alt={`Submission ${idx + 1}`} />
+                    <button
+                      type="button"
+                      className="ps-photo-remove"
+                      onClick={() => handleRemovePhoto(idx)}
+                      aria-label="Remove photo"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+                {photos.length < MAX_PHOTOS && (
+                  <button
+                    type="button"
+                    className="ps-photo-add"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <span style={{ fontSize: '1.75rem' }}>+</span>
+                    <span style={{ fontSize: '0.75rem' }}>Add more</span>
+                  </button>
+                )}
+              </div>
             )}
             <input
               ref={fileInputRef}
               type="file"
               accept="image/*"
+              multiple
               capture="environment"
               style={{ display: 'none' }}
-              onChange={handleFileChange}
+              onChange={handleFilesChange}
             />
           </div>
 

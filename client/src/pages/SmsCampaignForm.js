@@ -15,6 +15,7 @@ function emptyForm() {
     event_code: '',
     event_venue: '',
     twilio_number: '',
+    static_code: '',
     active_start: '',
     active_end: '',
     consent_message_template: DEFAULT_CONSENT,
@@ -49,6 +50,7 @@ const SmsCampaignForm = () => {
   const [couponPool, setCouponPool] = useState({ total: 0, available: 0, assigned: 0 });
   const [couponUploading, setCouponUploading] = useState(false);
   const [couponUploadResult, setCouponUploadResult] = useState(null);
+  const [showUniqueCodes, setShowUniqueCodes] = useState(false);
   const fileInputRef = useRef(null);
 
   // Load brands for the dropdown
@@ -83,6 +85,7 @@ const SmsCampaignForm = () => {
           event_code: c.event_code || '',
           event_venue: c.event_venue || '',
           twilio_number: c.twilio_number || '',
+          static_code: c.static_code || '',
           active_start: toDateTimeLocal(c.active_start),
           active_end: toDateTimeLocal(c.active_end),
           consent_message_template: c.consent_message_template || DEFAULT_CONSENT,
@@ -91,6 +94,8 @@ const SmsCampaignForm = () => {
           status: c.status || 'draft',
         });
         setCouponPool(poolRes.data);
+        // If the campaign already has codes uploaded, auto-expand that section
+        if (poolRes.data.total > 0) setShowUniqueCodes(true);
       } catch (err) {
         console.error(err);
         setError(err.response?.data?.error || 'Failed to load campaign');
@@ -350,11 +355,42 @@ const SmsCampaignForm = () => {
       </div>
 
       <div className="sms-card sms-card-padded">
-        <h2>Coupon codes {isEdit && couponPool.total > 0 && (
+        <h2>Discount code</h2>
+        <div className="sms-form-group">
+          <label>Code given to every submission</label>
+          <input
+            type="text"
+            value={form.static_code}
+            onChange={handleChange('static_code')}
+            placeholder="e.g. MEDLY20"
+            style={{ textTransform: 'uppercase' }}
+          />
+          <span className="helper-text">
+            All customers who submit photos for this campaign will receive this single code.
+            Leave blank if you want to assign unique codes per customer (see advanced options below).
+          </span>
+        </div>
+
+        <button
+          type="button"
+          className="sms-btn sms-btn-ghost sms-btn-small"
+          style={{ marginTop: '0.5rem' }}
+          onClick={() => setShowUniqueCodes(v => !v)}
+        >
+          {showUniqueCodes ? '▾' : '▸'} Use unique codes per customer instead
+        </button>
+      </div>
+
+      {showUniqueCodes && (
+      <div className="sms-card sms-card-padded">
+        <h2>Unique coupon codes {isEdit && couponPool.total > 0 && (
           <span style={{ fontSize: '0.85rem', color: 'var(--dark-gray)', fontWeight: 400, marginLeft: '0.75rem' }}>
             {couponPool.available} available · {couponPool.assigned} assigned · {couponPool.total} total
           </span>
         )}</h2>
+        <p className="helper-text" style={{ marginTop: '-0.5rem', marginBottom: '1rem' }}>
+          Only used when the Discount code field above is empty. Upload a CSV — one code per line — and the system allocates them in order.
+        </p>
 
         {!isEdit ? (
           <div className="sms-upload-disabled">
@@ -399,6 +435,7 @@ const SmsCampaignForm = () => {
           </>
         )}
       </div>
+      )}
 
       <div className="sms-form-actions">
         <Link to="/sms-campaigns" className="sms-btn sms-btn-ghost">Cancel</Link>

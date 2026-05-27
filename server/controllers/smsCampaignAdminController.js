@@ -9,6 +9,7 @@ const CAMPAIGN_FIELDS = [
   'event_code',
   'event_venue',
   'twilio_number',
+  'static_code',
   'active_start',
   'active_end',
   'reply_message_template',

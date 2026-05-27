@@ -58,15 +58,15 @@ const getPublicCampaign = async (req, res) => {
   }
 };
 
-// POST /api/public/submissions — multipart form: photo + event_code + phone + consent
+// POST /api/public/submissions — multipart form: photos[] + event_code + phone + consent
 const submitPublic = async (req, res) => {
   try {
     const { event_code, phone_number, consent } = req.body;
-    const photo = req.file;
+    const photos = req.files || [];
 
     if (!event_code) return res.status(400).json({ error: 'event_code is required' });
     if (!phone_number) return res.status(400).json({ error: 'Phone number is required' });
-    if (!photo) return res.status(400).json({ error: 'A photo is required' });
+    if (photos.length === 0) return res.status(400).json({ error: 'At least one photo is required' });
     if (consent !== 'true' && consent !== true) {
       return res.status(400).json({ error: 'You must agree to the terms to receive a code' });
     }
@@ -94,13 +94,17 @@ const submitPublic = async (req, res) => {
     } catch (err) {
       if (err.code === '23505') {
         // Duplicate phone for this campaign — return their existing code
-        const existing = await db.query(
-          `SELECT c.code FROM photo_submissions ps
-           LEFT JOIN coupons c ON c.id = ps.coupon_id
-           WHERE ps.campaign_id = $1 AND ps.phone_number = $2`,
-          [campaign.id, phone_number]
-        );
-        const existingCode = existing.rows[0]?.code;
+        // (or static_code, if the campaign uses one)
+        let existingCode = campaign.static_code || null;
+        if (!existingCode) {
+          const existing = await db.query(
+            `SELECT c.code FROM photo_submissions ps
+             LEFT JOIN coupons c ON c.id = ps.coupon_id
+             WHERE ps.campaign_id = $1 AND ps.phone_number = $2`,
+            [campaign.id, phone_number]
+          );
+          existingCode = existing.rows[0]?.code;
+        }
         return res.status(409).json({
           error: "You've already claimed a code for this event!",
           code: existingCode,
@@ -110,50 +114,70 @@ const submitPublic = async (req, res) => {
       throw err;
     }
 
-    // Upload photo to Cloudinary (best-effort)
-    try {
-      const publicId = `${campaign.event_code.toLowerCase()}-${submissionId}`;
-      const uploadResult = await uploadBufferToCloudinary(photo.buffer, CLOUDINARY_FOLDER, publicId);
-      await db.query(
-        `UPDATE photo_submissions SET media_url = $1 WHERE id = $2`,
-        [uploadResult.secure_url, submissionId]
-      );
-      console.log(`[public] Photo uploaded: ${uploadResult.secure_url}`);
-    } catch (uploadErr) {
-      console.error('[public] Photo upload failed (continuing):', uploadErr.message);
-    }
-
-    // Allocate coupon atomically
-    const couponResult = await db.query(
-      `UPDATE coupons
-       SET status = 'assigned', submission_id = $1, assigned_at = NOW()
-       WHERE id = (
-         SELECT id FROM coupons WHERE campaign_id = $2 AND status = 'available'
-         ORDER BY id ASC FOR UPDATE SKIP LOCKED LIMIT 1
-       )
-       RETURNING id, code`,
-      [submissionId, campaign.id]
-    );
-
-    if (couponResult.rows.length === 0) {
-      // Out of codes
+    // Upload all photos to Cloudinary in parallel (best-effort)
+    const uploadedUrls = [];
+    await Promise.all(photos.map(async (photo, idx) => {
       try {
-        await sendEmail({
-          to: ADMIN_ALERT_EMAIL,
-          subject: `[BroughtBy] Out of codes — ${campaign.name}`,
-          html: `<p>The coupon pool for <strong>${campaign.name}</strong> (event code <code>${campaign.event_code}</code>) is exhausted.</p>
-                 <p>A web submission from ${phone_number} could not be assigned a code.</p>`,
-        });
-      } catch (emailErr) {
-        console.error('[public] Admin alert email failed:', emailErr.message);
+        const publicId = `${campaign.event_code.toLowerCase()}-${submissionId}-${idx + 1}`;
+        const uploadResult = await uploadBufferToCloudinary(photo.buffer, CLOUDINARY_FOLDER, publicId);
+        uploadedUrls[idx] = uploadResult.secure_url;
+      } catch (uploadErr) {
+        console.error(`[public] Photo ${idx + 1} upload failed:`, uploadErr.message);
       }
-      return res.status(503).json({ error: "We're temporarily out of codes for this event!" });
+    }));
+
+    const successfulUrls = uploadedUrls.filter(Boolean);
+    if (successfulUrls.length > 0) {
+      await db.query(
+        `UPDATE photo_submissions
+         SET media_url = $1, media_urls = $2
+         WHERE id = $3`,
+        [successfulUrls[0], successfulUrls, submissionId]
+      );
+      console.log(`[public] Uploaded ${successfulUrls.length}/${photos.length} photos for submission ${submissionId}`);
     }
-    const coupon = couponResult.rows[0];
+
+    // Determine code: static_code wins if set, otherwise allocate from pool
+    let code;
+    if (campaign.static_code) {
+      code = campaign.static_code;
+    } else {
+      const couponResult = await db.query(
+        `UPDATE coupons
+         SET status = 'assigned', submission_id = $1, assigned_at = NOW()
+         WHERE id = (
+           SELECT id FROM coupons WHERE campaign_id = $2 AND status = 'available'
+           ORDER BY id ASC FOR UPDATE SKIP LOCKED LIMIT 1
+         )
+         RETURNING id, code`,
+        [submissionId, campaign.id]
+      );
+
+      if (couponResult.rows.length === 0) {
+        try {
+          await sendEmail({
+            to: ADMIN_ALERT_EMAIL,
+            subject: `[BroughtBy] Out of codes — ${campaign.name}`,
+            html: `<p>The coupon pool for <strong>${campaign.name}</strong> (event code <code>${campaign.event_code}</code>) is exhausted.</p>
+                   <p>A web submission from ${phone_number} could not be assigned a code.</p>`,
+          });
+        } catch (emailErr) {
+          console.error('[public] Admin alert email failed:', emailErr.message);
+        }
+        return res.status(503).json({ error: "We're temporarily out of codes for this event!" });
+      }
+
+      const coupon = couponResult.rows[0];
+      await db.query(
+        `UPDATE photo_submissions SET coupon_id = $1 WHERE id = $2`,
+        [coupon.id, submissionId]
+      );
+      code = coupon.code;
+    }
 
     await db.query(
-      `UPDATE photo_submissions SET coupon_id = $1, replied_at = NOW() WHERE id = $2`,
-      [coupon.id, submissionId]
+      `UPDATE photo_submissions SET replied_at = NOW() WHERE id = $1`,
+      [submissionId]
     );
 
     await db.query(
@@ -162,10 +186,10 @@ const submitPublic = async (req, res) => {
       [phone_number, CONSENT_TERMS_VERSION]
     );
 
-    console.log(`[public] Code ${coupon.code} issued for ${phone_number} (submission ${submissionId})`);
+    console.log(`[public] Code ${code} issued for ${phone_number} (submission ${submissionId})`);
     return res.json({
       success: true,
-      code: coupon.code,
+      code,
       campaign_name: campaign.name,
     });
   } catch (err) {

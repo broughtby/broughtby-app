@@ -18,6 +18,7 @@ const upload = multer({
 });
 
 router.get('/campaigns/:eventCode', ctrl.getPublicCampaign);
-router.post('/submissions', upload.single('photo'), ctrl.submitPublic);
+// Accept up to 5 photos per submission. Field name "photos" (array).
+router.post('/submissions', upload.array('photos', 5), ctrl.submitPublic);
 
 module.exports = router;

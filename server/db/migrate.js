@@ -777,6 +777,30 @@ const migrations = [
   `
     ALTER TABLE campaigns ALTER COLUMN twilio_number DROP NOT NULL;
   `,
+
+  // Add static_code: a single discount code that all submissions in the
+  // campaign receive (skips the coupon pool entirely when set).
+  `
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                     WHERE table_name = 'campaigns' AND column_name = 'static_code') THEN
+        ALTER TABLE campaigns ADD COLUMN static_code VARCHAR(100);
+      END IF;
+    END $$;
+  `,
+
+  // Add media_urls array to photo_submissions for multi-photo submissions.
+  // media_url stays populated with the first photo for back-compat.
+  `
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                     WHERE table_name = 'photo_submissions' AND column_name = 'media_urls') THEN
+        ALTER TABLE photo_submissions ADD COLUMN media_urls TEXT[];
+      END IF;
+    END $$;
+  `,
 ];
 
 async function runMigrations() {
