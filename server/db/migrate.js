@@ -801,6 +801,32 @@ const migrations = [
       END IF;
     END $$;
   `,
+
+  // Add email column for the public landing page (replaces phone as the
+  // primary contact captured at the event). phone_number becomes nullable.
+  `
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                     WHERE table_name = 'photo_submissions' AND column_name = 'email') THEN
+        ALTER TABLE photo_submissions ADD COLUMN email VARCHAR(255);
+      END IF;
+    END $$;
+  `,
+  `
+    ALTER TABLE photo_submissions ALTER COLUMN phone_number DROP NOT NULL;
+  `,
+  // Per-campaign uniqueness on email (partial — only enforced when email is set)
+  `
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_submissions_campaign_email
+    ON photo_submissions (campaign_id, email)
+    WHERE email IS NOT NULL;
+  `,
+  // Index for email lookups
+  `
+    CREATE INDEX IF NOT EXISTS idx_photo_submissions_email
+    ON photo_submissions (email);
+  `,
 ];
 
 async function runMigrations() {

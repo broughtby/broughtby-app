@@ -120,7 +120,7 @@ const getCampaign = async (req, res) => {
     const statsResult = await db.query(
       `SELECT
          (SELECT COUNT(*) FROM photo_submissions WHERE campaign_id = $1) AS submission_count,
-         (SELECT COUNT(DISTINCT phone_number) FROM photo_submissions WHERE campaign_id = $1) AS unique_phone_count,
+         (SELECT COUNT(DISTINCT COALESCE(email, phone_number)) FROM photo_submissions WHERE campaign_id = $1) AS unique_phone_count,
          (SELECT MAX(submitted_at) FROM photo_submissions WHERE campaign_id = $1) AS last_submission_at,
          (SELECT COUNT(*) FROM coupons WHERE campaign_id = $1) AS coupon_total,
          (SELECT COUNT(*) FROM coupons WHERE campaign_id = $1 AND status = 'assigned') AS coupon_assigned`,
@@ -212,8 +212,8 @@ const listSubmissions = async (req, res) => {
     const limit = Math.min(parseInt(req.query.limit, 10) || 500, 2000);
 
     const result = await db.query(
-      `SELECT ps.id, ps.campaign_id, ps.phone_number, ps.twilio_message_sid,
-              ps.media_url, ps.coupon_id, ps.submitted_at, ps.replied_at,
+      `SELECT ps.id, ps.campaign_id, ps.phone_number, ps.email, ps.twilio_message_sid,
+              ps.media_url, ps.media_urls, ps.coupon_id, ps.submitted_at, ps.replied_at,
               c.code AS coupon_code
        FROM photo_submissions ps
        LEFT JOIN coupons c ON c.id = ps.coupon_id
@@ -248,7 +248,8 @@ const exportSubmissionsCsv = async (req, res) => {
     const campaign = campaignResult.rows[0];
 
     const result = await db.query(
-      `SELECT ps.phone_number, ps.media_url, c.code, ps.submitted_at, ps.replied_at
+      `SELECT ps.email, ps.phone_number, ps.media_url, ps.media_urls,
+              c.code, ps.submitted_at, ps.replied_at
        FROM photo_submissions ps
        LEFT JOIN coupons c ON c.id = ps.coupon_id
        WHERE ps.campaign_id = $1
@@ -256,12 +257,17 @@ const exportSubmissionsCsv = async (req, res) => {
       [id]
     );
 
-    const header = ['phone_number', 'photo_url', 'code', 'submitted_at', 'replied_at'];
+    const header = ['email', 'phone_number', 'photo_url', 'all_photo_urls', 'code', 'submitted_at', 'replied_at'];
     const lines = [header.join(',')];
     for (const row of result.rows) {
+      const allUrls = Array.isArray(row.media_urls) && row.media_urls.length > 0
+        ? row.media_urls.join(' | ')
+        : row.media_url;
       lines.push([
+        csvEscape(row.email),
         csvEscape(row.phone_number),
         csvEscape(row.media_url),
+        csvEscape(allUrls),
         csvEscape(row.code),
         csvEscape(row.submitted_at?.toISOString?.() || row.submitted_at),
         csvEscape(row.replied_at?.toISOString?.() || row.replied_at),

@@ -5,9 +5,21 @@ import { smsCampaignAPI } from '../services/api';
 import './SmsCampaigns.css';
 
 function maskPhone(phone) {
-  if (!phone) return '—';
+  if (!phone) return null;
   const last4 = phone.slice(-4);
   return `(***) ***-${last4}`;
+}
+
+function maskEmail(email) {
+  if (!email) return null;
+  const [name, domain] = email.split('@');
+  if (!name || !domain) return email;
+  const masked = name.length <= 2 ? name[0] + '*' : name[0] + '***' + name.slice(-1);
+  return `${masked}@${domain}`;
+}
+
+function contactLabel(s) {
+  return maskEmail(s.email) || maskPhone(s.phone_number) || '—';
 }
 
 function timeAgo(date) {
@@ -240,7 +252,7 @@ const SmsCampaignDetail = () => {
                   <div className="sms-photo-placeholder">photo unavailable</div>
                 )}
                 <div className="sms-photo-overlay">
-                  <span className="phone">{maskPhone(s.phone_number)}</span>
+                  <span className="phone">{contactLabel(s)}</span>
                   {s.coupon_code && <span className="code-pill">{s.coupon_code}</span>}
                 </div>
               </a>
@@ -252,7 +264,7 @@ const SmsCampaignDetail = () => {
               <thead>
                 <tr>
                   <th style={{ width: 80 }}>Photo</th>
-                  <th>Phone</th>
+                  <th>Contact</th>
                   <th>Code</th>
                   <th>Submitted</th>
                 </tr>
@@ -269,7 +281,7 @@ const SmsCampaignDetail = () => {
                         <span className="muted">—</span>
                       )}
                     </td>
-                    <td>{maskPhone(s.phone_number)}</td>
+                    <td>{contactLabel(s)}</td>
                     <td>{s.coupon_code ? <code className="sms-code-pill">{s.coupon_code}</code> : <span className="muted">—</span>}</td>
                     <td className="muted">{new Date(s.submitted_at).toLocaleString()}</td>
                   </tr>

@@ -13,7 +13,7 @@ const PublicSubmission = () => {
 
   // Array of { file, preview } objects (one per selected photo)
   const [photos, setPhotos] = useState([]);
-  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
   const [consent, setConsent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -88,12 +88,16 @@ const PublicSubmission = () => {
     setError('');
 
     if (photos.length === 0) { setError('Please add at least one photo.'); return; }
-    if (!phone.trim()) { setError('Please enter your phone number.'); return; }
+    if (!email.trim()) { setError('Please enter your email.'); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setError('Please enter a valid email address.');
+      return;
+    }
     if (!consent) { setError('Please check the box to agree to the terms.'); return; }
 
     const formData = new FormData();
     formData.append('event_code', eventCode);
-    formData.append('phone_number', phone.trim());
+    formData.append('email', email.trim());
     formData.append('consent', 'true');
     photos.forEach(({ file }) => formData.append('photos', file));
 
@@ -243,15 +247,17 @@ const PublicSubmission = () => {
           </div>
 
           <div className="ps-field">
-            <label htmlFor="ps-phone">Phone number</label>
+            <label htmlFor="ps-email">Email</label>
             <input
-              id="ps-phone"
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="+1 (555) 555-5555"
-              inputMode="tel"
-              autoComplete="tel"
+              id="ps-email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              inputMode="email"
+              autoComplete="email"
+              autoCapitalize="none"
+              spellCheck="false"
             />
           </div>
 
@@ -264,7 +270,7 @@ const PublicSubmission = () => {
             />
             <label htmlFor="ps-consent">
               I agree my photo may be used by {campaign.brand_name} for marketing,
-              and to receive marketing communications. Msg/data rates may apply.
+              and to receive marketing communications.
             </label>
           </div>
 

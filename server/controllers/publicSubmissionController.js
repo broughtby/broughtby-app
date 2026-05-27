@@ -11,7 +11,6 @@ const { sendEmail } = require('../services/emailService');
 
 const CLOUDINARY_FOLDER = 'broughtby/sms-campaigns';
 const ADMIN_ALERT_EMAIL = 'brooke@broughtby.co';
-const CONSENT_TERMS_VERSION = 'v1';
 
 function uploadBufferToCloudinary(buffer, folder, publicId) {
   return new Promise((resolve, reject) => {
@@ -58,14 +57,17 @@ const getPublicCampaign = async (req, res) => {
   }
 };
 
-// POST /api/public/submissions — multipart form: photos[] + event_code + phone + consent
+// POST /api/public/submissions — multipart form: photos[] + event_code + email + consent
 const submitPublic = async (req, res) => {
   try {
-    const { event_code, phone_number, consent } = req.body;
+    const { event_code, email, consent } = req.body;
     const photos = req.files || [];
 
     if (!event_code) return res.status(400).json({ error: 'event_code is required' });
-    if (!phone_number) return res.status(400).json({ error: 'Phone number is required' });
+    if (!email) return res.status(400).json({ error: 'Email is required' });
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ error: 'Please enter a valid email address' });
+    }
     if (photos.length === 0) return res.status(400).json({ error: 'At least one photo is required' });
     if (consent !== 'true' && consent !== true) {
       return res.status(400).json({ error: 'You must agree to the terms to receive a code' });
@@ -81,27 +83,27 @@ const submitPublic = async (req, res) => {
     }
     const campaign = campaignResult.rows[0];
 
-    // Insert submission. UNIQUE(campaign_id, phone_number) catches duplicates.
+    // Insert submission. Partial unique index on (campaign_id, email) catches duplicates.
     const messageId = `web-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
     let submissionId;
     try {
       const insertResult = await db.query(
-        `INSERT INTO photo_submissions (campaign_id, phone_number, twilio_message_sid)
+        `INSERT INTO photo_submissions (campaign_id, email, twilio_message_sid)
          VALUES ($1, $2, $3) RETURNING id`,
-        [campaign.id, phone_number, messageId]
+        [campaign.id, email, messageId]
       );
       submissionId = insertResult.rows[0].id;
     } catch (err) {
       if (err.code === '23505') {
-        // Duplicate phone for this campaign — return their existing code
+        // Duplicate email for this campaign — return their existing code
         // (or static_code, if the campaign uses one)
         let existingCode = campaign.static_code || null;
         if (!existingCode) {
           const existing = await db.query(
             `SELECT c.code FROM photo_submissions ps
              LEFT JOIN coupons c ON c.id = ps.coupon_id
-             WHERE ps.campaign_id = $1 AND ps.phone_number = $2`,
-            [campaign.id, phone_number]
+             WHERE ps.campaign_id = $1 AND ps.email = $2`,
+            [campaign.id, email]
           );
           existingCode = existing.rows[0]?.code;
         }
@@ -159,7 +161,7 @@ const submitPublic = async (req, res) => {
             to: ADMIN_ALERT_EMAIL,
             subject: `[BroughtBy] Out of codes — ${campaign.name}`,
             html: `<p>The coupon pool for <strong>${campaign.name}</strong> (event code <code>${campaign.event_code}</code>) is exhausted.</p>
-                   <p>A web submission from ${phone_number} could not be assigned a code.</p>`,
+                   <p>A web submission from ${email} could not be assigned a code.</p>`,
           });
         } catch (emailErr) {
           console.error('[public] Admin alert email failed:', emailErr.message);
@@ -180,13 +182,7 @@ const submitPublic = async (req, res) => {
       [submissionId]
     );
 
-    await db.query(
-      `INSERT INTO phone_consent (phone_number, terms_version)
-       VALUES ($1, $2) ON CONFLICT (phone_number) DO NOTHING`,
-      [phone_number, CONSENT_TERMS_VERSION]
-    );
-
-    console.log(`[public] Code ${code} issued for ${phone_number} (submission ${submissionId})`);
+    console.log(`[public] Code ${code} issued for ${email} (submission ${submissionId})`);
     return res.json({
       success: true,
       code,

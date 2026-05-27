@@ -171,7 +171,7 @@ const BrandSmsCampaigns = () => {
       )}
 
       <p style={{ fontSize: '0.825rem', textAlign: 'center', color: 'var(--dark-gray)', marginTop: '2rem' }}>
-        Phone numbers are masked here for privacy. Full data is available via CSV export from each campaign.
+        Contact info is masked here for privacy. Full data is available via CSV export from each campaign.
       </p>
     </div>
   );
