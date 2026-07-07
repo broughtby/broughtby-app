@@ -1086,6 +1086,220 @@ const sendBookingConfirmedEmail = async ({ brandEmail, brandName, ambassadorName
   });
 };
 
+// Generate booking times updated email HTML (to BA when Brand edits event times)
+const generateBookingTimesUpdatedEmail = ({ ambassadorName, brandName, eventName, eventDate, startTime, endTime, eventLocation, totalCost }) => {
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Event Times Updated</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+          background-color: #F7F8FA;
+        }
+        .email-container {
+          max-width: 600px;
+          margin: 0 auto;
+          background-color: #ffffff;
+        }
+        .header {
+          background: linear-gradient(135deg, #0A2540 0%, #0D3350 100%);
+          padding: 40px 30px;
+          text-align: center;
+        }
+        .logo {
+          color: #D4AF37;
+          font-size: 32px;
+          font-weight: 700;
+          margin: 0;
+          letter-spacing: 1px;
+        }
+        .content {
+          padding: 40px 30px;
+        }
+        .updated-badge {
+          display: inline-block;
+          background-color: #D4AF37;
+          color: #0A2540;
+          padding: 8px 16px;
+          border-radius: 20px;
+          font-size: 14px;
+          font-weight: 600;
+          margin-bottom: 20px;
+        }
+        .greeting {
+          font-size: 24px;
+          color: #0A2540;
+          margin: 0 0 20px 0;
+          font-weight: 600;
+        }
+        .message {
+          font-size: 16px;
+          line-height: 1.6;
+          color: #4B5563;
+          margin-bottom: 30px;
+        }
+        .booking-card {
+          background-color: #FEF3C7;
+          border-left: 4px solid #D4AF37;
+          padding: 20px;
+          margin: 30px 0;
+          border-radius: 4px;
+        }
+        .event-name {
+          font-size: 20px;
+          color: #0A2540;
+          font-weight: 600;
+          margin: 0 0 15px 0;
+        }
+        .booking-detail {
+          font-size: 14px;
+          color: #374151;
+          margin: 8px 0;
+          display: flex;
+          align-items: flex-start;
+        }
+        .detail-label {
+          font-weight: 600;
+          min-width: 120px;
+        }
+        .cta-button {
+          display: inline-block;
+          background-color: #0A2540;
+          color: #ffffff;
+          text-decoration: none;
+          padding: 16px 40px;
+          border-radius: 8px;
+          font-size: 16px;
+          font-weight: 600;
+          margin: 20px 0;
+          text-align: center;
+        }
+        .footer {
+          background-color: #F7F8FA;
+          padding: 30px;
+          text-align: center;
+          font-size: 14px;
+          color: #6B7280;
+        }
+        .footer-link {
+          color: #0A2540;
+          text-decoration: none;
+        }
+        .divider {
+          height: 1px;
+          background-color: #E5E7EB;
+          margin: 30px 0;
+        }
+        @media only screen and (max-width: 600px) {
+          .content {
+            padding: 30px 20px;
+          }
+          .header {
+            padding: 30px 20px;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+          <h1 class="logo">BroughtBy</h1>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+          <span class="updated-badge">🕐 TIMES UPDATED</span>
+          <h2 class="greeting">The times for ${eventName} have changed</h2>
+
+          <p class="message">
+            Hi ${ambassadorName}! ${brandName} has updated the schedule for your upcoming booking. Here are the new details:
+          </p>
+
+          <!-- Updated Booking Details Card -->
+          <div class="booking-card">
+            <h3 class="event-name">${eventName}</h3>
+            <div class="booking-detail">
+              <span class="detail-label">📅 Date:</span>
+              <span>${formatDate(eventDate)}</span>
+            </div>
+            <div class="booking-detail">
+              <span class="detail-label">🕐 New Time:</span>
+              <span style="font-weight: 600; color: #0A2540;">${formatTime(startTime)} - ${formatTime(endTime)}</span>
+            </div>
+            <div class="booking-detail">
+              <span class="detail-label">📍 Location:</span>
+              <span>${eventLocation}</span>
+            </div>
+            <div class="booking-detail">
+              <span class="detail-label">💵 Total Cost:</span>
+              <span style="font-weight: 600; color: #0A2540;">$${totalCost}</span>
+            </div>
+          </div>
+
+          <p class="message">
+            Please review the updated times and make sure they still work for you.
+          </p>
+
+          <div style="text-align: center;">
+            <a href="https://app.broughtby.co/calendar" class="cta-button">
+              View Booking
+            </a>
+          </div>
+
+          <div class="divider"></div>
+
+          <p class="message" style="font-size: 14px;">
+            If the new times don't work for you, reach out to ${brandName} through your matches page to discuss.
+          </p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+          <p style="margin: 0 0 10px 0;">
+            <strong>BroughtBy</strong> - Premium Brand Ambassador Marketplace
+          </p>
+          <p style="margin: 0;">
+            <a href="https://app.broughtby.co" class="footer-link">Visit BroughtBy</a> ·
+            <a href="https://app.broughtby.co/profile" class="footer-link">Manage Account</a>
+          </p>
+          <p style="margin-top: 20px; font-size: 12px; color: #9CA3AF;">
+            You're receiving this email because you have an ambassador account on BroughtBy.
+          </p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+};
+
+// Send booking times updated email to ambassador
+const sendBookingTimesUpdatedEmail = async ({ ambassadorEmail, ambassadorName, brandName, eventName, eventDate, startTime, endTime, eventLocation, totalCost }) => {
+  const subject = `Updated times for ${eventName} on BroughtBy`;
+  const html = generateBookingTimesUpdatedEmail({
+    ambassadorName,
+    brandName,
+    eventName,
+    eventDate,
+    startTime,
+    endTime,
+    eventLocation,
+    totalCost,
+  });
+
+  return await sendEmail({
+    to: ambassadorEmail,
+    subject,
+    html,
+  });
+};
+
 // Generate inquiry notification email HTML (to ambassadors when brand broadcasts availability inquiry)
 const generateInquiryNotificationEmail = ({ ambassadorName, brandName, eventName, eventDate, startTime, endTime, eventLocation, hourlyRate, totalCost, notes }) => {
   return `
@@ -1610,6 +1824,8 @@ module.exports = {
   generateBookingRequestEmail,
   sendBookingConfirmedEmail,
   generateBookingConfirmedEmail,
+  sendBookingTimesUpdatedEmail,
+  generateBookingTimesUpdatedEmail,
   sendInquiryNotificationEmail,
   generateInquiryNotificationEmail,
   sendInquiryResponseEmail,

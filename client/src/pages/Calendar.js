@@ -23,6 +23,9 @@ const Calendar = () => {
   const [promptBooking, setPromptBooking] = useState(null);
   const [talentType, setTalentType] = useState('ambassador'); // 'ambassador' or 'account_manager'
   const [hasAccountManagers, setHasAccountManagers] = useState(false);
+  const [editBooking, setEditBooking] = useState(null);
+  const [editForm, setEditForm] = useState({ eventDate: '', startTime: '', endTime: '' });
+  const [editSubmitting, setEditSubmitting] = useState(false);
 
   useEffect(() => {
     fetchBookings();
@@ -193,6 +196,63 @@ Status: Cancelled`;
     } catch (error) {
       console.error('Failed to cancel booking:', error);
       alert('Failed to cancel booking. Please try again.');
+    }
+  };
+
+  // Normalize a DB time value (HH:MM:SS) to the HH:MM that <input type="time"> expects
+  const toTimeInputValue = (time) => (time ? time.slice(0, 5) : '');
+
+  // Open the edit-times modal, prefilled with the booking's current schedule
+  const handleOpenEdit = (booking) => {
+    setEditBooking(booking);
+    setEditForm({
+      eventDate: booking.event_date ? booking.event_date.split('T')[0] : '',
+      startTime: toTimeInputValue(booking.start_time),
+      endTime: toTimeInputValue(booking.end_time),
+    });
+  };
+
+  const handleCloseEdit = () => {
+    setEditBooking(null);
+    setEditSubmitting(false);
+  };
+
+  const handleSubmitEdit = async (e) => {
+    e.preventDefault();
+
+    if (!editForm.startTime || !editForm.endTime) {
+      alert('Please enter both a start and end time.');
+      return;
+    }
+    if (editForm.endTime <= editForm.startTime) {
+      alert('End time must be after start time.');
+      return;
+    }
+
+    setEditSubmitting(true);
+    try {
+      const response = await bookingAPI.updateBookingTimes(editBooking.id, editForm);
+      const updated = response.data.booking;
+
+      // Post an update message to the chat, mirroring the other booking actions
+      const updateMessage = `🕐 Event Times Updated
+
+${user.name} has updated the schedule for:
+Event: ${updated.event_name}
+Date: ${parseLocalDate(updated.event_date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+New Time: ${formatTime(updated.start_time)} - ${formatTime(updated.end_time)} CST
+
+Total Cost: $${parseFloat(updated.total_cost).toFixed(2)}`;
+
+      await messageAPI.createMessage(updated.match_id, updateMessage);
+
+      await fetchBookings();
+      handleCloseEdit();
+      alert('Event times updated. The brand ambassador has been notified by email.');
+    } catch (error) {
+      console.error('Failed to update booking times:', error);
+      alert(error.response?.data?.error || 'Failed to update times. Please try again.');
+      setEditSubmitting(false);
     }
   };
 
@@ -503,19 +563,35 @@ Status: Cancelled`;
                                   </button>
                                 </>
                               )}
-                              {isBrand && (
-                                <button
-                                  className="action-btn cancel-btn"
-                                  onClick={() => handleCancel(booking)}
-                                >
-                                  Cancel Request
-                                </button>
+                              {(isBrand || isAccountManager) && (
+                                <>
+                                  <button
+                                    className="action-btn edit-btn"
+                                    onClick={() => handleOpenEdit(booking)}
+                                  >
+                                    Edit Times
+                                  </button>
+                                  <button
+                                    className="action-btn cancel-btn"
+                                    onClick={() => handleCancel(booking)}
+                                  >
+                                    Cancel Request
+                                  </button>
+                                </>
                               )}
                             </div>
                           )}
 
                           {booking.status === 'confirmed' && (
                             <div className="booking-actions">
+                              {(isBrand || isAccountManager) && (
+                                <button
+                                  className="action-btn edit-btn"
+                                  onClick={() => handleOpenEdit(booking)}
+                                >
+                                  Edit Times
+                                </button>
+                              )}
                               <button
                                 className="action-btn cancel-btn"
                                 onClick={() => handleCancel(booking)}
@@ -697,9 +773,19 @@ Status: Cancelled`;
                               </button>
                             </>
                           )}
+                          {item.status === 'pending' && isBooking && (isBrand || isAccountManager) && (
+                            <button className="action-btn edit-btn" onClick={() => handleOpenEdit(item)}>
+                              Edit Times
+                            </button>
+                          )}
                           {item.status === 'pending' && isBrand && (
                             <button className="action-btn cancel-btn" onClick={() => handleCancel(item)}>
                               Cancel Request
+                            </button>
+                          )}
+                          {item.status === 'confirmed' && isBooking && (isBrand || isAccountManager) && (
+                            <button className="action-btn edit-btn" onClick={() => handleOpenEdit(item)}>
+                              Edit Times
                             </button>
                           )}
                           {item.status === 'confirmed' && (
@@ -737,6 +823,67 @@ Status: Cancelled`;
             </>
           )}
         </>
+      )}
+
+      {/* Edit Times Modal */}
+      {editBooking && (
+        <div className="edit-times-modal" onClick={handleCloseEdit}>
+          <div className="edit-times-content" onClick={(e) => e.stopPropagation()}>
+            <h2 className="edit-times-title">Edit Event Times</h2>
+            <p className="edit-times-subtitle">{editBooking.event_name}</p>
+            <p className="edit-times-note">
+              The brand ambassador will be emailed about the new times. Cost is recalculated automatically.
+            </p>
+            <form onSubmit={handleSubmitEdit}>
+              <label className="edit-times-label">
+                Date
+                <input
+                  type="date"
+                  value={editForm.eventDate}
+                  onChange={(e) => setEditForm({ ...editForm, eventDate: e.target.value })}
+                  required
+                />
+              </label>
+              <div className="edit-times-row">
+                <label className="edit-times-label">
+                  Start Time
+                  <input
+                    type="time"
+                    value={editForm.startTime}
+                    onChange={(e) => setEditForm({ ...editForm, startTime: e.target.value })}
+                    required
+                  />
+                </label>
+                <label className="edit-times-label">
+                  End Time
+                  <input
+                    type="time"
+                    value={editForm.endTime}
+                    onChange={(e) => setEditForm({ ...editForm, endTime: e.target.value })}
+                    required
+                  />
+                </label>
+              </div>
+              <div className="edit-times-actions">
+                <button
+                  type="button"
+                  className="action-btn cancel-btn"
+                  onClick={handleCloseEdit}
+                  disabled={editSubmitting}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="action-btn confirm-btn"
+                  disabled={editSubmitting}
+                >
+                  {editSubmitting ? 'Saving...' : 'Save & Notify'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
 
       {/* Review Prompt Modal */}
