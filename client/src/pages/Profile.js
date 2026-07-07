@@ -291,9 +291,10 @@ const Profile = () => {
                       type="number"
                       name="hourly_rate"
                       value={formData.hourly_rate}
-                      onChange={handleChange}
-                      min="0"
+                      readOnly
+                      disabled
                     />
+                    <small>Your rate is set by BroughtBy. Contact us to request a change.</small>
                   </div>
 
                   <div className="form-group">

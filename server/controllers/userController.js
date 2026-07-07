@@ -92,10 +92,8 @@ const updateProfile = async (req, res) => {
       updates.push(`skills = $${paramCount++}`);
       values.push(skills);
     }
-    if (hourly_rate !== undefined) {
-      updates.push(`hourly_rate = $${paramCount++}`);
-      values.push(sanitizeNumericField(hourly_rate));
-    }
+    // Hourly rate is fixed and read-only — it cannot be changed via profile
+    // updates. (Ambassadors start at a fixed rate set at signup.)
     if (availability !== undefined) {
       updates.push(`availability = $${paramCount++}`);
       values.push(availability);
