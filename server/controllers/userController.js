@@ -242,10 +242,13 @@ const getAmbassadors = async (req, res) => {
       return res.json({ ambassadors });
     } else if (req.user.role === 'ambassador' || req.user.role === 'account_manager') {
       // Ambassadors and account managers browse other ambassadors (excluding themselves) - community view
-      // Exclude test accounts from community view
+      // Exclude test accounts from community view.
+      // Note: hourly_rate is intentionally NOT selected here — ambassadors must
+      // not see each other's rates. Only brands/account managers (the branch
+      // above) receive hourly_rate.
       const result = await db.query(
         `SELECT u.id, u.name, u.profile_photo, u.bio, u.location, u.age,
-                u.skills, u.hourly_rate, u.availability, u.rating
+                u.skills, u.availability, u.rating
          FROM users u
          WHERE u.role = 'ambassador'
          AND u.id != $1

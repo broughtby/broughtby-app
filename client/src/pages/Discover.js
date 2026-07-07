@@ -565,12 +565,6 @@ Status: ${isAutoConfirmed ? '✅ Confirmed' : 'Pending confirmation'}`;
                         <span className="stat-label">Availability</span>
                         <span className="stat-value">{selectedAmbassador.availability || 'N/A'}</span>
                       </div>
-                      <div className="stat">
-                        <span className="stat-label">Hourly Rate</span>
-                        <span className="stat-value">
-                          <DisplayRate user={selectedAmbassador} rate={selectedAmbassador.hourly_rate} demoMode={demoMode} suffix="/hr" />
-                        </span>
-                      </div>
                     </div>
 
                     {/* Reviews Section */}
