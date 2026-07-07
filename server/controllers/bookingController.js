@@ -1,5 +1,5 @@
 const db = require('../config/database');
-const { sendBookingRequestEmail, sendBookingConfirmedEmail } = require('../services/emailService');
+const { sendBookingRequestEmail, sendBookingConfirmedEmail, sendBookingTimesUpdatedEmail } = require('../services/emailService');
 
 const createBooking = async (req, res) => {
   try {
@@ -328,6 +328,129 @@ const updateBookingStatus = async (req, res) => {
   }
 };
 
+// Compute hours between two "HH:MM" or "HH:MM:SS" time strings
+const hoursBetween = (startTime, endTime) => {
+  const toMinutes = (t) => {
+    const [h, m] = t.split(':');
+    return parseInt(h, 10) * 60 + parseInt(m, 10);
+  };
+  return (toMinutes(endTime) - toMinutes(startTime)) / 60;
+};
+
+const updateBookingTimes = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { eventDate, startTime, endTime } = req.body;
+
+    // Only brands and account managers (the booking creators) can edit times
+    if (req.user.role !== 'brand' && req.user.role !== 'account_manager') {
+      return res.status(403).json({ error: 'Only brands and account managers can edit booking times' });
+    }
+
+    if (!startTime || !endTime) {
+      return res.status(400).json({ error: 'Start time and end time are required' });
+    }
+
+    // Fetch the booking
+    const bookingCheck = await db.query('SELECT * FROM bookings WHERE id = $1', [id]);
+
+    if (bookingCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'Booking not found' });
+    }
+
+    const booking = bookingCheck.rows[0];
+
+    // Authorize: brand must own the booking; AM must have an active engagement with the brand
+    if (req.user.role === 'brand') {
+      if (booking.brand_id !== req.user.userId) {
+        return res.status(403).json({ error: 'You do not have access to this booking' });
+      }
+    } else {
+      const engagementCheck = await db.query(
+        `SELECT id FROM engagements
+         WHERE brand_id = $1 AND account_manager_id = $2 AND status = 'active'`,
+        [booking.brand_id, req.user.userId]
+      );
+      if (engagementCheck.rows.length === 0) {
+        return res.status(403).json({ error: 'You do not have access to this booking' });
+      }
+    }
+
+    // Only pending or confirmed bookings can have their times edited
+    if (booking.status !== 'pending' && booking.status !== 'confirmed') {
+      return res.status(400).json({ error: `Cannot edit times for a ${booking.status} booking` });
+    }
+
+    // Validate end is after start
+    const duration = hoursBetween(startTime, endTime);
+    if (duration <= 0) {
+      return res.status(400).json({ error: 'End time must be after start time' });
+    }
+
+    // Validate the (possibly new) event date is not in the past
+    const effectiveDate = eventDate || booking.event_date;
+    const eventDateObj = new Date(effectiveDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (eventDateObj < today) {
+      return res.status(400).json({ error: 'Event date cannot be in the past' });
+    }
+
+    // Recompute cost from the ambassador's stored hourly rate to keep data consistent
+    const hourlyRate = parseFloat(booking.hourly_rate);
+    const totalCost = Math.round(duration * hourlyRate * 100) / 100;
+
+    const result = await db.query(
+      `UPDATE bookings
+       SET event_date = $1, start_time = $2, end_time = $3, duration = $4, total_cost = $5,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $6
+       RETURNING *`,
+      [effectiveDate, startTime, endTime, duration, totalCost, id]
+    );
+
+    const updatedBooking = result.rows[0];
+
+    // Notify the ambassador that the times changed (non-blocking)
+    db.query(
+      'SELECT email, name FROM users WHERE id = $1',
+      [updatedBooking.ambassador_id]
+    ).then(ambassadorQuery => {
+      if (ambassadorQuery.rows.length > 0) {
+        db.query(
+          'SELECT name FROM users WHERE id = $1',
+          [updatedBooking.brand_id]
+        ).then(brandQuery => {
+          if (brandQuery.rows.length > 0) {
+            const ambassador = ambassadorQuery.rows[0];
+            const brand = brandQuery.rows[0];
+
+            sendBookingTimesUpdatedEmail({
+              ambassadorEmail: ambassador.email,
+              ambassadorName: ambassador.name,
+              brandName: brand.name,
+              eventName: updatedBooking.event_name,
+              eventDate: updatedBooking.event_date,
+              startTime: updatedBooking.start_time,
+              endTime: updatedBooking.end_time,
+              eventLocation: updatedBooking.event_location,
+              totalCost: updatedBooking.total_cost,
+            }).catch(error => console.error('Failed to send booking times updated email:', error));
+          }
+        }).catch(error => console.error('Failed to query brand info:', error));
+      }
+    }).catch(error => console.error('Failed to query ambassador info:', error));
+
+    res.json({
+      message: 'Booking times updated successfully',
+      booking: updatedBooking,
+    });
+  } catch (error) {
+    console.error('Update booking times error:', error);
+    res.status(500).json({ error: 'Failed to update booking times' });
+  }
+};
+
 const deleteBooking = async (req, res) => {
   try {
     const { id } = req.params;
@@ -514,6 +637,7 @@ module.exports = {
   getBookings,
   getBookingById,
   updateBookingStatus,
+  updateBookingTimes,
   deleteBooking,
   checkIn,
   checkOut,

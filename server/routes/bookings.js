@@ -15,6 +15,9 @@ router.get('/:id', auth, bookingController.getBookingById);
 // Update booking status
 router.put('/:id/status', auth, bookingController.updateBookingStatus);
 
+// Update booking times (creator only)
+router.put('/:id/times', auth, bookingController.updateBookingTimes);
+
 // Delete a booking
 router.delete('/:id', auth, bookingController.deleteBooking);
 
