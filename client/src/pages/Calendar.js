@@ -26,6 +26,7 @@ const Calendar = () => {
   const [editBooking, setEditBooking] = useState(null);
   const [editForm, setEditForm] = useState({ eventDate: '', startTime: '', endTime: '' });
   const [editSubmitting, setEditSubmitting] = useState(false);
+  const [detailBookingId, setDetailBookingId] = useState(null);
 
   useEffect(() => {
     fetchBookings();
@@ -377,24 +378,41 @@ Total Cost: $${parseFloat(updated.total_cost).toFixed(2)}`;
     setPromptBooking(null);
   };
 
-  // Get items based on current talent type
-  const getUnifiedItems = () => {
-    const items = [];
+  // Sort helpers for the list view
+  const byDateAsc = (a, b) =>
+    parseLocalDate(a.event_date) - parseLocalDate(b.event_date) ||
+    String(a.start_time).localeCompare(String(b.start_time));
+  const byDateDesc = (a, b) =>
+    parseLocalDate(b.event_date) - parseLocalDate(a.event_date) ||
+    String(b.start_time).localeCompare(String(a.start_time));
 
-    // Show only bookings (brand ambassadors)
-    bookings.forEach(booking => {
-      items.push({
-        ...booking,
-        itemType: 'booking',
-        sortDate: booking.event_date
-      });
-    });
+  // Group bookings for the list view: active/upcoming (soonest first),
+  // then past (most recent first). Empty groups are hidden in render.
+  const listGroups = [
+    {
+      key: 'upcoming',
+      label: 'Upcoming',
+      items: bookings
+        .filter((b) => b.status === 'pending' || b.status === 'confirmed')
+        .sort(byDateAsc),
+    },
+    {
+      key: 'past',
+      label: 'Past',
+      items: bookings
+        .filter((b) => b.status === 'completed' || b.status === 'cancelled')
+        .sort(byDateDesc),
+    },
+  ];
 
-    // Sort by date (most recent first)
-    return items.sort((a, b) => new Date(b.sortDate) - new Date(a.sortDate));
-  };
+  // The booking currently open in the detail modal (derived from bookings so it
+  // stays fresh after actions like confirm/cancel/check-in refetch the list)
+  const detailBooking = detailBookingId
+    ? bookings.find((b) => b.id === detailBookingId) || null
+    : null;
 
-  const filteredItems = getUnifiedItems();
+  const handleOpenDetail = (item) => setDetailBookingId(item.id);
+  const handleCloseDetail = () => setDetailBookingId(null);
 
   if (loading) {
     return (
@@ -639,190 +657,173 @@ Total Cost: $${parseFloat(updated.total_cost).toFixed(2)}`;
 
           {/* List View */}
           {viewMode === 'list' && (
-            <>
-              {/* Items List */}
-              {isBrand && bookings.length > 0 && (
-                <h2 className="section-title">Brand Ambassadors</h2>
-              )}
-
-              {filteredItems.length === 0 ? (
-                <div className="empty-state">
-                  <div className="empty-icon">📅</div>
-                  <h2>No bookings yet</h2>
-                  <p>Your bookings with brand ambassadors will appear here</p>
-                </div>
-              ) : (
-                <div className="bookings-grid">
-                  {filteredItems.map((item) => {
-                    const isBooking = item.itemType === 'booking';
-
-                    return (
-                      <div
-                        key={`${item.itemType}-${item.id}`}
-                        className={`booking-card ${item.status}`}
-                      >
-                        <div className="booking-header">
-                          <span className={`status-badge ${getStatusBadgeClass(item.status)}`}>
-                            {getStatusText(item.status)}
-                          </span>
-                          <span className="booking-date">
-                            {parseLocalDate(item.sortDate).toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric'
-                            })}
-                          </span>
-                        </div>
-
-                        <div className="booking-body">
-                          <h3 className="booking-title">
-                            {isBooking ? item.event_name : `${isBrand ? item.account_manager_name : item.brand_name}`}
-                          </h3>
-                          <div className="booking-details">
-                            {isBooking && (item.brand_company_name || item.company_name) && (
-                              <div className="booking-detail" style={{ fontWeight: '600', color: '#0A2540' }}>
-                                <span className="detail-icon">🏢</span>
-                                <span>{item.brand_company_name || item.company_name}</span>
-                              </div>
-                            )}
-                            <div className="booking-detail">
-                              <span className="detail-icon">👤</span>
-                              <span>
-                                {isBooking ? (
-                                  <DisplayName
-                                    user={{
-                                      id: item.ambassador_id,
-                                      name: item.ambassador_name,
-                                      profile_photo: item.ambassador_photo,
-                                      is_test: item.ambassador_is_test
-                                    }}
-                                    demoMode={demoMode}
-                                  />
-                                ) : (
-                                  <DisplayName
-                                    user={{
-                                      id: isBrand ? item.account_manager_id : item.brand_id,
-                                      name: isBrand ? item.account_manager_name : item.brand_name,
-                                      is_test: false
-                                    }}
-                                    demoMode={demoMode}
-                                  />
-                                )}
+            <div className="bookings-list-view">
+              {listGroups.map((group) =>
+                group.items.length === 0 ? null : (
+                  <div key={group.key} className="list-section">
+                    <h2 className="list-section-title">
+                      {group.label}
+                      <span className="list-section-count">{group.items.length}</span>
+                    </h2>
+                    <div className="bookings-list">
+                      {group.items.map((item) => {
+                        const partner = getBookingPartner(item);
+                        const d = parseLocalDate(item.event_date);
+                        return (
+                          <button
+                            key={item.id}
+                            className={`booking-row status-${item.status}`}
+                            onClick={() => handleOpenDetail(item)}
+                          >
+                            <span className="row-date" aria-hidden="true">
+                              <span className="row-date-month">
+                                {d.toLocaleDateString('en-US', { month: 'short' })}
                               </span>
-                            </div>
-                            {isBooking && item.booked_by_am_name && (
-                              <div className="booking-detail" style={{ fontStyle: 'italic', color: '#6B7280' }}>
-                                <span className="detail-icon">👔</span>
-                                <span>Booked by {item.booked_by_am_name}</span>
-                              </div>
-                            )}
-                            {isBooking ? (
-                              <>
-                                <div className="booking-detail">
-                                  <span className="detail-icon">🕐</span>
-                                  <span>{formatTime(item.start_time)} - {formatTime(item.end_time)} CST</span>
-                                </div>
-                                <div className="booking-detail">
-                                  <span className="detail-icon">📍</span>
-                                  <span>{item.event_location}</span>
-                                </div>
-                                {item.notes && (
-                                  <div className="booking-detail">
-                                    <span className="detail-icon">📝</span>
-                                    <span>{item.notes}</span>
-                                  </div>
-                                )}
-                                <div className="booking-detail">
-                                  <span className="detail-label">Total Cost:</span>
-                                  <span>${parseFloat(item.total_cost).toFixed(2)}</span>
-                                </div>
-                              </>
-                            ) : (
-                              <>
-                                <div className="booking-detail">
-                                  <span className="detail-icon">💰</span>
-                                  <span>${parseFloat(item.monthly_rate).toLocaleString()}/month</span>
-                                </div>
-                                <div className="booking-detail">
-                                  <span className="detail-icon">📅</span>
-                                  <span>
-                                    Started: {new Date(item.start_date).toLocaleDateString()}
-                                    {item.end_date && ` • Ended: ${new Date(item.end_date).toLocaleDateString()}`}
-                                  </span>
-                                </div>
-                                {item.notes && (
-                                  <div className="booking-detail">
-                                    <span className="detail-icon">📝</span>
-                                    <span>{item.notes}</span>
-                                  </div>
-                                )}
-                              </>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Actions */}
-                        <div className="booking-actions">
-                          {item.status === 'pending' && isAmbassador && (
-                            <>
-                              <button className="action-btn decline-btn" onClick={() => handleDecline(item)}>
-                                Decline
-                              </button>
-                              <button className="action-btn confirm-btn" onClick={() => handleConfirm(item)}>
-                                Confirm
-                              </button>
-                            </>
-                          )}
-                          {item.status === 'pending' && isBooking && (isBrand || isAccountManager) && (
-                            <button className="action-btn edit-btn" onClick={() => handleOpenEdit(item)}>
-                              Edit Times
-                            </button>
-                          )}
-                          {item.status === 'pending' && isBrand && (
-                            <button className="action-btn cancel-btn" onClick={() => handleCancel(item)}>
-                              Cancel Request
-                            </button>
-                          )}
-                          {item.status === 'confirmed' && isBooking && (isBrand || isAccountManager) && (
-                            <button className="action-btn edit-btn" onClick={() => handleOpenEdit(item)}>
-                              Edit Times
-                            </button>
-                          )}
-                          {item.status === 'confirmed' && (
-                            <button className="action-btn cancel-btn" onClick={() => handleCancel(item)}>
-                              Cancel Booking
-                            </button>
-                          )}
-                          {item.status === 'completed' && !bookingReviews[item.id] && (
-                            <button className="action-btn review-btn" onClick={() => handleOpenReview(item)}>
-                              Leave Review
-                            </button>
-                          )}
-                          {item.status === 'completed' && bookingReviews[item.id] && (
-                            <span className="reviewed-badge">✓ Reviewed</span>
-                          )}
-                        </div>
-
-                        {/* Time Tracking for bookings */}
-                        {isBooking && (
-                          <TimeTracking
-                            bookingId={item.id}
-                            bookingStatus={item.status}
-                            onUpdate={fetchBookings}
-                            isPreview={user?.isPreview}
-                            onCheckoutComplete={() => handleCheckoutComplete(item)}
-                            ambassadorName={item.ambassador_name}
-                            demoMode={demoMode}
-                          />
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+                              <span className="row-date-day">{d.getDate()}</span>
+                            </span>
+                            <span className="row-main">
+                              <span className="row-title">{item.event_name}</span>
+                              <span className="row-sub">
+                                <DisplayName user={partner} demoMode={demoMode} />
+                                <span className="row-dot">·</span>
+                                {formatTime(item.start_time)} – {formatTime(item.end_time)}
+                              </span>
+                            </span>
+                            <span className="row-right">
+                              <span className={`status-badge ${getStatusBadgeClass(item.status)}`}>
+                                {getStatusText(item.status)}
+                              </span>
+                              <span className="row-chevron" aria-hidden="true">›</span>
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )
               )}
-            </>
+            </div>
           )}
         </>
+      )}
+
+      {/* Booking Detail Modal */}
+      {detailBooking && (
+        <div className="detail-modal" onClick={handleCloseDetail}>
+          <div className="detail-content" onClick={(e) => e.stopPropagation()}>
+            <button
+              className="detail-close"
+              onClick={handleCloseDetail}
+              aria-label="Close"
+            >
+              ×
+            </button>
+
+            <span className={`status-badge ${getStatusBadgeClass(detailBooking.status)}`}>
+              {getStatusText(detailBooking.status)}
+            </span>
+            <h2 className="detail-title">{detailBooking.event_name}</h2>
+
+            <div className="detail-grid">
+              {(detailBooking.brand_company_name || detailBooking.company_name) && (
+                <div className="detail-row">
+                  <span className="detail-ic">🏢</span>
+                  <span>{detailBooking.brand_company_name || detailBooking.company_name}</span>
+                </div>
+              )}
+              <div className="detail-row">
+                <span className="detail-ic">👤</span>
+                <span>
+                  <DisplayName user={getBookingPartner(detailBooking)} demoMode={demoMode} />
+                </span>
+              </div>
+              {detailBooking.booked_by_am_name && (
+                <div className="detail-row">
+                  <span className="detail-ic">👔</span>
+                  <span>Booked by {detailBooking.booked_by_am_name}</span>
+                </div>
+              )}
+              <div className="detail-row">
+                <span className="detail-ic">📅</span>
+                <span>
+                  {parseLocalDate(detailBooking.event_date).toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  })}
+                </span>
+              </div>
+              <div className="detail-row">
+                <span className="detail-ic">🕐</span>
+                <span>
+                  {formatTime(detailBooking.start_time)} – {formatTime(detailBooking.end_time)} CST
+                </span>
+              </div>
+              <div className="detail-row">
+                <span className="detail-ic">📍</span>
+                <span>{detailBooking.event_location}</span>
+              </div>
+              {detailBooking.notes && (
+                <div className="detail-row">
+                  <span className="detail-ic">📝</span>
+                  <span>{detailBooking.notes}</span>
+                </div>
+              )}
+              <div className="detail-row">
+                <span className="detail-ic">💵</span>
+                <span className="detail-cost">${parseFloat(detailBooking.total_cost).toFixed(2)}</span>
+              </div>
+            </div>
+
+            <div className="booking-actions detail-actions">
+              {detailBooking.status === 'pending' && isAmbassador && (
+                <>
+                  <button className="action-btn decline-btn" onClick={() => handleDecline(detailBooking)}>
+                    Decline
+                  </button>
+                  <button className="action-btn confirm-btn" onClick={() => handleConfirm(detailBooking)}>
+                    Confirm
+                  </button>
+                </>
+              )}
+              {(detailBooking.status === 'pending' || detailBooking.status === 'confirmed') &&
+                (isBrand || isAccountManager) && (
+                  <button className="action-btn edit-btn" onClick={() => handleOpenEdit(detailBooking)}>
+                    Edit Times
+                  </button>
+                )}
+              {detailBooking.status === 'pending' && isBrand && (
+                <button className="action-btn cancel-btn" onClick={() => handleCancel(detailBooking)}>
+                  Cancel Request
+                </button>
+              )}
+              {detailBooking.status === 'confirmed' && (
+                <button className="action-btn cancel-btn" onClick={() => handleCancel(detailBooking)}>
+                  Cancel Booking
+                </button>
+              )}
+              {detailBooking.status === 'completed' && !bookingReviews[detailBooking.id] && (
+                <button className="action-btn review-btn" onClick={() => handleOpenReview(detailBooking)}>
+                  Leave Review
+                </button>
+              )}
+              {detailBooking.status === 'completed' && bookingReviews[detailBooking.id] && (
+                <span className="reviewed-badge">✓ Reviewed</span>
+              )}
+            </div>
+
+            <TimeTracking
+              bookingId={detailBooking.id}
+              bookingStatus={detailBooking.status}
+              onUpdate={fetchBookings}
+              isPreview={user?.isPreview}
+              onCheckoutComplete={() => handleCheckoutComplete(detailBooking)}
+              ambassadorName={detailBooking.ambassador_name}
+              demoMode={demoMode}
+            />
+          </div>
+        </div>
       )}
 
       {/* Edit Times Modal */}

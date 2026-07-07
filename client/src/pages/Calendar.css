@@ -1288,3 +1288,236 @@
     width: 100%;
   }
 }
+
+/* ============================================================
+   Redesigned List View — compact chronological rows
+   ============================================================ */
+.bookings-list-view {
+  max-width: 820px;
+  margin: 0 auto;
+}
+
+.list-section {
+  margin-bottom: 2rem;
+}
+
+.list-section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--dark-gray);
+  margin: 0 0 0.75rem 0.25rem;
+}
+
+.list-section-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.4rem;
+  height: 1.4rem;
+  padding: 0 0.4rem;
+  background-color: var(--medium-gray);
+  color: var(--navy);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.bookings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+/* Each row is a full-width button so the whole thing is clickable */
+.booking-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  text-align: left;
+  background-color: var(--white);
+  border: 1px solid var(--medium-gray);
+  border-left: 4px solid var(--medium-gray);
+  border-radius: 12px;
+  padding: 0.85rem 1.1rem;
+  cursor: pointer;
+  transition: box-shadow 0.2s, transform 0.15s, border-color 0.2s;
+}
+
+.booking-row:hover {
+  box-shadow: var(--shadow);
+  transform: translateY(-1px);
+}
+
+.booking-row:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 2px;
+}
+
+/* Status accent on the left edge */
+.booking-row.status-pending { border-left-color: var(--gold); }
+.booking-row.status-confirmed { border-left-color: var(--success); }
+.booking-row.status-completed { border-left-color: var(--navy); }
+.booking-row.status-cancelled { border-left-color: var(--error); }
+
+.row-date {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 3rem;
+  padding: 0.35rem 0;
+  background-color: var(--light-gray);
+  border-radius: 8px;
+  line-height: 1.1;
+}
+
+.row-date-month {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--dark-gray);
+}
+
+.row-date-day {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.row-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.row-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--navy);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.row-sub {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--dark-gray);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.row-dot {
+  color: var(--medium-gray);
+}
+
+.row-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.row-chevron {
+  font-size: 1.5rem;
+  color: var(--medium-gray);
+  line-height: 1;
+}
+
+/* ============================================================
+   Booking Detail Modal
+   ============================================================ */
+.detail-modal {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(10, 37, 64, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.detail-content {
+  position: relative;
+  background-color: var(--white);
+  border-radius: 16px;
+  padding: 2rem;
+  max-width: 520px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.detail-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  background-color: var(--light-gray);
+  color: var(--dark-gray);
+  border-radius: 50%;
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.detail-close:hover {
+  background-color: var(--medium-gray);
+}
+
+.detail-title {
+  font-size: 1.5rem;
+  color: var(--navy);
+  margin: 0.75rem 0 1.25rem 0;
+}
+
+.detail-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.1rem 0;
+  border-top: 1px solid var(--medium-gray);
+  border-bottom: 1px solid var(--medium-gray);
+}
+
+.detail-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  font-size: 0.95rem;
+  color: #374151;
+}
+
+.detail-ic {
+  flex-shrink: 0;
+  width: 1.25rem;
+  text-align: center;
+}
+
+.detail-cost {
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.detail-actions {
+  margin-top: 1.25rem;
+}
