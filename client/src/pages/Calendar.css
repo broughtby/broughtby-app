@@ -1313,6 +1313,30 @@
   margin: 0 0 0.75rem 0.25rem;
 }
 
+/* Collapsible section header (Cancelled) — styled like the title but a button */
+.list-section-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  width: 100%;
+}
+
+.list-section-toggle:hover {
+  color: var(--navy);
+}
+
+.section-caret {
+  display: inline-block;
+  font-size: 1rem;
+  color: var(--dark-gray);
+  transition: transform 0.2s;
+}
+
+.section-caret.open {
+  transform: rotate(90deg);
+}
+
 .list-section-count {
   display: inline-flex;
   align-items: center;
