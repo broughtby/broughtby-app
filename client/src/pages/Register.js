@@ -79,7 +79,9 @@ const Register = () => {
       delete registrationData.hourly_rate;
       delete registrationData.availability;
     } else {
-      // Remove brand-specific fields if registering as ambassador
+      // Ambassadors don't set their own rate — the server assigns the fixed
+      // starting rate. Remove brand-specific fields too.
+      delete registrationData.hourly_rate;
       delete registrationData.company_name;
       delete registrationData.company_logo;
       delete registrationData.company_website;
@@ -314,38 +316,21 @@ const Register = () => {
             )}
 
             {formData.role === 'ambassador' && (
-              <>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label htmlFor="hourly_rate">Hourly Rate ($)</label>
-                    <input
-                      type="number"
-                      id="hourly_rate"
-                      name="hourly_rate"
-                      value={formData.hourly_rate}
-                      onChange={handleChange}
-                      min="0"
-                      placeholder="20"
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label htmlFor="availability">Availability</label>
-                    <select
-                      id="availability"
-                      name="availability"
-                      value={formData.availability}
-                      onChange={handleChange}
-                    >
-                      <option value="">Select...</option>
-                      <option value="Full-time">Full-time</option>
-                      <option value="Part-time">Part-time</option>
-                      <option value="Flexible">Flexible</option>
-                      <option value="Limited">Limited</option>
-                    </select>
-                  </div>
-                </div>
-              </>
+              <div className="form-group">
+                <label htmlFor="availability">Availability</label>
+                <select
+                  id="availability"
+                  name="availability"
+                  value={formData.availability}
+                  onChange={handleChange}
+                >
+                  <option value="">Select...</option>
+                  <option value="Full-time">Full-time</option>
+                  <option value="Part-time">Part-time</option>
+                  <option value="Flexible">Flexible</option>
+                  <option value="Limited">Limited</option>
+                </select>
+              </div>
             )}
 
             <div className="form-actions">

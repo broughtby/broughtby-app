@@ -5,6 +5,10 @@ const { body, validationResult } = require('express-validator');
 const db = require('../config/database');
 const { sendPasswordResetEmail } = require('../services/emailService');
 
+// All new brand ambassadors start at a fixed hourly rate. Rate changes are an
+// admin action, not something the ambassador sets themselves (policy for 2026).
+const AMBASSADOR_STARTING_RATE = 20;
+
 const register = async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -41,6 +45,11 @@ const register = async (req, res) => {
     // Hash password
     const passwordHash = await bcrypt.hash(password, 10);
 
+    // Ambassadors always start at the fixed starting rate; any client-supplied
+    // value is ignored. Brands have no hourly rate.
+    const effectiveHourlyRate =
+      role === 'ambassador' ? AMBASSADOR_STARTING_RATE : (hourly_rate || null);
+
     // Create user with all profile fields
     const result = await db.query(
       `INSERT INTO users (
@@ -62,7 +71,7 @@ const register = async (req, res) => {
         location || null,
         age || null,
         skills || [],
-        hourly_rate || null,
+        effectiveHourlyRate,
         availability || null,
         company_name || null,
         company_logo || null,
