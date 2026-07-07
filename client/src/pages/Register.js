@@ -316,20 +316,35 @@ const Register = () => {
             )}
 
             {formData.role === 'ambassador' && (
-              <div className="form-group">
-                <label htmlFor="availability">Availability</label>
-                <select
-                  id="availability"
-                  name="availability"
-                  value={formData.availability}
-                  onChange={handleChange}
-                >
-                  <option value="">Select...</option>
-                  <option value="Full-time">Full-time</option>
-                  <option value="Part-time">Part-time</option>
-                  <option value="Flexible">Flexible</option>
-                  <option value="Limited">Limited</option>
-                </select>
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="hourly_rate">Hourly Rate ($)</label>
+                  <input
+                    type="number"
+                    id="hourly_rate"
+                    name="hourly_rate"
+                    value="20"
+                    readOnly
+                    disabled
+                  />
+                  <small>All brand ambassadors start at $20/hr, set by BroughtBy.</small>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="availability">Availability</label>
+                  <select
+                    id="availability"
+                    name="availability"
+                    value={formData.availability}
+                    onChange={handleChange}
+                  >
+                    <option value="">Select...</option>
+                    <option value="Full-time">Full-time</option>
+                    <option value="Part-time">Part-time</option>
+                    <option value="Flexible">Flexible</option>
+                    <option value="Limited">Limited</option>
+                  </select>
+                </div>
               </div>
             )}
 
