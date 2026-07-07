@@ -27,6 +27,7 @@ const Calendar = () => {
   const [editForm, setEditForm] = useState({ eventDate: '', startTime: '', endTime: '' });
   const [editSubmitting, setEditSubmitting] = useState(false);
   const [detailBookingId, setDetailBookingId] = useState(null);
+  const [showCancelled, setShowCancelled] = useState(false);
 
   useEffect(() => {
     fetchBookings();
@@ -386,23 +387,27 @@ Total Cost: $${parseFloat(updated.total_cost).toFixed(2)}`;
     parseLocalDate(b.event_date) - parseLocalDate(a.event_date) ||
     String(b.start_time).localeCompare(String(a.start_time));
 
-  // Group bookings for the list view: active/upcoming (soonest first),
-  // then past (most recent first). Empty groups are hidden in render.
+  // Group bookings for the list view by DATE (not just status):
+  //  - Upcoming: not cancelled, not completed, and the event date hasn't passed
+  //  - Past: everything else that isn't cancelled (completed, or date already passed)
+  //  - Cancelled: shown in a separate collapsible section so it doesn't clog the list
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const isPastDate = (b) => parseLocalDate(b.event_date) < todayStart;
+
+  const upcomingItems = bookings
+    .filter((b) => b.status !== 'cancelled' && b.status !== 'completed' && !isPastDate(b))
+    .sort(byDateAsc);
+  const pastItems = bookings
+    .filter((b) => b.status !== 'cancelled' && (b.status === 'completed' || isPastDate(b)))
+    .sort(byDateDesc);
+  const cancelledItems = bookings
+    .filter((b) => b.status === 'cancelled')
+    .sort(byDateDesc);
+
   const listGroups = [
-    {
-      key: 'upcoming',
-      label: 'Upcoming',
-      items: bookings
-        .filter((b) => b.status === 'pending' || b.status === 'confirmed')
-        .sort(byDateAsc),
-    },
-    {
-      key: 'past',
-      label: 'Past',
-      items: bookings
-        .filter((b) => b.status === 'completed' || b.status === 'cancelled')
-        .sort(byDateDesc),
-    },
+    { key: 'upcoming', label: 'Upcoming', items: upcomingItems },
+    { key: 'past', label: 'Past', items: pastItems },
   ];
 
   // The booking currently open in the detail modal (derived from bookings so it
@@ -413,6 +418,40 @@ Total Cost: $${parseFloat(updated.total_cost).toFixed(2)}`;
 
   const handleOpenDetail = (item) => setDetailBookingId(item.id);
   const handleCloseDetail = () => setDetailBookingId(null);
+
+  // A single compact, clickable list row (shared by every list section)
+  const renderBookingRow = (item) => {
+    const partner = getBookingPartner(item);
+    const d = parseLocalDate(item.event_date);
+    return (
+      <button
+        key={item.id}
+        className={`booking-row status-${item.status}`}
+        onClick={() => handleOpenDetail(item)}
+      >
+        <span className="row-date" aria-hidden="true">
+          <span className="row-date-month">
+            {d.toLocaleDateString('en-US', { month: 'short' })}
+          </span>
+          <span className="row-date-day">{d.getDate()}</span>
+        </span>
+        <span className="row-main">
+          <span className="row-title">{item.event_name}</span>
+          <span className="row-sub">
+            <DisplayName user={partner} demoMode={demoMode} />
+            <span className="row-dot">·</span>
+            {formatTime(item.start_time)} – {formatTime(item.end_time)}
+          </span>
+        </span>
+        <span className="row-right">
+          <span className={`status-badge ${getStatusBadgeClass(item.status)}`}>
+            {getStatusText(item.status)}
+          </span>
+          <span className="row-chevron" aria-hidden="true">›</span>
+        </span>
+      </button>
+    );
+  };
 
   if (loading) {
     return (
@@ -666,41 +705,35 @@ Total Cost: $${parseFloat(updated.total_cost).toFixed(2)}`;
                       <span className="list-section-count">{group.items.length}</span>
                     </h2>
                     <div className="bookings-list">
-                      {group.items.map((item) => {
-                        const partner = getBookingPartner(item);
-                        const d = parseLocalDate(item.event_date);
-                        return (
-                          <button
-                            key={item.id}
-                            className={`booking-row status-${item.status}`}
-                            onClick={() => handleOpenDetail(item)}
-                          >
-                            <span className="row-date" aria-hidden="true">
-                              <span className="row-date-month">
-                                {d.toLocaleDateString('en-US', { month: 'short' })}
-                              </span>
-                              <span className="row-date-day">{d.getDate()}</span>
-                            </span>
-                            <span className="row-main">
-                              <span className="row-title">{item.event_name}</span>
-                              <span className="row-sub">
-                                <DisplayName user={partner} demoMode={demoMode} />
-                                <span className="row-dot">·</span>
-                                {formatTime(item.start_time)} – {formatTime(item.end_time)}
-                              </span>
-                            </span>
-                            <span className="row-right">
-                              <span className={`status-badge ${getStatusBadgeClass(item.status)}`}>
-                                {getStatusText(item.status)}
-                              </span>
-                              <span className="row-chevron" aria-hidden="true">›</span>
-                            </span>
-                          </button>
-                        );
-                      })}
+                      {group.items.map(renderBookingRow)}
                     </div>
                   </div>
                 )
+              )}
+
+              {cancelledItems.length > 0 && (
+                <div className="list-section">
+                  <button
+                    type="button"
+                    className="list-section-title list-section-toggle"
+                    onClick={() => setShowCancelled((v) => !v)}
+                    aria-expanded={showCancelled}
+                  >
+                    <span
+                      className={`section-caret ${showCancelled ? 'open' : ''}`}
+                      aria-hidden="true"
+                    >
+                      ›
+                    </span>
+                    Cancelled
+                    <span className="list-section-count">{cancelledItems.length}</span>
+                  </button>
+                  {showCancelled && (
+                    <div className="bookings-list">
+                      {cancelledItems.map(renderBookingRow)}
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           )}
