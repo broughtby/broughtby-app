@@ -18,6 +18,11 @@ router.put('/:id/status', auth, bookingController.updateBookingStatus);
 // Update booking times (creator only)
 router.put('/:id/times', auth, bookingController.updateBookingTimes);
 
+// Draft workflow: duplicate a booking into a draft, edit it, then send it
+router.post('/:id/duplicate', auth, bookingController.duplicateBooking);
+router.put('/:id/draft', auth, bookingController.updateDraftBooking);
+router.post('/:id/send', auth, bookingController.sendDraftBooking);
+
 // Delete a booking
 router.delete('/:id', auth, bookingController.deleteBooking);
 

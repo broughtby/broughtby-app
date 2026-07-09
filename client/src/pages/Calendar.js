@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { bookingAPI, messageAPI, reviewAPI } from '../services/api';
+import { bookingAPI, messageAPI, reviewAPI, matchAPI } from '../services/api';
 import ReactCalendar from 'react-calendar';
 import { format, isSameDay } from 'date-fns';
 import TimeTracking from '../components/TimeTracking';
@@ -28,9 +28,20 @@ const Calendar = () => {
   const [editSubmitting, setEditSubmitting] = useState(false);
   const [detailBookingId, setDetailBookingId] = useState(null);
   const [showCancelled, setShowCancelled] = useState(false);
+  const [matches, setMatches] = useState([]); // matched ambassadors, for draft reassignment
+  const [draftBooking, setDraftBooking] = useState(null); // draft open in the editor
+  const [draftForm, setDraftForm] = useState(null);
+  const [draftSubmitting, setDraftSubmitting] = useState(false);
 
   useEffect(() => {
     fetchBookings();
+    // Brands/AMs need their matched ambassadors to reassign a draft
+    if (isBrand || isAccountManager) {
+      matchAPI.getMatches()
+        .then((res) => setMatches(res.data.matches || []))
+        .catch((err) => console.error('Failed to fetch matches:', err));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchBookings = async () => {
@@ -260,6 +271,8 @@ Total Cost: $${parseFloat(updated.total_cost).toFixed(2)}`;
 
   const getStatusBadgeClass = (status) => {
     switch (status) {
+      case 'draft':
+        return 'status-draft';
       case 'confirmed':
         return 'status-confirmed';
       case 'pending':
@@ -275,6 +288,8 @@ Total Cost: $${parseFloat(updated.total_cost).toFixed(2)}`;
 
   const getStatusText = (status) => {
     switch (status) {
+      case 'draft':
+        return '📝 Draft';
       case 'confirmed':
         return '✅ Confirmed';
       case 'pending':
@@ -395,15 +410,20 @@ Total Cost: $${parseFloat(updated.total_cost).toFixed(2)}`;
   todayStart.setHours(0, 0, 0, 0);
   const isPastDate = (b) => parseLocalDate(b.event_date) < todayStart;
 
+  const isActionable = (b) => b.status !== 'cancelled' && b.status !== 'draft';
   const upcomingItems = bookings
-    .filter((b) => b.status !== 'cancelled' && b.status !== 'completed' && !isPastDate(b))
+    .filter((b) => isActionable(b) && b.status !== 'completed' && !isPastDate(b))
     .sort(byDateAsc);
   const pastItems = bookings
-    .filter((b) => b.status !== 'cancelled' && (b.status === 'completed' || isPastDate(b)))
+    .filter((b) => isActionable(b) && (b.status === 'completed' || isPastDate(b)))
     .sort(byDateDesc);
   const cancelledItems = bookings
     .filter((b) => b.status === 'cancelled')
     .sort(byDateDesc);
+  // Drafts are private to the brand and shown in their own section at the top
+  const draftItems = bookings
+    .filter((b) => b.status === 'draft')
+    .sort(byDateAsc);
 
   const listGroups = [
     { key: 'upcoming', label: 'Upcoming', items: upcomingItems },
@@ -416,8 +436,101 @@ Total Cost: $${parseFloat(updated.total_cost).toFixed(2)}`;
     ? bookings.find((b) => b.id === detailBookingId) || null
     : null;
 
-  const handleOpenDetail = (item) => setDetailBookingId(item.id);
   const handleCloseDetail = () => setDetailBookingId(null);
+
+  // Clicking a row: drafts open the editor, everything else opens read-only detail
+  const handleRowClick = (item) => {
+    if (item.status === 'draft') {
+      openDraftEditor(item);
+    } else {
+      setDetailBookingId(item.id);
+    }
+  };
+
+  const openDraftEditor = (booking) => {
+    setDraftBooking(booking);
+    setDraftForm({
+      ambassadorId: booking.ambassador_id,
+      eventName: booking.event_name || '',
+      eventDate: booking.event_date ? booking.event_date.split('T')[0] : '',
+      startTime: toTimeInputValue(booking.start_time),
+      endTime: toTimeInputValue(booking.end_time),
+      eventLocation: booking.event_location || '',
+      notes: booking.notes || '',
+    });
+  };
+
+  const closeDraftEditor = () => {
+    setDraftBooking(null);
+    setDraftForm(null);
+    setDraftSubmitting(false);
+  };
+
+  // Duplicate any booking into a draft, then open it in the editor
+  const handleDuplicate = async (booking) => {
+    try {
+      const res = await bookingAPI.duplicateBooking(booking.id);
+      const draft = res.data.booking;
+      await fetchBookings();
+      handleCloseDetail();
+      openDraftEditor(draft);
+    } catch (error) {
+      console.error('Failed to duplicate booking:', error);
+      alert(error.response?.data?.error || 'Failed to duplicate booking. Please try again.');
+    }
+  };
+
+  const handleSaveDraft = async (e) => {
+    if (e) e.preventDefault();
+    if (draftForm.endTime <= draftForm.startTime) {
+      alert('End time must be after start time.');
+      return;
+    }
+    setDraftSubmitting(true);
+    try {
+      const res = await bookingAPI.updateDraftBooking(draftBooking.id, draftForm);
+      await fetchBookings();
+      setDraftBooking(res.data.booking);
+      setDraftSubmitting(false);
+      alert('Draft saved.');
+    } catch (error) {
+      console.error('Failed to save draft:', error);
+      alert(error.response?.data?.error || 'Failed to save draft. Please try again.');
+      setDraftSubmitting(false);
+    }
+  };
+
+  const handleSendDraft = async () => {
+    const ambName = matches.find((m) => m.user_id === draftForm.ambassadorId)?.name || 'this ambassador';
+    if (!window.confirm(`Save and send this booking request to ${ambName}?`)) return;
+    setDraftSubmitting(true);
+    try {
+      // Persist any pending edits first, then send
+      await bookingAPI.updateDraftBooking(draftBooking.id, draftForm);
+      await bookingAPI.sendDraftBooking(draftBooking.id);
+      await fetchBookings();
+      closeDraftEditor();
+      alert('Booking sent. The ambassador has been notified by email.');
+    } catch (error) {
+      console.error('Failed to send draft:', error);
+      alert(error.response?.data?.error || 'Failed to send draft. Please try again.');
+      setDraftSubmitting(false);
+    }
+  };
+
+  const handleDeleteDraft = async () => {
+    if (!window.confirm('Delete this draft? This cannot be undone.')) return;
+    setDraftSubmitting(true);
+    try {
+      await bookingAPI.deleteBooking(draftBooking.id);
+      await fetchBookings();
+      closeDraftEditor();
+    } catch (error) {
+      console.error('Failed to delete draft:', error);
+      alert(error.response?.data?.error || 'Failed to delete draft. Please try again.');
+      setDraftSubmitting(false);
+    }
+  };
 
   // A single compact, clickable list row (shared by every list section)
   const renderBookingRow = (item) => {
@@ -427,7 +540,7 @@ Total Cost: $${parseFloat(updated.total_cost).toFixed(2)}`;
       <button
         key={item.id}
         className={`booking-row status-${item.status}`}
-        onClick={() => handleOpenDetail(item)}
+        onClick={() => handleRowClick(item)}
       >
         <span className="row-date" aria-hidden="true">
           <span className="row-date-month">
@@ -697,6 +810,21 @@ Total Cost: $${parseFloat(updated.total_cost).toFixed(2)}`;
           {/* List View */}
           {viewMode === 'list' && (
             <div className="bookings-list-view">
+              {(isBrand || isAccountManager) && draftItems.length > 0 && (
+                <div className="list-section">
+                  <h2 className="list-section-title">
+                    Drafts
+                    <span className="list-section-count">{draftItems.length}</span>
+                  </h2>
+                  <p className="list-section-hint">
+                    Only you can see drafts. Edit one to change details or the ambassador, then send it.
+                  </p>
+                  <div className="bookings-list">
+                    {draftItems.map(renderBookingRow)}
+                  </div>
+                </div>
+              )}
+
               {listGroups.map((group) =>
                 group.items.length === 0 ? null : (
                   <div key={group.key} className="list-section">
@@ -810,6 +938,11 @@ Total Cost: $${parseFloat(updated.total_cost).toFixed(2)}`;
             </div>
 
             <div className="booking-actions detail-actions">
+              {(isBrand || isAccountManager) && (
+                <button className="action-btn edit-btn" onClick={() => handleDuplicate(detailBooking)}>
+                  Duplicate
+                </button>
+              )}
               {detailBooking.status === 'pending' && isAmbassador && (
                 <>
                   <button className="action-btn decline-btn" onClick={() => handleDecline(detailBooking)}>
@@ -855,6 +988,121 @@ Total Cost: $${parseFloat(updated.total_cost).toFixed(2)}`;
               ambassadorName={detailBooking.ambassador_name}
               demoMode={demoMode}
             />
+          </div>
+        </div>
+      )}
+
+      {/* Draft Editor Modal */}
+      {draftBooking && draftForm && (
+        <div className="edit-times-modal" onClick={closeDraftEditor}>
+          <div className="edit-times-content" onClick={(e) => e.stopPropagation()}>
+            <h2 className="edit-times-title">Edit Draft</h2>
+            <p className="edit-times-note">
+              Drafts are private to you. Change any details or the ambassador, then send when ready —
+              the cost updates automatically for the selected ambassador.
+            </p>
+            <form onSubmit={handleSaveDraft}>
+              <label className="edit-times-label">
+                Ambassador
+                <select
+                  value={draftForm.ambassadorId}
+                  onChange={(e) => setDraftForm({ ...draftForm, ambassadorId: Number(e.target.value) })}
+                >
+                  {!matches.some((m) => m.user_id === draftForm.ambassadorId) && (
+                    <option value={draftForm.ambassadorId}>
+                      {draftBooking.ambassador_name || 'Current ambassador'}
+                    </option>
+                  )}
+                  {matches.map((m) => (
+                    <option key={m.user_id} value={m.user_id}>{m.name}</option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="edit-times-label">
+                Event Name
+                <input
+                  type="text"
+                  value={draftForm.eventName}
+                  onChange={(e) => setDraftForm({ ...draftForm, eventName: e.target.value })}
+                  required
+                />
+              </label>
+
+              <label className="edit-times-label">
+                Date
+                <input
+                  type="date"
+                  value={draftForm.eventDate}
+                  onChange={(e) => setDraftForm({ ...draftForm, eventDate: e.target.value })}
+                  required
+                />
+              </label>
+
+              <div className="edit-times-row">
+                <label className="edit-times-label">
+                  Start Time
+                  <input
+                    type="time"
+                    value={draftForm.startTime}
+                    onChange={(e) => setDraftForm({ ...draftForm, startTime: e.target.value })}
+                    required
+                  />
+                </label>
+                <label className="edit-times-label">
+                  End Time
+                  <input
+                    type="time"
+                    value={draftForm.endTime}
+                    onChange={(e) => setDraftForm({ ...draftForm, endTime: e.target.value })}
+                    required
+                  />
+                </label>
+              </div>
+
+              <label className="edit-times-label">
+                Location
+                <input
+                  type="text"
+                  value={draftForm.eventLocation}
+                  onChange={(e) => setDraftForm({ ...draftForm, eventLocation: e.target.value })}
+                  required
+                />
+              </label>
+
+              <label className="edit-times-label">
+                Notes
+                <textarea
+                  rows={3}
+                  value={draftForm.notes}
+                  onChange={(e) => setDraftForm({ ...draftForm, notes: e.target.value })}
+                />
+              </label>
+
+              <div className="draft-actions">
+                <button
+                  type="button"
+                  className="action-btn cancel-btn"
+                  onClick={handleDeleteDraft}
+                  disabled={draftSubmitting}
+                >
+                  Delete
+                </button>
+                <div className="draft-actions-right">
+                  <button type="submit" className="action-btn edit-btn" disabled={draftSubmitting}>
+                    {draftSubmitting ? 'Saving...' : 'Save Draft'}
+                  </button>
+                  <button
+                    type="button"
+                    className="action-btn confirm-btn"
+                    onClick={handleSendDraft}
+                    disabled={draftSubmitting}
+                  >
+                    Send
+                  </button>
+                </div>
+              </div>
+            </form>
           </div>
         </div>
       )}
