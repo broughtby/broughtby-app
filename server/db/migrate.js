@@ -163,7 +163,7 @@ const migrations = [
       CHECK (end_time > start_time),
       CHECK (duration > 0),
       CHECK (total_cost >= 0),
-      CHECK (status IN ('pending', 'confirmed', 'completed', 'cancelled'))
+      CHECK (status IN ('draft', 'pending', 'confirmed', 'completed', 'cancelled'))
     );
   `,
 
@@ -842,6 +842,16 @@ const migrations = [
   `,
   `
     CREATE INDEX IF NOT EXISTS idx_users_signup_source ON users(signup_source);
+  `,
+
+  // Allow 'draft' bookings: a brand can duplicate a booking into a private
+  // draft, edit it (including reassigning the ambassador), then send it.
+  `
+    ALTER TABLE bookings DROP CONSTRAINT IF EXISTS bookings_status_check;
+  `,
+  `
+    ALTER TABLE bookings ADD CONSTRAINT bookings_status_check
+      CHECK (status IN ('draft', 'pending', 'confirmed', 'completed', 'cancelled'));
   `,
 ];
 

@@ -208,6 +208,7 @@ const getBookings = async (req, res) => {
         JOIN users u ON b.brand_id = u.id
         JOIN users ambassador ON b.ambassador_id = ambassador.id
         WHERE b.ambassador_id = $1
+          AND b.status != 'draft'
         ORDER BY b.event_date DESC, b.created_at DESC
       `;
       params = [req.user.userId];
@@ -238,7 +239,7 @@ const getBookingById = async (req, res) => {
       JOIN users brand ON b.brand_id = brand.id
       JOIN users ambassador ON b.ambassador_id = ambassador.id
       WHERE b.id = $1
-      AND (b.brand_id = $2 OR b.ambassador_id = $2)
+      AND (b.brand_id = $2 OR (b.ambassador_id = $2 AND b.status != 'draft'))
     `;
 
     const result = await db.query(query, [id, req.user.userId]);
@@ -451,6 +452,219 @@ const updateBookingTimes = async (req, res) => {
   }
 };
 
+// Authorize that the requester (brand or account manager) owns/created this
+// booking. Mirrors the ownership rules used by createBooking.
+const canManageBooking = async (req, booking) => {
+  if (req.user.role === 'brand') {
+    return booking.brand_id === req.user.userId;
+  }
+  if (req.user.role === 'account_manager') {
+    const engagementCheck = await db.query(
+      `SELECT id FROM engagements
+       WHERE brand_id = $1 AND account_manager_id = $2 AND status = 'active'`,
+      [booking.brand_id, req.user.userId]
+    );
+    return engagementCheck.rows.length > 0;
+  }
+  return false;
+};
+
+// Duplicate an existing booking into a private draft (copies event details,
+// keeps the same ambassador/match initially; the brand can edit and reassign).
+const duplicateBooking = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (req.user.role !== 'brand' && req.user.role !== 'account_manager') {
+      return res.status(403).json({ error: 'Only brands and account managers can duplicate bookings' });
+    }
+
+    const src = (await db.query('SELECT * FROM bookings WHERE id = $1', [id])).rows[0];
+    if (!src) {
+      return res.status(404).json({ error: 'Booking not found' });
+    }
+    if (!(await canManageBooking(req, src))) {
+      return res.status(403).json({ error: 'You do not have access to this booking' });
+    }
+
+    const result = await db.query(
+      `INSERT INTO bookings (
+        match_id, brand_id, ambassador_id, event_name, event_date, start_time, end_time,
+        duration, event_location, hourly_rate, total_cost, notes, status
+      )
+      SELECT match_id, brand_id, ambassador_id, event_name, event_date, start_time, end_time,
+             duration, event_location, hourly_rate, total_cost, notes, 'draft'
+      FROM bookings WHERE id = $1
+      RETURNING *`,
+      [id]
+    );
+
+    res.status(201).json({ message: 'Draft created', booking: result.rows[0] });
+  } catch (error) {
+    console.error('Duplicate booking error:', error);
+    res.status(500).json({ error: 'Failed to duplicate booking' });
+  }
+};
+
+// Edit a draft booking, including reassigning it to a different (matched)
+// ambassador. Recomputes duration and total cost.
+const updateDraftBooking = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { eventName, eventDate, startTime, endTime, eventLocation, notes, ambassadorId } = req.body;
+
+    if (req.user.role !== 'brand' && req.user.role !== 'account_manager') {
+      return res.status(403).json({ error: 'Only brands and account managers can edit drafts' });
+    }
+
+    const draft = (await db.query('SELECT * FROM bookings WHERE id = $1', [id])).rows[0];
+    if (!draft) {
+      return res.status(404).json({ error: 'Draft not found' });
+    }
+    if (draft.status !== 'draft') {
+      return res.status(400).json({ error: 'Only drafts can be edited here' });
+    }
+    if (!(await canManageBooking(req, draft))) {
+      return res.status(403).json({ error: 'You do not have access to this draft' });
+    }
+
+    // Resolve the (possibly new) ambassador, match and rate
+    let matchId = draft.match_id;
+    let effectiveAmbassadorId = draft.ambassador_id;
+    let hourlyRate = parseFloat(draft.hourly_rate);
+
+    if (ambassadorId && ambassadorId !== draft.ambassador_id) {
+      const match = (await db.query(
+        'SELECT id FROM matches WHERE brand_id = $1 AND ambassador_id = $2',
+        [draft.brand_id, ambassadorId]
+      )).rows[0];
+      if (!match) {
+        return res.status(400).json({ error: 'You are not matched with that ambassador' });
+      }
+      const amb = (await db.query(
+        'SELECT hourly_rate FROM users WHERE id = $1 AND role = $2',
+        [ambassadorId, 'ambassador']
+      )).rows[0];
+      if (!amb) {
+        return res.status(404).json({ error: 'Ambassador not found' });
+      }
+      matchId = match.id;
+      effectiveAmbassadorId = ambassadorId;
+      if (amb.hourly_rate !== null && amb.hourly_rate !== undefined) {
+        hourlyRate = parseFloat(amb.hourly_rate);
+      }
+    }
+
+    const newStart = startTime || draft.start_time;
+    const newEnd = endTime || draft.end_time;
+    const duration = hoursBetween(newStart, newEnd);
+    if (duration <= 0) {
+      return res.status(400).json({ error: 'End time must be after start time' });
+    }
+    const totalCost = Math.round(duration * hourlyRate * 100) / 100;
+
+    const result = await db.query(
+      `UPDATE bookings
+       SET match_id = $1, ambassador_id = $2, event_name = $3, event_date = $4,
+           start_time = $5, end_time = $6, duration = $7, event_location = $8,
+           hourly_rate = $9, total_cost = $10, notes = $11, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $12
+       RETURNING *`,
+      [
+        matchId,
+        effectiveAmbassadorId,
+        eventName !== undefined ? eventName : draft.event_name,
+        eventDate || draft.event_date,
+        newStart,
+        newEnd,
+        duration,
+        eventLocation !== undefined ? eventLocation : draft.event_location,
+        hourlyRate,
+        totalCost,
+        notes !== undefined ? notes : draft.notes,
+        id,
+      ]
+    );
+
+    res.json({ message: 'Draft updated', booking: result.rows[0] });
+  } catch (error) {
+    console.error('Update draft error:', error);
+    res.status(500).json({ error: 'Failed to update draft' });
+  }
+};
+
+// Send a draft: turn it into a real pending booking (or auto-confirm for
+// preview) and notify the ambassador by email.
+const sendDraftBooking = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (req.user.role !== 'brand' && req.user.role !== 'account_manager') {
+      return res.status(403).json({ error: 'Only brands and account managers can send drafts' });
+    }
+
+    const draft = (await db.query('SELECT * FROM bookings WHERE id = $1', [id])).rows[0];
+    if (!draft) {
+      return res.status(404).json({ error: 'Draft not found' });
+    }
+    if (draft.status !== 'draft') {
+      return res.status(400).json({ error: 'This booking is not a draft' });
+    }
+    if (!(await canManageBooking(req, draft))) {
+      return res.status(403).json({ error: 'You do not have access to this draft' });
+    }
+
+    // Event date must not be in the past
+    const eventDateObj = new Date(draft.event_date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (eventDateObj < today) {
+      return res.status(400).json({ error: 'Update the event date before sending — it is in the past' });
+    }
+
+    // Preview bookings auto-confirm and skip the email
+    const brandCheck = await db.query('SELECT is_preview, name FROM users WHERE id = $1', [draft.brand_id]);
+    const ambCheck = await db.query(
+      'SELECT email, name, is_preview_ambassador FROM users WHERE id = $1',
+      [draft.ambassador_id]
+    );
+    const isPreviewBooking = brandCheck.rows[0]?.is_preview && ambCheck.rows[0]?.is_preview_ambassador;
+    const newStatus = isPreviewBooking ? 'confirmed' : 'pending';
+
+    const result = await db.query(
+      `UPDATE bookings SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *`,
+      [newStatus, id]
+    );
+    const booking = result.rows[0];
+
+    // Notify the ambassador (non-blocking, skip for preview)
+    if (!isPreviewBooking && ambCheck.rows[0]) {
+      sendBookingRequestEmail({
+        ambassadorEmail: ambCheck.rows[0].email,
+        ambassadorName: ambCheck.rows[0].name,
+        brandName: brandCheck.rows[0]?.name,
+        eventName: booking.event_name,
+        eventDate: booking.event_date,
+        startTime: booking.start_time,
+        endTime: booking.end_time,
+        eventLocation: booking.event_location,
+        hourlyRate: booking.hourly_rate,
+        totalCost: booking.total_cost,
+        notes: booking.notes,
+      }).catch(err => console.error('Failed to send booking request email:', err));
+    }
+
+    res.json({
+      message: isPreviewBooking ? 'Booking confirmed' : 'Booking sent to ambassador',
+      booking,
+      autoConfirmed: isPreviewBooking,
+    });
+  } catch (error) {
+    console.error('Send draft error:', error);
+    res.status(500).json({ error: 'Failed to send draft' });
+  }
+};
+
 const deleteBooking = async (req, res) => {
   try {
     const { id } = req.params;
@@ -638,6 +852,9 @@ module.exports = {
   getBookingById,
   updateBookingStatus,
   updateBookingTimes,
+  duplicateBooking,
+  updateDraftBooking,
+  sendDraftBooking,
   deleteBooking,
   checkIn,
   checkOut,
