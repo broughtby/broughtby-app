@@ -123,6 +123,8 @@ const BookingModal = ({ ambassador, onClose, onSubmit }) => {
       today.setHours(0, 0, 0, 0);
       if (selectedDate < today) {
         newErrors.eventDate = 'Event date cannot be in the past';
+      } else if (selectedDate.getFullYear() < 2000 || selectedDate.getFullYear() > 2100) {
+        newErrors.eventDate = 'Please enter a valid event date';
       }
     }
 
@@ -246,6 +248,7 @@ const BookingModal = ({ ambassador, onClose, onSubmit }) => {
               onChange={handleChange}
               className={errors.eventDate ? 'error' : ''}
               min={new Date().toISOString().split('T')[0]}
+              max="2100-12-31"
             />
             {errors.eventDate && <span className="error-message">{errors.eventDate}</span>}
           </div>

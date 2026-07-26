@@ -1,5 +1,6 @@
 const db = require('../config/database');
 const { sendBookingRequestEmail, sendBookingConfirmedEmail, sendBookingTimesUpdatedEmail } = require('../services/emailService');
+const { eventDateYearError } = require('../utils/dateValidation');
 
 const createBooking = async (req, res) => {
   try {
@@ -97,6 +98,11 @@ const createBooking = async (req, res) => {
 
     if (eventDateObj < today) {
       return res.status(400).json({ error: 'Event date cannot be in the past' });
+    }
+
+    const yearError = eventDateYearError(eventDate);
+    if (yearError) {
+      return res.status(400).json({ error: yearError });
     }
 
     // Create booking (auto-confirm for preview mode)
@@ -397,6 +403,11 @@ const updateBookingTimes = async (req, res) => {
       return res.status(400).json({ error: 'Event date cannot be in the past' });
     }
 
+    const yearError = eventDateYearError(effectiveDate);
+    if (yearError) {
+      return res.status(400).json({ error: yearError });
+    }
+
     // Recompute cost from the ambassador's stored hourly rate to keep data consistent
     const hourlyRate = parseFloat(booking.hourly_rate);
     const totalCost = Math.round(duration * hourlyRate * 100) / 100;
@@ -563,6 +574,11 @@ const updateDraftBooking = async (req, res) => {
     }
     const totalCost = Math.round(duration * hourlyRate * 100) / 100;
 
+    const yearError = eventDateYearError(eventDate || draft.event_date);
+    if (yearError) {
+      return res.status(400).json({ error: yearError });
+    }
+
     const result = await db.query(
       `UPDATE bookings
        SET match_id = $1, ambassador_id = $2, event_name = $3, event_date = $4,
@@ -620,6 +636,11 @@ const sendDraftBooking = async (req, res) => {
     today.setHours(0, 0, 0, 0);
     if (eventDateObj < today) {
       return res.status(400).json({ error: 'Update the event date before sending — it is in the past' });
+    }
+
+    const yearError = eventDateYearError(draft.event_date);
+    if (yearError) {
+      return res.status(400).json({ error: 'Update the event date before sending — the year looks invalid' });
     }
 
     // Preview bookings auto-confirm and skip the email
