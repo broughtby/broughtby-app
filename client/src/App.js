@@ -14,6 +14,7 @@ import Connections from './pages/Connections';
 import Chat from './pages/Chat';
 import Profile from './pages/Profile';
 import Calendar from './pages/Calendar';
+import Hours from './pages/Hours';
 import Admin from './pages/Admin';
 import SmsCampaigns from './pages/SmsCampaigns';
 import SmsCampaignForm from './pages/SmsCampaignForm';
@@ -126,6 +127,15 @@ function App() {
               element={
                 <PrivateRoute>
                   <Calendar />
+                </PrivateRoute>
+              }
+            />
+
+            <Route
+              path="/hours"
+              element={
+                <PrivateRoute>
+                  <Hours />
                 </PrivateRoute>
               }
             />
