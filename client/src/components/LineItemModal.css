@@ -1,0 +1,139 @@
+.lineitem-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 37, 64, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 1000;
+}
+
+.lineitem-modal-content {
+  background: var(--white);
+  border-radius: 14px;
+  width: 100%;
+  max-width: 460px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 50px rgba(10, 37, 64, 0.25);
+}
+
+.lineitem-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--medium-gray);
+}
+
+.lineitem-modal-header h2 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: var(--navy);
+}
+
+.lineitem-modal-close {
+  background: none;
+  border: none;
+  font-size: 1.6rem;
+  line-height: 1;
+  color: var(--dark-gray);
+  cursor: pointer;
+  padding: 0;
+}
+
+.lineitem-form {
+  padding: 1.5rem;
+}
+
+.lineitem-form .form-group {
+  margin-bottom: 1.1rem;
+}
+
+.lineitem-form .form-row {
+  display: flex;
+  gap: 1rem;
+}
+
+.lineitem-form .form-row .form-group {
+  flex: 1;
+}
+
+.lineitem-form label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--navy);
+  margin-bottom: 0.4rem;
+}
+
+.lineitem-form input,
+.lineitem-form select {
+  width: 100%;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--medium-gray);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  color: var(--navy);
+  background: var(--white);
+  box-sizing: border-box;
+}
+
+.lineitem-form input:focus,
+.lineitem-form select:focus {
+  outline: none;
+  border-color: var(--navy);
+}
+
+.lineitem-error {
+  background: #FEF2F2;
+  color: #B91C1C;
+  padding: 0.6rem 0.8rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.lineitem-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.lineitem-btn-secondary {
+  padding: 0.6rem 1.1rem;
+  border: 1px solid var(--medium-gray);
+  background: var(--white);
+  color: var(--dark-gray);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.lineitem-btn-secondary:hover {
+  border-color: var(--navy);
+  color: var(--navy);
+}
+
+.lineitem-btn-primary {
+  padding: 0.6rem 1.2rem;
+  border: none;
+  background: var(--navy);
+  color: var(--white);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.lineitem-btn-primary:hover {
+  background: #0d2f52;
+}
+
+.lineitem-btn-primary:disabled,
+.lineitem-btn-secondary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

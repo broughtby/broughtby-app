@@ -324,6 +324,83 @@
   color: #B45309;
 }
 
+/* Section header with an action button */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.9rem;
+  gap: 1rem;
+}
+
+.section-header .section-title {
+  margin: 0;
+}
+
+.add-lineitem-btn {
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--navy);
+  background: var(--navy);
+  color: var(--white);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease;
+}
+
+.add-lineitem-btn:hover {
+  background: #0d2f52;
+}
+
+.add-lineitem-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Category pills */
+.category-pill {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.category-commission {
+  background: #EEF2FF;
+  color: #4338CA;
+}
+
+.category-reimbursement {
+  background: #F0FDF4;
+  color: #15803D;
+}
+
+/* Inline table action links */
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--navy);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0 0.4rem;
+}
+
+.link-btn:hover {
+  text-decoration: underline;
+}
+
+.link-btn.danger {
+  color: #B91C1C;
+}
+
+.muted {
+  color: var(--medium-gray);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .hours-tiles {
