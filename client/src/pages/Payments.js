@@ -233,9 +233,14 @@ const Payments = () => {
     monthLineItems.forEach((li) => {
       t.adjustments += Number(li.amount) || 0;
     });
-    t.totalOwed = t.bookingPay + t.adjustments;
+    // Internal staff pay/hours are month-wide (not tied to a person), so they
+    // only fold into the totals when viewing everyone as an admin.
+    const includeInternal = isAdmin && personFilter === 'all';
+    t.internalPay = includeInternal ? internalTotals.pay : 0;
+    t.internalHours = includeInternal ? internalTotals.hours : 0;
+    t.totalOwed = t.bookingPay + t.adjustments + t.internalPay;
     return t;
-  }, [monthBookings, monthLineItems]);
+  }, [monthBookings, monthLineItems, internalTotals, isAdmin, personFilter]);
 
   const changeMonth = (delta) => {
     let m = month + delta;
@@ -348,6 +353,12 @@ const Payments = () => {
             <div className="tile-value">{fmtMoney(totals.adjustments)}</div>
             <div className="tile-label">Adjustments</div>
           </div>
+          {isAdmin && personFilter === 'all' && (
+            <div className="hours-tile">
+              <div className="tile-value">{fmtMoney(totals.internalPay)}</div>
+              <div className="tile-label">Internal staff</div>
+            </div>
+          )}
         </div>
 
         {totals.unlogged > 0 && (
@@ -501,7 +512,7 @@ const Payments = () => {
         </div>
 
         {/* Internal staff hours — admin only, hidden from ambassadors */}
-        {isAdmin && (
+        {isAdmin && personFilter === 'all' && (
           <div className="hours-section">
             <div className="section-header">
               <h2 className="section-title">Internal staff hours</h2>
