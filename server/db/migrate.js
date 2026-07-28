@@ -853,6 +853,37 @@ const migrations = [
     ALTER TABLE bookings ADD CONSTRAINT bookings_status_check
       CHECK (status IN ('draft', 'pending', 'confirmed', 'completed', 'cancelled'));
   `,
+
+  // Custom line items: commissions, reimbursements and other one-off amounts a
+  // brand owes an ambassador for a given day, surfaced in the monthly Payments
+  // view. item_date buckets them by month. The year range guards against a
+  // typo (e.g. 202026) that would otherwise vanish from month/year filters.
+  `
+    CREATE TABLE IF NOT EXISTS line_items (
+      id SERIAL PRIMARY KEY,
+      brand_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      ambassador_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      item_date DATE NOT NULL,
+      category VARCHAR(20) NOT NULL,
+      description TEXT,
+      amount NUMERIC(10,2) NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      CHECK (brand_id != ambassador_id),
+      CHECK (amount > 0),
+      CHECK (category IN ('commission', 'reimbursement')),
+      CHECK (item_date >= DATE '2000-01-01' AND item_date <= DATE '2100-12-31')
+    );
+  `,
+  `
+    CREATE INDEX IF NOT EXISTS idx_line_items_brand ON line_items(brand_id);
+  `,
+  `
+    CREATE INDEX IF NOT EXISTS idx_line_items_ambassador ON line_items(ambassador_id);
+  `,
+  `
+    CREATE INDEX IF NOT EXISTS idx_line_items_date ON line_items(item_date);
+  `,
 ];
 
 async function runMigrations() {

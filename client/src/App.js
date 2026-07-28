@@ -14,7 +14,7 @@ import Connections from './pages/Connections';
 import Chat from './pages/Chat';
 import Profile from './pages/Profile';
 import Calendar from './pages/Calendar';
-import Hours from './pages/Hours';
+import Payments from './pages/Payments';
 import Admin from './pages/Admin';
 import SmsCampaigns from './pages/SmsCampaigns';
 import SmsCampaignForm from './pages/SmsCampaignForm';
@@ -132,13 +132,16 @@ function App() {
             />
 
             <Route
-              path="/hours"
+              path="/payments"
               element={
                 <PrivateRoute>
-                  <Hours />
+                  <Payments />
                 </PrivateRoute>
               }
             />
+
+            {/* Redirect the old Hours route to the renamed Payments page */}
+            <Route path="/hours" element={<Navigate to="/payments" replace />} />
 
             <Route
               path="/inquiries"

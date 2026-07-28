@@ -74,6 +74,14 @@ export const bookingAPI = {
   getTimeStatus: (id) => api.get(`/bookings/${id}/time-status`),
 };
 
+// Line item endpoints (commissions, reimbursements)
+export const lineItemAPI = {
+  getLineItems: () => api.get('/line-items'),
+  createLineItem: (data) => api.post('/line-items', data),
+  updateLineItem: (id, data) => api.put(`/line-items/${id}`, data),
+  deleteLineItem: (id) => api.delete(`/line-items/${id}`),
+};
+
 // Admin endpoints
 export const adminAPI = {
   searchUsers: (query) => api.get('/admin/users/search', { params: { q: query } }),
