@@ -342,7 +342,7 @@ const Payments = () => {
             <div className="tile-label">Total owed</div>
           </div>
           <div className="hours-tile">
-            <div className="tile-value">{fmtHours(totals.worked)}</div>
+            <div className="tile-value">{fmtHours(totals.worked + totals.internalHours)}</div>
             <div className="tile-label">Hours worked</div>
           </div>
           <div className="hours-tile">
