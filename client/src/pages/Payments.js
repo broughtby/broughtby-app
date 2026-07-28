@@ -187,6 +187,15 @@ const Payments = () => {
   const workedHours = (b) => (b.actual_hours != null ? Number(b.actual_hours) : null);
   const scheduledHours = (b) => Number(b.duration) || 0;
 
+  // Pay for a session: actual worked hours × rate once the session is checked
+  // out, otherwise the scheduled amount (duration × rate) from booking time.
+  const bookingPay = (b) => {
+    if (b.actual_hours == null) return Number(b.total_cost) || 0;
+    const rate = Number(b.hourly_rate) ||
+      (Number(b.duration) ? (Number(b.total_cost) || 0) / Number(b.duration) : 0);
+    return Math.round(Number(b.actual_hours) * rate * 100) / 100;
+  };
+
   // Per-person aggregates: hours + booking pay + adjustments -> total owed
   const perPerson = useMemo(() => {
     const map = new Map();
@@ -207,7 +216,7 @@ const Payments = () => {
       const w = workedHours(b);
       if (w != null) row.worked += w;
       else row.hasUnlogged = true;
-      row.bookingPay += Number(b.total_cost) || 0;
+      row.bookingPay += bookingPay(b);
     });
 
     monthLineItems.forEach((li) => {
@@ -228,7 +237,7 @@ const Payments = () => {
       const w = workedHours(b);
       if (w != null) t.worked += w;
       else t.unlogged += 1;
-      t.bookingPay += Number(b.total_cost) || 0;
+      t.bookingPay += bookingPay(b);
     });
     monthLineItems.forEach((li) => {
       t.adjustments += Number(li.amount) || 0;
@@ -426,7 +435,7 @@ const Payments = () => {
                           )}
                         </td>
                         <td><span className={`status-pill status-${b.status}`}>{statusLabel(b)}</span></td>
-                        <td className="num">{fmtMoney(b.total_cost)}</td>
+                        <td className="num">{fmtMoney(bookingPay(b))}</td>
                       </tr>
                     );
                   })}
