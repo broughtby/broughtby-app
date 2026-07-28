@@ -1035,6 +1035,8 @@ Total Cost: $${parseFloat(updated.total_cost).toFixed(2)}`;
                   type="date"
                   value={draftForm.eventDate}
                   onChange={(e) => setDraftForm({ ...draftForm, eventDate: e.target.value })}
+                  min={new Date().toISOString().split('T')[0]}
+                  max="2100-12-31"
                   required
                 />
               </label>
@@ -1123,6 +1125,8 @@ Total Cost: $${parseFloat(updated.total_cost).toFixed(2)}`;
                   type="date"
                   value={editForm.eventDate}
                   onChange={(e) => setEditForm({ ...editForm, eventDate: e.target.value })}
+                  min={new Date().toISOString().split('T')[0]}
+                  max="2100-12-31"
                   required
                 />
               </label>

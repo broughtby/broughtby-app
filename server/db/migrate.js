@@ -854,6 +854,26 @@ const migrations = [
       CHECK (status IN ('draft', 'pending', 'confirmed', 'completed', 'cancelled'));
   `,
 
+  // Bound event_date to a sane year range so a typo like 202026 can never be
+  // stored (Postgres DATE otherwise accepts years up to 5874897, and such rows
+  // silently vanish from any month/year-filtered view). NOT VALID enforces the
+  // check on all future inserts/updates without scanning existing rows, so the
+  // migration cannot fail the deploy on any legacy out-of-range data.
+  `
+    ALTER TABLE bookings DROP CONSTRAINT IF EXISTS bookings_event_date_range_check;
+  `,
+  `
+    ALTER TABLE bookings ADD CONSTRAINT bookings_event_date_range_check
+      CHECK (event_date >= DATE '2000-01-01' AND event_date <= DATE '2100-12-31') NOT VALID;
+  `,
+  `
+    ALTER TABLE broadcast_inquiries DROP CONSTRAINT IF EXISTS broadcast_inquiries_event_date_range_check;
+  `,
+  `
+    ALTER TABLE broadcast_inquiries ADD CONSTRAINT broadcast_inquiries_event_date_range_check
+      CHECK (event_date >= DATE '2000-01-01' AND event_date <= DATE '2100-12-31') NOT VALID;
+  `,
+
   // Custom line items: commissions, reimbursements and other one-off amounts a
   // brand owes an ambassador for a given day, surfaced in the monthly Payments
   // view. item_date buckets them by month. The year range guards against a

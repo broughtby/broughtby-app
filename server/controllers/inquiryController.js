@@ -1,5 +1,6 @@
 const db = require('../config/database');
 const { sendInquiryNotificationEmail, sendInquiryResponseEmail } = require('../services/emailService');
+const { eventDateYearError } = require('../utils/dateValidation');
 
 // Create a new broadcast inquiry
 const createInquiry = async (req, res) => {
@@ -30,6 +31,11 @@ const createInquiry = async (req, res) => {
 
     if (eventDateObj < today) {
       return res.status(400).json({ error: 'Event date cannot be in the past' });
+    }
+
+    const yearError = eventDateYearError(eventDate);
+    if (yearError) {
+      return res.status(400).json({ error: yearError });
     }
 
     // Validate required fields
