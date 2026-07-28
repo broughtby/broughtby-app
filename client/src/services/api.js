@@ -82,6 +82,14 @@ export const lineItemAPI = {
   deleteLineItem: (id) => api.delete(`/line-items/${id}`),
 };
 
+// Internal hours endpoints (admin only — manually-tracked staff hours)
+export const internalHoursAPI = {
+  getInternalHours: () => api.get('/internal-hours'),
+  createInternalHours: (data) => api.post('/internal-hours', data),
+  updateInternalHours: (id, data) => api.put(`/internal-hours/${id}`, data),
+  deleteInternalHours: (id) => api.delete(`/internal-hours/${id}`),
+};
+
 // Admin endpoints
 export const adminAPI = {
   searchUsers: (query) => api.get('/admin/users/search', { params: { q: query } }),
