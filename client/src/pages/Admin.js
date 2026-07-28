@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { adminAPI } from '../services/api';
+import InternalHoursAdmin from '../components/InternalHoursAdmin';
 import './Admin.css';
 
 const Admin = () => {
@@ -215,6 +216,9 @@ const Admin = () => {
           </div>
         )}
       </div>
+
+      {/* Internal Hours Section */}
+      <InternalHoursAdmin />
 
       {/* Admin Tools Section */}
       <div className="admin-tools-section">

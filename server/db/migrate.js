@@ -904,6 +904,33 @@ const migrations = [
   `
     CREATE INDEX IF NOT EXISTS idx_line_items_date ON line_items(item_date);
   `,
+
+  // Internal staff hours: manually-tracked extra hours worked by internal
+  // people (the operator, family helping out, etc.) who are NOT users in the
+  // system, hence the free-text person_name. Admin-only; surfaced in the
+  // monthly Payments view for admins. Year range guards against date typos.
+  `
+    CREATE TABLE IF NOT EXISTS internal_hours (
+      id SERIAL PRIMARY KEY,
+      created_by INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      person_name VARCHAR(200) NOT NULL,
+      work_date DATE NOT NULL,
+      hours NUMERIC(6,2) NOT NULL,
+      amount NUMERIC(10,2) NOT NULL DEFAULT 0,
+      description TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      CHECK (hours > 0),
+      CHECK (amount >= 0),
+      CHECK (work_date >= DATE '2000-01-01' AND work_date <= DATE '2100-12-31')
+    );
+  `,
+  `
+    CREATE INDEX IF NOT EXISTS idx_internal_hours_created_by ON internal_hours(created_by);
+  `,
+  `
+    CREATE INDEX IF NOT EXISTS idx_internal_hours_date ON internal_hours(work_date);
+  `,
 ];
 
 async function runMigrations() {
