@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { bookingAPI, lineItemAPI, matchAPI } from '../services/api';
+import { bookingAPI, lineItemAPI, matchAPI, internalHoursAPI } from '../services/api';
 import LineItemModal from '../components/LineItemModal';
 import './Payments.css';
 
@@ -43,9 +43,10 @@ const fmtMoney = (n) =>
   (Number(n) || 0).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
 
 const Payments = () => {
-  const { isBrand } = useAuth();
+  const { isBrand, isAdmin } = useAuth();
   const [bookings, setBookings] = useState([]);
   const [lineItems, setLineItems] = useState([]);
+  const [internalHours, setInternalHours] = useState([]);
   const [ambassadorOptions, setAmbassadorOptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -71,6 +72,16 @@ const Payments = () => {
       setBookings(bookingsRes.data.bookings || []);
       setLineItems(lineItemsRes.data.lineItems || []);
 
+      // Internal staff hours are admin-only and never shown to ambassadors
+      if (isAdmin) {
+        try {
+          const ihRes = await internalHoursAPI.getInternalHours();
+          setInternalHours(ihRes.data.internalHours || []);
+        } catch {
+          setInternalHours([]);
+        }
+      }
+
       // Brands need the list of connected ambassadors to add line items for
       if (isBrand) {
         try {
@@ -90,7 +101,7 @@ const Payments = () => {
     } finally {
       setLoading(false);
     }
-  }, [isBrand]);
+  }, [isBrand, isAdmin]);
 
   useEffect(() => {
     fetchData();
@@ -139,6 +150,24 @@ const Payments = () => {
       .filter(matchesPerson)
       .sort((a, b) => parseLocalDate(a.item_date) - parseLocalDate(b.item_date));
   }, [lineItems, inSelectedMonth, matchesPerson]);
+
+  // Internal staff hours in the selected month (admin-only; not tied to a person filter)
+  const monthInternalHours = useMemo(() => {
+    return internalHours
+      .filter((ih) => inSelectedMonth(ih.work_date))
+      .sort((a, b) => parseLocalDate(a.work_date) - parseLocalDate(b.work_date));
+  }, [internalHours, inSelectedMonth]);
+
+  const internalTotals = useMemo(() => {
+    return monthInternalHours.reduce(
+      (acc, ih) => {
+        acc.hours += Number(ih.hours) || 0;
+        acc.pay += Number(ih.amount) || 0;
+        return acc;
+      },
+      { hours: 0, pay: 0 }
+    );
+  }, [monthInternalHours]);
 
   // People with any booking OR line item in the selected month (for the filter)
   const peopleInMonth = useMemo(() => {
@@ -470,6 +499,54 @@ const Payments = () => {
             </div>
           )}
         </div>
+
+        {/* Internal staff hours — admin only, hidden from ambassadors */}
+        {isAdmin && (
+          <div className="hours-section">
+            <div className="section-header">
+              <h2 className="section-title">Internal staff hours</h2>
+              <span className="ih-manage-hint">Manage in Admin</span>
+            </div>
+            {monthInternalHours.length === 0 ? (
+              <div className="hours-empty">
+                No internal hours logged for {MONTH_NAMES[month]} {year}.
+              </div>
+            ) : (
+              <div className="hours-table-wrap">
+                <table className="hours-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Name</th>
+                      <th className="num">Hours</th>
+                      <th className="num">Pay</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {monthInternalHours.map((ih) => (
+                      <tr key={ih.id}>
+                        <td>{shortDate(ih.work_date)}</td>
+                        <td>{ih.person_name}</td>
+                        <td className="num">{fmtHours(ih.hours)}</td>
+                        <td className="num">{fmtMoney(ih.amount)}</td>
+                        <td>{ih.description || <span className="muted">—</span>}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td colSpan={2}>Total</td>
+                      <td className="num"><strong>{fmtHours(internalTotals.hours)}</strong></td>
+                      <td className="num"><strong>{fmtMoney(internalTotals.pay)}</strong></td>
+                      <td />
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
 
         {nothingThisMonth && !isBrand && (
           <div className="hours-note">Nothing recorded for {MONTH_NAMES[month]} {year} yet.</div>
